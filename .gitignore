@@ -1,0 +1,19 @@
+# Ignore everything
+*
+
+# Except for those ending with slash (i.e. directories)
+!*/
+*.venv/
+
+# And do not ignore the following file types
+!.gitignore
+!*.md
+!*.py
+!*.txt
+!poetry.lock
+!pyproject.toml
+!alembic.ini
+!migrations/script.py.mako
+!.dockerignore
+!docker-compose.yml
+!Dockerfile*
