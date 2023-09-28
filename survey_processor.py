@@ -1,5 +1,6 @@
+from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
-from pyxform import Survey, Section, Question
+
 
 class SurveyProcessor:
     def __init__(self, survey: Survey):
@@ -20,7 +21,7 @@ class SurveyProcessor:
         Return the immediate next sibling of the given survey element.
         """
         element_index = element.parent.children.index(element)
-        return element.parent.children[element_index+1]
+        return element.parent.children[element_index + 1]
 
     def next(self):
         """
@@ -32,7 +33,9 @@ class SurveyProcessor:
             except IndexError:
                 # If there is no more next sibling, move up to the parent node
                 # and return its next sibling.
-                self._curr_node = self._get_next_sibling(self._curr_node.parent)
+                self._curr_node = self._get_next_sibling(
+                    self._curr_node.parent
+                )
         elif isinstance(self._curr_node, Section):
             self._curr_node = self._curr_node.children[0]
 

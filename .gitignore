@@ -12,6 +12,8 @@
 !*.html
 !poetry.lock
 !pyproject.toml
+!.pre-commit-config.yaml
+!.vscode/settings.json
 !alembic.ini
 !migrations/script.py.mako
 !.dockerignore
