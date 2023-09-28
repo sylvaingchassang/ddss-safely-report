@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+  <li>Element Name: {{ survey_processor.curr_name }}</li>
+  <li>Element Type: {{ survey_processor.curr_type }}</li>
+</ul>
+<a href="{{ url_for('back') }}">
+  <button type="button">Back</button>
+</a>
+<a href="{{ url_for('next') }}">
+  <button type="button">Next</button>
+</a>
+{% endblock %}

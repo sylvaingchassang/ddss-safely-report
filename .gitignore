@@ -9,7 +9,7 @@
 !.gitignore
 !*.md
 !*.py
-!*.txt
+!*.html
 !poetry.lock
 !pyproject.toml
 !alembic.ini
