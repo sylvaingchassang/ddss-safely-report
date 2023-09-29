@@ -1,3 +1,5 @@
+import re
+
 from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
 
@@ -15,6 +17,38 @@ class SurveyProcessor:
     @property
     def curr_type(self) -> str:
         return self._curr_node.type
+
+    @property
+    def curr_relevant(self) -> bool:
+        formula_raw = self._curr_node.bind.get("relevant", None)
+        if formula_raw is None:
+            return True
+        formula_pythonic = self._translate_raw_formula(formula_raw)
+
+        # TODO: Perform proper error handling
+        return eval(formula_pythonic)
+
+    def _translate_raw_formula(self, formula: str) -> str:
+        """
+        Translate raw XLSForm formula into the one that Python
+        can evaluate.
+
+        Given that XLSForm's formula uses a limited array of
+        expressions, we can achieve accurate translation through
+        RegEx-based text replacement.
+        """
+        # Compile a list of match-replace regex pairs
+        regex_pairs = [
+            # Replace single equal signs with double equal signs
+            # while escaping other valid operators (`!=`, `>=`, `<=`)
+            (r"([^\!\>\<]{1})=", r"\1=="),
+        ]
+
+        # Perform translation
+        for match_regex, replace_regex in regex_pairs:
+            formula = re.sub(match_regex, replace_regex, formula)
+
+        return formula
 
     def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
         """
