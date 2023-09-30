@@ -28,7 +28,8 @@ class SurveyProcessor:
         # TODO: Perform proper error handling
         return eval(formula_pythonic)
 
-    def _translate_raw_formula(self, formula: str) -> str:
+    @staticmethod
+    def _translate_raw_formula(formula: str) -> str:
         """
         Translate raw XLSForm formula into the one that Python
         can evaluate.
