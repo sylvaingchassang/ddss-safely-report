@@ -13,6 +13,7 @@
 !poetry.lock
 !pyproject.toml
 !.pre-commit-config.yaml
+!.flake8
 !.vscode/settings.json
 !alembic.ini
 !migrations/script.py.mako
