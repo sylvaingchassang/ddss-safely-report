@@ -65,11 +65,9 @@ class SurveyProcessor:
             (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
             # Replace XLSForm functions (e.g., `selected-at()`) with
             # corresponding custom Python functions (e.g., `xf_selected_at()`)
-            # NOTE: This replacement has to come AFTER replacement of
-            # dot expressions
             (
                 r"([a-z][a-z\d\:\-]*\()",
-                lambda x: re.sub("[:-]", "_", "xf." + x.group(1)),
+                lambda x: re.sub("[:-]", "_", "xf_" + x.group(1)),
             ),
             # Replace XLSForm variables (e.g., `${some.var}`) with
             # Python expressions
