@@ -49,4 +49,4 @@ from survey_processor import SurveyProcessor
 )
 def test_translate_xlsform_formula(input_output):
     input, output = input_output
-    assert SurveyProcessor._translate_raw_formula(input) == output
+    assert SurveyProcessor._translate_xlsform_formula(input) == output

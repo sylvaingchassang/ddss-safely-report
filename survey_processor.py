@@ -26,13 +26,13 @@ class SurveyProcessor:
 
     @property
     def curr_relevant(self) -> bool:
-        formula_raw = self._curr_node.bind.get("relevant", None)
-        if formula_raw is None:
+        formula_xlsform = self._curr_node.bind.get("relevant", None)
+        if formula_xlsform is None:
             return True
-        formula_pythonic = self._translate_raw_formula(formula_raw)
+        formula_python = self._translate_xlsform_formula(formula_xlsform)
 
         # TODO: Perform proper error handling
-        return eval(formula_pythonic)
+        return eval(formula_python)
 
     def get_value(self, element_name: str) -> Any:
         """
@@ -44,9 +44,9 @@ class SurveyProcessor:
         return value
 
     @staticmethod
-    def _translate_raw_formula(formula: str) -> str:
+    def _translate_xlsform_formula(formula: str) -> str:
         """
-        Translate raw XLSForm formula into the one that Python
+        Translate XLSForm formula into the one that Python
         can evaluate.
 
         Given that XLSForm's formula uses a limited array of
@@ -64,7 +64,7 @@ class SurveyProcessor:
             # inside curly braces)
             (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
             # Replace XLSForm variables (e.g., `${some.var}`) with
-            # Pythonic references
+            # Python expressions
             # NOTE: This replacement has to come AFTER replacement of
             # dot expressions
             (r"(\$\{)([^\}]+)(\})", r"self.get_value('\2')"),
