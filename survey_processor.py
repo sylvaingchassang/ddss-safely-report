@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
@@ -9,10 +10,18 @@ class SurveyProcessor:
         self._survey = survey
         self._curr_node = self._survey.children[0]
         self._visit_history = [self._curr_node]
+        self.responses = {}
 
     @property
     def curr_name(self) -> str:
         return self._curr_node.name
+
+    @property
+    def curr_value(self) -> Any:
+        value = self.responses.get(self.curr_name, None)
+        if value is None:
+            raise KeyError(f"Value for {self.curr_name} does not exist")
+        return value
 
     @property
     def curr_type(self) -> str:
@@ -43,6 +52,10 @@ class SurveyProcessor:
             # Replace single equal signs with double equal signs
             # while escaping other valid operators (`!=`, `>=`, `<=`)
             (r"([^\!\>\<]{1})=", r"\1=="),
+            # Replace dots with the response value of the current question
+            # except for those that are part of fractional numbers
+            # or part of variable names (i.e., wrapped inside curly braces)
+            (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
         ]
 
         # Perform translation
