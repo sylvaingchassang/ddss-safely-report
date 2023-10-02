@@ -63,10 +63,18 @@ class SurveyProcessor:
             # fractional numbers or part of variable names (i.e., wrapped
             # inside curly braces)
             (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
+            # Replace XLSForm functions (e.g., `selected-at()`) with
+            # corresponding custom Python functions (e.g., `xf_selected_at()`)
+            # NOTE: This replacement has to come AFTER replacement of
+            # dot expressions
+            (
+                r"([a-z][a-z\d\:\-]*\()",
+                lambda x: re.sub("[:-]", "_", "xf." + x.group(1)),
+            ),
             # Replace XLSForm variables (e.g., `${some.var}`) with
             # Python expressions
             # NOTE: This replacement has to come AFTER replacement of
-            # dot expressions
+            # dot expressions AND replacement of XLSForm functions
             (r"(\$\{)([^\}]+)(\})", r"self.get_value('\2')"),
         ]
 

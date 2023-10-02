@@ -25,8 +25,15 @@ from survey_processor import SurveyProcessor
             "${some.variable} > 10 and . > 5.6",
             "self.get_value('some.variable') > 10 and self.curr_value > 5.6",
         ),
-        (r"regex(., '\p{L}')", r"regex(self.curr_value, '\p{L}')"),
-        ("position(..)", "position(..)"),
+        (r"regex(., '\p{L}')", r"xf.regex(self.curr_value, '\p{L}')"),
+        ("position(..)", "xf.position(..)"),  # TODO: Handle this outlier
+        # Test cases for translation of XLSForm functions
+        ("between(12, 100)", "xf.between(12, 100)"),
+        ("count-selected(.) <= 3", "xf.count_selected(self.curr_value) <= 3"),
+        (
+            "jr:choice-name( selected-at(${color-prefs}, 0), '${color-prefs}')",
+            "xf.jr_choice_name( xf.selected_at(self.get_value('color-prefs'), 0), 'self.get_value('color-prefs')')",  # TODO: Handle this outlier
+        ),
         # Test cases for translation of XLSForm variables
         ("${some-variable} > 10", "self.get_value('some-variable') > 10"),
         (
@@ -35,7 +42,7 @@ from survey_processor import SurveyProcessor
         ),
         (
             "selected(${ref65_intro}, '1')",
-            "selected(self.get_value('ref65_intro'), '1')",
+            "xf.selected(self.get_value('ref65_intro'), '1')",
         ),
         (
             "${treatment_arm} in {4, 5, 6}",
@@ -44,6 +51,11 @@ from survey_processor import SurveyProcessor
         (
             ". in { ${var.1}, ${var.2} }",
             "self.curr_value in { self.get_value('var.1'), self.get_value('var.2') }",
+        ),
+        # Advanced test cases
+        (
+            "${pa51_repeat}=0 or index()=1 and indexed-repeat(${pa51_repeat}, ${pa51},index()-1)!=0",
+            "self.get_value('pa51_repeat')==0 or xf.index()==1 and xf.indexed_repeat(self.get_value('pa51_repeat'), self.get_value('pa51'),xf.index()-1)!=0",
         ),
     ],
 )
