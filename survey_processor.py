@@ -22,6 +22,20 @@ class SurveyProcessor(SurveyProcessorBase):
         return self._curr_node.name
 
     @property
+    def curr_label(self) -> str:
+        """
+        Label of the current survey element (if applicable).
+        """
+        pass  # TODO: Implement
+
+    @property
+    def curr_hint(self) -> str:
+        """
+        Hint of the current survey element (if applicable).
+        """
+        pass  # TODO: Implement
+
+    @property
     def curr_value(self) -> Any:
         """
         Response value of the current survey element (if applicable).
@@ -36,9 +50,23 @@ class SurveyProcessor(SurveyProcessorBase):
         return self._curr_node.type
 
     @property
+    def curr_to_show(self) -> bool:
+        """
+        Whether the current survey element is of a type to show to the
+        respondent (e.g., note, multiple-select question).
+        """
+        pass  # TODO: Implement
+
+    @property
     def curr_relevant(self) -> bool:
         """
         Whether the current survey element is relevant to the respondent.
+
+        NOTE: This is different from `curr_to_show` property because a survey
+        element can be of a type to show to the respondent (e.g., select-one
+        question) yet not relevant to the respondent (e.g., respondent answered
+        no to the prerequisite question), in which case the survey element will
+        neither be shown nor executed at all.
         """
         formula_xlsform = self._curr_node.bind.get("relevant", None)
         if formula_xlsform is None:
@@ -47,6 +75,13 @@ class SurveyProcessor(SurveyProcessorBase):
 
         # TODO: Perform proper error handling
         return eval(formula_python)
+
+    @property
+    def curr_in_repeat(self) -> bool:
+        """
+        Whether the current survey element is in a repeat loop.
+        """
+        pass  # TODO: Implement
 
     def get_value(self, element_name: str) -> Any:
         """
