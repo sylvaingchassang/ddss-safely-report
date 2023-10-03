@@ -78,7 +78,7 @@ class SurveyProcessor(SurveyProcessorBase):
             # inside curly braces)
             (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
             # Replace XLSForm functions (e.g., `selected-at()`) with
-            # corresponding custom Python functions (e.g., `xf_selected_at()`)
+            # corresponding Python methods (e.g., `self._selected_at()`)
             (
                 r"([a-z][a-z\d\:\-]*\()",
                 lambda x: re.sub("[:-]", "_", "self._" + x.group(1)),
