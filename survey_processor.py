@@ -4,8 +4,10 @@ from typing import Any
 from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
 
+from survey_processor_base import SurveyProcessorBase
 
-class SurveyProcessor:
+
+class SurveyProcessor(SurveyProcessorBase):
     def __init__(self, survey: Survey):
         self._survey = survey
         self._curr_node = self._survey.children[0]
@@ -67,7 +69,7 @@ class SurveyProcessor:
             # corresponding custom Python functions (e.g., `xf_selected_at()`)
             (
                 r"([a-z][a-z\d\:\-]*\()",
-                lambda x: re.sub("[:-]", "_", "xf_" + x.group(1)),
+                lambda x: re.sub("[:-]", "_", "self._" + x.group(1)),
             ),
             # Replace XLSForm variables (e.g., `${some.var}`) with
             # Python expressions

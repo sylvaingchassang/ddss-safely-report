@@ -25,14 +25,17 @@ from survey_processor import SurveyProcessor
             "${some.variable} > 10 and . > 5.6",
             "self.get_value('some.variable') > 10 and self.curr_value > 5.6",
         ),
-        (r"regex(., '\p{L}')", r"xf_regex(self.curr_value, '\p{L}')"),
-        ("position(..)", "xf_position(..)"),  # TODO: Handle this outlier
+        (r"regex(., '\p{L}')", r"self._regex(self.curr_value, '\p{L}')"),
+        ("position(..)", "self._position(..)"),  # TODO: Handle this outlier
         # Test cases for translation of XLSForm functions
-        ("between(12, 100)", "xf_between(12, 100)"),
-        ("count-selected(.) <= 3", "xf_count_selected(self.curr_value) <= 3"),
+        ("between(12, 100)", "self._between(12, 100)"),
+        (
+            "count-selected(.) <= 3",
+            "self._count_selected(self.curr_value) <= 3",
+        ),
         (
             "jr:choice-name( selected-at(${color-prefs}, 0), '${color-prefs}')",
-            "xf_jr_choice_name( xf_selected_at(self.get_value('color-prefs'), 0), 'self.get_value('color-prefs')')",  # TODO: Handle this outlier
+            "self._jr_choice_name( self._selected_at(self.get_value('color-prefs'), 0), 'self.get_value('color-prefs')')",  # TODO: Handle this outlier
         ),
         # Test cases for translation of XLSForm variables
         ("${some-variable} > 10", "self.get_value('some-variable') > 10"),
@@ -42,7 +45,7 @@ from survey_processor import SurveyProcessor
         ),
         (
             "selected(${ref65_intro}, '1')",
-            "xf_selected(self.get_value('ref65_intro'), '1')",
+            "self._selected(self.get_value('ref65_intro'), '1')",
         ),
         (
             "${treatment_arm} in {4, 5, 6}",
@@ -55,7 +58,7 @@ from survey_processor import SurveyProcessor
         # Advanced test cases
         (
             "${pa51_repeat}=0 or index()=1 and indexed-repeat(${pa51_repeat}, ${pa51},index()-1)!=0",
-            "self.get_value('pa51_repeat')==0 or xf_index()==1 and xf_indexed_repeat(self.get_value('pa51_repeat'), self.get_value('pa51'),xf_index()-1)!=0",
+            "self.get_value('pa51_repeat')==0 or self._index()==1 and self._indexed_repeat(self.get_value('pa51_repeat'), self.get_value('pa51'),self._index()-1)!=0",
         ),
     ],
 )
