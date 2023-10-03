@@ -16,18 +16,30 @@ class SurveyProcessor(SurveyProcessorBase):
 
     @property
     def curr_name(self) -> str:
+        """
+        Name of the current survey element.
+        """
         return self._curr_node.name
 
     @property
     def curr_value(self) -> Any:
+        """
+        Response value of the current survey element (if applicable).
+        """
         return self.get_value(self.curr_name)
 
     @property
     def curr_type(self) -> str:
+        """
+        Type of the current survey element (e.g., multiple-select question).
+        """
         return self._curr_node.type
 
     @property
     def curr_relevant(self) -> bool:
+        """
+        Whether the current survey element is relevant to the respondent.
+        """
         formula_xlsform = self._curr_node.bind.get("relevant", None)
         if formula_xlsform is None:
             return True
