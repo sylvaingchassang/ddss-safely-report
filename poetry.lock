@@ -12,6 +12,17 @@ files = [
 ]
 
 [[package]]
+name = "cachelib"
+version = "0.10.2"
+description = "A collection of cache libraries in the same API interface."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "cachelib-0.10.2-py3-none-any.whl", hash = "sha256:42d49f2fad9310dd946d7be73d46776bcd4d5fde4f49ad210cfdd447fbdfc346"},
+    {file = "cachelib-0.10.2.tar.gz", hash = "sha256:593faeee62a7c037d50fc835617a01b887503f972fb52b188ae7e50e9cb69740"},
+]
+
+[[package]]
 name = "cfgv"
 version = "3.4.0"
 description = "Validate configuration and produce human readable error messages."
@@ -132,6 +143,21 @@ Werkzeug = ">=2.3.7"
 [package.extras]
 async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
+
+[[package]]
+name = "flask-session"
+version = "0.5.0"
+description = "Server-side session support for Flask"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "Flask-Session-0.5.0.tar.gz", hash = "sha256:190875e6aebf2953c6803d42379ef3b934bc209ef8ef006f97aecb08f5aaeb86"},
+    {file = "flask_session-0.5.0-py3-none-any.whl", hash = "sha256:1619bcbc16f04f64e90f8e0b17145ba5c9700090bb1294e889956c1282d58631"},
+]
+
+[package.dependencies]
+cachelib = "*"
+flask = ">=2.2"
 
 [[package]]
 name = "identify"
@@ -570,4 +596,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "489d4b31d840357fca2b7fa792464c51ba11956aebf32c375daa189884f3db5c"
+content-hash = "7e57d4d3e459d79710ed2ee8c5b8565556c0f3f89ef3a042b5ac6acac5ed8a9f"

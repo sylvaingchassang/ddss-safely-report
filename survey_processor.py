@@ -5,21 +5,71 @@ from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
 
 from survey_processor_base import SurveyProcessorBase
+from survey_session import SurveySession
 
 
 class SurveyProcessor(SurveyProcessorBase):
-    def __init__(self, survey: Survey):
+    def __init__(self, survey: Survey, survey_session: SurveySession):
         self._survey = survey
-        self._curr_node = self._survey.children[0]
-        self._visit_history = [self._curr_node]
-        self._responses = {}
+        self._session = survey_session
+
+        # Build a lookup table that maps element name to object
+        # NOTE: This will NOT create too much memory overhead as the lookup
+        # table simply stores references to objects, not copies of objects
+        self._elements = {}
+        for item in self._survey.iter_descendants():
+            self._elements[item.name] = item
+
+    def _get_element(self, element_name: str) -> SurveyElement:
+        """
+        Get the survey element object by its name.
+        """
+        element = self._elements.get(element_name, None)
+        if element is None:
+            raise KeyError(f"Element does not exist: {element_name}")
+        return element
+
+    def get_value(self, element_name: str) -> Any:
+        """
+        Get the response value of the given survey element.
+        """
+        value = self._session.retrieve_response(element_name)
+        if value is None:
+            raise KeyError(f"Value for {element_name} does not exist")
+        return value
 
     @property
     def curr_name(self) -> str:
         """
         Name of the current survey element.
         """
-        return self._curr_node.name
+        name = self._session.latest_visit
+        if name is None:
+            # Start from the beginning, i.e. survey root
+            self._session.add_new_visit(self._survey.name)
+            name = self._session.latest_visit
+        return name
+
+    @property
+    def curr_value(self) -> Any:
+        """
+        Response value of the current survey element (if applicable).
+        """
+        return self.get_value(self.curr_name)
+
+    @property
+    def _curr_element(self) -> SurveyElement:
+        """
+        Current survey element object.
+        """
+        return self._get_element(self.curr_name)
+
+    @property
+    def curr_type(self) -> str:
+        """
+        Type of the current survey element (e.g., multiple-select question).
+        """
+        return self._curr_element.type
 
     @property
     def curr_label(self) -> str:
@@ -34,20 +84,6 @@ class SurveyProcessor(SurveyProcessorBase):
         Hint of the current survey element (if applicable).
         """
         pass  # TODO: Implement
-
-    @property
-    def curr_value(self) -> Any:
-        """
-        Response value of the current survey element (if applicable).
-        """
-        return self.get_value(self.curr_name)
-
-    @property
-    def curr_type(self) -> str:
-        """
-        Type of the current survey element (e.g., multiple-select question).
-        """
-        return self._curr_node.type
 
     @property
     def curr_to_show(self) -> bool:
@@ -68,7 +104,7 @@ class SurveyProcessor(SurveyProcessorBase):
         no to the prerequisite question), in which case the survey element will
         neither be shown nor executed at all.
         """
-        formula_xlsform = self._curr_node.bind.get("relevant", None)
+        formula_xlsform = self._curr_element.bind.get("relevant", None)
         if formula_xlsform is None:
             return True
         formula_python = self._translate_xlsform_formula(formula_xlsform)
@@ -82,15 +118,6 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the current survey element is in a repeat loop.
         """
         pass  # TODO: Implement
-
-    def get_value(self, element_name: str) -> Any:
-        """
-        Get the response value of the given survey element.
-        """
-        value = self._responses.get(element_name, None)
-        if value is None:
-            raise KeyError(f"Value for {element_name} does not exist")
-        return value
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:
@@ -142,20 +169,20 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Move to the next survey element to process.
         """
-        if isinstance(self._curr_node, Question):
+        if isinstance(self._curr_element, Question):
             try:
-                self._curr_node = self._get_next_sibling(self._curr_node)
+                next_element = self._get_next_sibling(self._curr_element)
             except IndexError:
                 # If there is no more next sibling, move up to the parent node
                 # and return its next sibling.
-                self._curr_node = self._get_next_sibling(
-                    self._curr_node.parent
+                next_element = self._get_next_sibling(
+                    self._curr_element.parent
                 )
-        elif isinstance(self._curr_node, Section):
-            self._curr_node = self._curr_node.children[0]
+        elif isinstance(self._curr_element, Section):
+            next_element = self._curr_element.children[0]
 
-        # Add the new node to visit history
-        self._visit_history.append(self._curr_node)
+        # Update visit history
+        self._session.add_new_visit(next_element.name)
 
     def back(self):
         """
@@ -163,6 +190,4 @@ class SurveyProcessor(SurveyProcessorBase):
         Note that we need to clear out visit history forward
         because changes in previous responses may change next questions.
         """
-        if len(self._visit_history) > 1:
-            self._visit_history.pop()  # Remove current node from visit history
-            self._curr_node = self._visit_history[-1]
+        self._session.drop_latest_visit()
