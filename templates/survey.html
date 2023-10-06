@@ -4,6 +4,10 @@
 <ul>
   <li>Element Name: {{ survey_processor.curr_name }}</li>
   <li>Element Type: {{ survey_processor.curr_type }}</li>
+  <li>Language Selected: {{ survey_processor.curr_lang }}</li>
+  <li>Language Options: {{ survey_processor.curr_lang_options }}</li>
+  <li>Label: {{ survey_processor.curr_label }}</li>
+  <li>Hint: {{ survey_processor.curr_hint }}</li>
 </ul>
 <a href="{{ url_for('back') }}">
   <button type="button">Back</button>

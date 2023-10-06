@@ -9,11 +9,20 @@ class SurveySession:
     session object.
     """
 
+    # Define field names for storing user state info
+    LANGUAGE = "survey_language"
     ELEMENT_VISITS = "survey_elements_visited"
     ELEMENT_VALUES = "survey_response_values"
 
     def __init__(self, session: LocalProxy):
         self._session = session
+
+    @property
+    def language(self) -> str:
+        lang = self._session.get(SurveySession.LANGUAGE)
+        if lang is None:
+            self._session[SurveySession.LANGUAGE] = lang = ""
+        return lang
 
     @property
     def _visit_history(self) -> list[str]:
@@ -28,6 +37,9 @@ class SurveySession:
         if values is None:
             self._session[SurveySession.ELEMENT_VALUES] = values = {}
         return values
+
+    def set_language(self, language_name: str):
+        self._session[SurveySession.LANGUAGE] = language_name
 
     @property
     def latest_visit(self) -> Union[str, None]:

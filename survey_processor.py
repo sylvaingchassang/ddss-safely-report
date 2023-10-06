@@ -20,6 +20,41 @@ class SurveyProcessor(SurveyProcessorBase):
         for item in self._survey.iter_descendants():
             self._elements[item.name] = item
 
+    @property
+    def curr_lang_options(self) -> list[str]:
+        """
+        Language options for the current survey element.
+        """
+        label = self._curr_element.label
+        if label == "":
+            return []
+        return list(label.keys())
+
+    @property
+    def curr_lang(self) -> str:
+        """
+        Language selected for the current survey element.
+        """
+        lang = self._session.language
+        lang_options = self.curr_lang_options
+        if len(lang_options) > 0 and lang == "":
+            # Set to default
+            default_lang = self._survey.default_language
+            if default_lang not in lang_options:
+                default_lang = lang_options[0]  # Randomly select
+            self.set_curr_lang(default_lang)
+            lang = self._session.language
+
+        return lang
+
+    def set_curr_lang(self, lang: str):
+        """
+        Set a new language for the current survey element.
+        """
+        if lang not in self.curr_lang_options:
+            raise KeyError(f"{lang} is not a supported language")
+        self._session.set_language(lang)
+
     def _get_element(self, element_name: str) -> SurveyElement:
         """
         Get the survey element object by its name.
@@ -76,14 +111,20 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Label of the current survey element (if applicable).
         """
-        pass  # TODO: Implement
+        label = self._curr_element.label
+        if label == "":
+            return label
+        return label.get(self.curr_lang, "")
 
     @property
     def curr_hint(self) -> str:
         """
         Hint of the current survey element (if applicable).
         """
-        pass  # TODO: Implement
+        hint = self._curr_element.hint
+        if hint == "":
+            return hint
+        return hint.get(self.curr_lang, "")
 
     @property
     def curr_to_show(self) -> bool:
