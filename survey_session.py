@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Optional
 
 from werkzeug.local import LocalProxy
 
@@ -42,7 +42,7 @@ class SurveySession:
         self._session[SurveySession.LANGUAGE] = language_name
 
     @property
-    def latest_visit(self) -> Union[str, None]:
+    def latest_visit(self) -> Optional[str]:
         if len(self._visit_history) > 0:
             return self._visit_history[-1]
         return None
@@ -60,5 +60,5 @@ class SurveySession:
         self._response_values[survey_element_name] = response_value
         self._session.modified = True
 
-    def retrieve_response(self, survey_element_name: str) -> Union[Any, None]:
+    def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
         return self._response_values.get(survey_element_name, None)

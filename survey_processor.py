@@ -81,8 +81,9 @@ class SurveyProcessor(SurveyProcessorBase):
         name = self._session.latest_visit
         if name is None:
             # Start from the beginning, i.e. survey root
-            self._session.add_new_visit(self._survey.name)
-            name = self._session.latest_visit
+            root_name = self._survey.name
+            self._session.add_new_visit(root_name)
+            return root_name
         return name
 
     @property
@@ -226,7 +227,7 @@ class SurveyProcessor(SurveyProcessorBase):
             # corresponding Python methods (e.g., `self._selected_at()`)
             (
                 r"([a-z][a-z\d\:\-]*\()",
-                lambda x: re.sub("[:-]", "_", "self._" + x.group(1)),
+                lambda x: "self._" + re.sub("[:-]", "_", x.group(1)),
             ),
             # Replace XLSForm variables (e.g., `${some.var}`) with
             # Python expressions
@@ -236,8 +237,8 @@ class SurveyProcessor(SurveyProcessorBase):
         ]
 
         # Perform translation
-        for match_regex, replace_regex in regex_pairs:
-            formula = re.sub(match_regex, replace_regex, formula)
+        for match, replace in regex_pairs:
+            formula = re.sub(match, replace, formula)  # type: ignore
 
         return formula
 

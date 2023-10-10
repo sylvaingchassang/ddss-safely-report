@@ -20,12 +20,12 @@ app.config["SESSION_PERMANENT"] = False
 Session(app)
 
 # Parse survey form and pass it to processor
-json_survey = xls2json.parse_file_to_json(
+survey_json = xls2json.parse_file_to_json(
     path=app.config["XLSFORM_PATH"], default_name="__survey__"
 )
-survey = builder.create_survey_element_from_dict(json_survey)
+survey_tree = builder.create_survey_element_from_dict(survey_json)
 survey_session = SurveySession(session)
-survey_processor = SurveyProcessor(survey, survey_session)
+survey_processor = SurveyProcessor(survey_tree, survey_session)
 form_generator = SurveyFormGenerator(survey_processor)
 
 
