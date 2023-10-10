@@ -34,6 +34,7 @@ class SurveyFormGenerator:
         if self._processor.curr_required is True:
             validators.append(DataRequired())
 
+        # Pre-fill the field if prior response exists
         try:
             default = self._processor.curr_value
         except KeyError:
