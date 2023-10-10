@@ -9,10 +9,17 @@
   <li>Label: {{ survey_processor.curr_label }}</li>
   <li>Hint: {{ survey_processor.curr_hint }}</li>
 </ul>
-<a href="{{ url_for('back') }}">
-  <button type="button">Back</button>
-</a>
-<a href="{{ url_for('next') }}">
-  <button type="button">Next</button>
-</a>
+
+<form method="POST">
+  {{ form.hidden_tag() }}
+  {{ form.field.label }}
+  <br>
+  {{ form.field }}
+  <br>
+  <a href="{{ url_for('back') }}">
+    <button type="button">Back</button>
+  </a>
+  {{ form.submit() }}
+</form>
+
 {% endblock %}

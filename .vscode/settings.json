@@ -3,5 +3,8 @@
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
     "editor.rulers": [80]
+  },
+  "files.associations": {
+    "*.html": "jinja-html"
   }
 }

@@ -1,8 +1,9 @@
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, session
+from flask import Flask, redirect, render_template, session, url_for
 from flask_session import Session
 from pyxform import builder, xls2json
 
+from form_generator import SurveyFormGenerator
 from survey_processor import SurveyProcessor
 from survey_session import SurveySession
 
@@ -25,6 +26,7 @@ json_survey = xls2json.parse_file_to_json(
 survey = builder.create_survey_element_from_dict(json_survey)
 survey_session = SurveySession(session)
 survey_processor = SurveyProcessor(survey, survey_session)
+form_generator = SurveyFormGenerator(survey_processor)
 
 
 @app.route("/")
@@ -32,21 +34,25 @@ def index():
     return "Welcome!"
 
 
-@app.route("/survey")
+@app.route("/survey", methods=["GET", "POST"])
 def survey():
-    return render_template("survey.html", survey_processor=survey_processor)
+    form = form_generator.make_curr_form()
 
+    if form.validate_on_submit():
+        survey_processor.next()
+        return redirect(url_for("survey"))
 
-@app.route("/survey/next")
-def next():
-    survey_processor.next()
-    return redirect("/survey")
+    return render_template(
+        "survey.html",
+        form=form,
+        survey_processor=survey_processor,
+    )
 
 
 @app.route("/survey/back")
 def back():
     survey_processor.back()
-    return redirect("/survey")
+    return redirect(url_for("survey"))
 
 
 if __name__ == "__main__":

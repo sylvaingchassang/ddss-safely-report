@@ -127,6 +127,15 @@ class SurveyProcessor(SurveyProcessorBase):
         return hint.get(self.curr_lang, "")
 
     @property
+    def curr_required(self) -> bool:
+        """
+        Whether response to the current survey element is required.
+        """
+        if self._curr_element.bind.get("required", "") == "yes":
+            return True
+        return False
+
+    @property
     def curr_to_show(self) -> bool:
         """
         Whether the current survey element is of a type to show to the
@@ -152,6 +161,39 @@ class SurveyProcessor(SurveyProcessorBase):
 
         # TODO: Perform proper error handling
         return eval(formula_python)
+
+    @property
+    def _curr_constraint_met(self) -> bool:
+        """
+        Whether the response value of the current survey element meets
+        the constraint (if any).
+        """
+        formula_xlsform = self._curr_element.bind.get("constraint", None)
+        if formula_xlsform is None:
+            return True
+        formula_python = self._translate_xlsform_formula(formula_xlsform)
+
+        # TODO: Perform proper error handling
+        return eval(formula_python)
+
+    def set_curr_value(self, value: Any) -> bool:
+        """
+        Updates the response value of the current survey element
+        if the new value meets the constraint; existing value (if any)
+        is retained if the constraint is not met.
+
+        Returns
+        -------
+        bool
+            True if the update was successful; False otherwise.
+        """
+        prev_value = self._session.retrieve_response(self.curr_name)
+        self._session.store_response(self.curr_name, value)
+        if self._curr_constraint_met is False:
+            if prev_value is not None:
+                self._session.store_response(self.curr_name, prev_value)
+            return False
+        return True
 
     @property
     def curr_in_repeat(self) -> bool:
