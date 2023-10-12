@@ -1,8 +1,15 @@
 from typing import Any, Callable, Optional
 
 from flask_wtf import FlaskForm
-from wtforms import Field, RadioField, StringField, SubmitField
-from wtforms.validators import DataRequired, ValidationError
+from wtforms import (
+    Field,
+    RadioField,
+    SelectMultipleField,
+    StringField,
+    SubmitField,
+    widgets,
+)
+from wtforms.validators import ValidationError
 
 from survey_processor import SurveyProcessor
 
@@ -38,6 +45,13 @@ class SurveyFormGenerator:
             return StringField(**common_args)
         elif curr_type == "select one":
             return RadioField(**common_args, choices=self._curr_choices)
+        elif curr_type == "select all that apply":
+            return SelectMultipleField(
+                **common_args,
+                choices=self._curr_choices,
+                widget=widgets.ListWidget(prefix_label=False),
+                option_widget=widgets.CheckboxInput()
+            )
 
     @property
     def _curr_label(self) -> str:
@@ -46,16 +60,20 @@ class SurveyFormGenerator:
     @property
     def _curr_validators(self) -> list[Callable]:
         # Define validator for the constraint of the current survey element
-        def evaluate_constraint(form, field):
+        def evaluate_constraint(form: FlaskForm, field: Field):
             value = field.data
             if self._processor.set_curr_value(value) is False:
                 # TODO: Provide a more detailed error message
                 raise ValidationError("Value constraint violated")
 
+        def data_required(form: FlaskForm, field: Field):
+            if not field.data:
+                raise ValidationError("Response is required for this question")
+
         # Collect validators to use
         validators = [evaluate_constraint]
         if self._processor.curr_required is True:
-            validators.append(DataRequired())
+            validators.append(data_required)
 
         return validators
 
