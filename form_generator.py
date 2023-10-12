@@ -1,5 +1,7 @@
+from typing import Any, Callable, Optional
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import Field, RadioField, StringField, SubmitField
 from wtforms.validators import DataRequired, ValidationError
 
 from survey_processor import SurveyProcessor
@@ -21,7 +23,28 @@ class SurveyFormGenerator:
 
         return SurveyElementForm()
 
-    def _make_curr_field(self):
+    def _make_curr_field(self) -> Field:
+        # Identify current survey element type
+        curr_type = self._processor.curr_type
+
+        # Collect function arguments common to all field types
+        common_args = {
+            "label": self._curr_label,
+            "validators": self._curr_validators,
+            "default": self._curr_default,
+        }
+
+        if curr_type == "text":
+            return StringField(**common_args)
+        elif curr_type == "select one":
+            return RadioField(**common_args, choices=self._curr_choices)
+
+    @property
+    def _curr_label(self) -> str:
+        return self._processor.curr_label
+
+    @property
+    def _curr_validators(self) -> list[Callable]:
         # Define validator for the constraint of the current survey element
         def evaluate_constraint(form, field):
             value = field.data
@@ -34,14 +57,18 @@ class SurveyFormGenerator:
         if self._processor.curr_required is True:
             validators.append(DataRequired())
 
+        return validators
+
+    @property
+    def _curr_default(self) -> Optional[Any]:
         # Pre-fill the field if prior response exists
         try:
             default = self._processor.curr_value
         except KeyError:
             default = None
 
-        return StringField(
-            label=self._processor.curr_label,
-            validators=validators,
-            default=default,
-        )
+        return default
+
+    @property
+    def _curr_choices(self) -> Optional[list[tuple[str, str]]]:
+        return self._processor.curr_choices

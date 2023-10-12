@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Optional, Union
 
 from pyxform import Question, Section, Survey
 from pyxform.survey_element import SurveyElement
@@ -110,22 +110,47 @@ class SurveyProcessor(SurveyProcessorBase):
     @property
     def curr_label(self) -> str:
         """
-        Label of the current survey element (if applicable).
+        Label of the current survey element.
         """
-        label = self._curr_element.label
-        if label == "":
-            return label
-        return label.get(self.curr_lang, "")
+        return self._extract_text(self._curr_element.label)
 
     @property
     def curr_hint(self) -> str:
         """
-        Hint of the current survey element (if applicable).
+        Hint of the current survey element.
         """
-        hint = self._curr_element.hint
-        if hint == "":
-            return hint
-        return hint.get(self.curr_lang, "")
+        return self._extract_text(self._curr_element.hint)
+
+    def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
+        """
+        Extract "proper" text from a text-related field of a survey element.
+
+        A text-related field in a survey element (constructed by `pyxform`)
+        can contain either a single string value or a dictionary of multiple
+        string values corresponding to different languages. This method handles
+        this complexity and simply returns the most relevant piece of text.
+        """
+        if isinstance(field_content, str):
+            return field_content
+        if isinstance(field_content, dict):
+            return field_content.get(self.curr_lang, "")
+        else:
+            return ""
+
+    @property
+    def curr_choices(self) -> Optional[list[tuple[str, str]]]:
+        """
+        Return the current survey element's choices/options if applicable.
+        If none or not applicable, return nothing.
+        """
+        if isinstance(self._curr_element, Question):
+            if len(self._curr_element.children) > 0:
+                return [
+                    (c.name, self._extract_text(c.label))
+                    for c in self._curr_element.children
+                ]
+
+        return None
 
     @property
     def curr_required(self) -> bool:
