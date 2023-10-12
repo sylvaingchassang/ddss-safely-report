@@ -66,6 +66,7 @@ class SurveyFormGenerator:
                 # TODO: Provide a more detailed error message
                 raise ValidationError("Value constraint violated")
 
+        # Define validator for required response
         def data_required(form: FlaskForm, field: Field):
             if not field.data:
                 raise ValidationError("Response is required for this question")
