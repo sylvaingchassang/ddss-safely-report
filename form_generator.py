@@ -2,14 +2,18 @@ from typing import Any, Callable, Optional
 
 from flask_wtf import FlaskForm
 from wtforms import (
+    DateField,
+    DateTimeField,
+    DecimalField,
     Field,
+    IntegerField,
     RadioField,
     SelectMultipleField,
     StringField,
     SubmitField,
     widgets,
 )
-from wtforms.validators import ValidationError
+from wtforms.validators import StopValidation, ValidationError
 
 from survey_processor import SurveyProcessor
 
@@ -43,6 +47,14 @@ class SurveyFormGenerator:
 
         if curr_type == "text":
             return StringField(**common_args)
+        elif curr_type == "integer":
+            return IntegerField(**common_args)
+        elif curr_type == "decimal":
+            return DecimalField(**common_args)
+        elif curr_type == "date":
+            return DateField(**common_args)
+        elif curr_type == "datetime":
+            return DateTimeField(**common_args)
         elif curr_type == "select one":
             return RadioField(**common_args, choices=self._curr_choices)
         elif curr_type == "select all that apply":
@@ -59,6 +71,12 @@ class SurveyFormGenerator:
 
     @property
     def _curr_validators(self) -> list[Callable]:
+        # Define validator for required response
+        # NOTE: This should come before any other validation
+        def data_required(form: FlaskForm, field: Field):
+            if not field.data:
+                raise StopValidation("Response is required for this question")
+
         # Define validator for the constraint of the current survey element
         def evaluate_constraint(form: FlaskForm, field: Field):
             value = field.data
@@ -66,15 +84,11 @@ class SurveyFormGenerator:
                 # TODO: Provide a more detailed error message
                 raise ValidationError("Value constraint violated")
 
-        # Define validator for required response
-        def data_required(form: FlaskForm, field: Field):
-            if not field.data:
-                raise ValidationError("Response is required for this question")
-
         # Collect validators to use
-        validators = [evaluate_constraint]
+        validators = []
         if self._processor.curr_required is True:
             validators.append(data_required)
+        validators.append(evaluate_constraint)
 
         return validators
 
