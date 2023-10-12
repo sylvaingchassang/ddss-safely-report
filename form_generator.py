@@ -71,24 +71,23 @@ class SurveyFormGenerator:
 
     @property
     def _curr_validators(self) -> list[Callable]:
-        # Define validator for required response
+        # Define validator to ensure a response is given to any
+        # survey element designated as "required"
         # NOTE: This should come before any other validation
         def data_required(form: FlaskForm, field: Field):
-            if not field.data:
+            if self._processor.curr_required is True and not field.data:
                 raise StopValidation("Response is required for this question")
 
-        # Define validator for the constraint of the current survey element
-        def evaluate_constraint(form: FlaskForm, field: Field):
+        # Define validator to evaluate if the given response meets
+        # the current survey element's constraint if any
+        def constraint_met(form: FlaskForm, field: Field):
             value = field.data
             if self._processor.set_curr_value(value) is False:
                 # TODO: Provide a more detailed error message
                 raise ValidationError("Value constraint violated")
 
         # Collect validators to use
-        validators = []
-        if self._processor.curr_required is True:
-            validators.append(data_required)
-        validators.append(evaluate_constraint)
+        validators = [data_required, constraint_met]
 
         return validators
 
