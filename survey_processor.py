@@ -111,6 +111,8 @@ class SurveyProcessor(SurveyProcessorBase):
     def curr_label(self) -> str:
         """
         Label of the current survey element.
+
+        If not applicable, an empty string is returned.
         """
         return self._extract_text(self._curr_element.label)
 
@@ -118,8 +120,20 @@ class SurveyProcessor(SurveyProcessorBase):
     def curr_hint(self) -> str:
         """
         Hint of the current survey element.
+
+        If not applicable, an empty string is returned.
         """
         return self._extract_text(self._curr_element.hint)
+
+    @property
+    def curr_constraint_message(self) -> str:
+        """
+        Constraint message for the current survey element.
+
+        If not applicable, an empty string is returned.
+        """
+        field_content = self._curr_element.bind.get("jr:constraintMsg", "")
+        return self._extract_text(field_content)
 
     def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
         """
@@ -129,6 +143,7 @@ class SurveyProcessor(SurveyProcessorBase):
         can contain either a single string value or a dictionary of multiple
         string values corresponding to different languages. This method handles
         this complexity and simply returns the most relevant piece of text.
+        If nonexistent or not applicable, the method returns an empty string.
         """
         if isinstance(field_content, str):
             return field_content

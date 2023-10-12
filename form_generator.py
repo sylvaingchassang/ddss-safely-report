@@ -83,8 +83,11 @@ class SurveyFormGenerator:
         def constraint_met(form: FlaskForm, field: Field):
             value = field.data
             if self._processor.set_curr_value(value) is False:
-                # TODO: Provide a more detailed error message
-                raise ValidationError("Value constraint violated")
+                message = self._processor.curr_constraint_message
+                if message:
+                    raise ValidationError(message)
+                else:
+                    raise ValidationError("Value constraint violated")
 
         # Collect validators to use
         validators = [data_required, constraint_met]
