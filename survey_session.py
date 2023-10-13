@@ -25,6 +25,31 @@ class SurveySession:
         return lang
 
     @property
+    def latest_visit(self) -> Optional[str]:
+        if len(self._visit_history) > 0:
+            return self._visit_history[-1]
+        return None
+
+    def set_language(self, language_name: str):
+        self._session[SurveySession.LANGUAGE] = language_name
+
+    def add_new_visit(self, survey_element_name: str):
+        self._visit_history.append(survey_element_name)
+        self._session.modified = True
+
+    def drop_latest_visit(self):
+        if len(self._visit_history) > 0:
+            self._visit_history.pop()
+            self._session.modified = True
+
+    def store_response(self, survey_element_name: str, response_value: Any):
+        self._response_values[survey_element_name] = response_value
+        self._session.modified = True
+
+    def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
+        return self._response_values.get(survey_element_name, None)
+
+    @property
     def _visit_history(self) -> list[str]:
         visits = self._session.get(SurveySession.ELEMENT_VISITS)
         if visits is None:
@@ -37,28 +62,3 @@ class SurveySession:
         if values is None:
             self._session[SurveySession.ELEMENT_VALUES] = values = {}
         return values
-
-    def set_language(self, language_name: str):
-        self._session[SurveySession.LANGUAGE] = language_name
-
-    @property
-    def latest_visit(self) -> Optional[str]:
-        if len(self._visit_history) > 0:
-            return self._visit_history[-1]
-        return None
-
-    def drop_latest_visit(self):
-        if len(self._visit_history) > 0:
-            self._visit_history.pop()
-            self._session.modified = True
-
-    def add_new_visit(self, survey_element_name: str):
-        self._visit_history.append(survey_element_name)
-        self._session.modified = True
-
-    def store_response(self, survey_element_name: str, response_value: Any):
-        self._response_values[survey_element_name] = response_value
-        self._session.modified = True
-
-    def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
-        return self._response_values.get(survey_element_name, None)
