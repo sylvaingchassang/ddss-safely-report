@@ -47,125 +47,12 @@ class SurveyProcessor(SurveyProcessorBase):
 
         return lang
 
-    def set_curr_lang(self, lang: str):
-        """
-        Set a new language for the current survey element.
-        """
-        if lang not in self.curr_lang_options:
-            raise KeyError(f"{lang} is not a supported language")
-        self._session.set_language(lang)
-
-    def _get_element(self, element_name: str) -> SurveyElement:
-        """
-        Get the survey element object by its name.
-        """
-        element = self._elements.get(element_name, None)
-        if element is None:
-            raise KeyError(f"Element does not exist: {element_name}")
-        return element
-
-    def get_value(self, element_name: str) -> Any:
-        """
-        Get the response value of the given survey element.
-        """
-        value = self._session.retrieve_response(element_name)
-        if value is None:
-            raise KeyError(f"Value for {element_name} does not exist")
-        return value
-
-    @property
-    def curr_name(self) -> str:
-        """
-        Name of the current survey element.
-        """
-        name = self._session.latest_visit
-        if name is None:
-            # Start from the beginning, i.e. survey root
-            root_name = self._survey.name
-            self._session.add_new_visit(root_name)
-            return root_name
-        return name
-
-    @property
-    def curr_value(self) -> Any:
-        """
-        Response value of the current survey element (if applicable).
-        """
-        return self.get_value(self.curr_name)
-
-    @property
-    def _curr_element(self) -> SurveyElement:
-        """
-        Current survey element object.
-        """
-        return self._get_element(self.curr_name)
-
     @property
     def curr_type(self) -> str:
         """
         Type of the current survey element (e.g., multiple-select question).
         """
         return self._curr_element.type
-
-    @property
-    def curr_label(self) -> str:
-        """
-        Label of the current survey element.
-
-        If not applicable, an empty string is returned.
-        """
-        return self._extract_text(self._curr_element.label)
-
-    @property
-    def curr_hint(self) -> str:
-        """
-        Hint of the current survey element.
-
-        If not applicable, an empty string is returned.
-        """
-        return self._extract_text(self._curr_element.hint)
-
-    @property
-    def curr_constraint_message(self) -> str:
-        """
-        Constraint message for the current survey element.
-
-        If not applicable, an empty string is returned.
-        """
-        field_content = self._curr_element.bind.get("jr:constraintMsg", "")
-        return self._extract_text(field_content)
-
-    def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
-        """
-        Extract "proper" text from a text-related field of a survey element.
-
-        A text-related field in a survey element (constructed by `pyxform`)
-        can contain either a single string value or a dictionary of multiple
-        string values corresponding to different languages. This method handles
-        this complexity and simply returns the most relevant piece of text.
-        If nonexistent or not applicable, the method returns an empty string.
-        """
-        if isinstance(field_content, str):
-            return field_content
-        if isinstance(field_content, dict):
-            return field_content.get(self.curr_lang, "")
-        else:
-            return ""
-
-    @property
-    def curr_choices(self) -> Optional[list[tuple[str, str]]]:
-        """
-        Return the current survey element's choices/options if applicable.
-        If none or not applicable, return nothing.
-        """
-        if isinstance(self._curr_element, Question):
-            if len(self._curr_element.children) > 0:
-                return [
-                    (c.name, self._extract_text(c.label))
-                    for c in self._curr_element.children
-                ]
-
-        return None
 
     @property
     def curr_required(self) -> bool:
@@ -204,18 +91,82 @@ class SurveyProcessor(SurveyProcessorBase):
         return eval(formula_python)
 
     @property
-    def _curr_constraint_met(self) -> bool:
+    def curr_in_repeat(self) -> bool:
         """
-        Whether the response value of the current survey element meets
-        the constraint (if any).
+        Whether the current survey element is in a repeat loop.
         """
-        formula_xlsform = self._curr_element.bind.get("constraint", None)
-        if formula_xlsform is None:
-            return True
-        formula_python = self._translate_xlsform_formula(formula_xlsform)
+        pass  # TODO: Implement
 
-        # TODO: Perform proper error handling
-        return eval(formula_python)
+    @property
+    def curr_name(self) -> str:
+        """
+        Name of the current survey element.
+        """
+        name = self._session.latest_visit
+        if name is None:
+            # Start from the beginning, i.e. survey root
+            root_name = self._survey.name
+            self._session.add_new_visit(root_name)
+            return root_name
+        return name
+
+    @property
+    def curr_value(self) -> Any:
+        """
+        Response value of the current survey element (if applicable).
+        """
+        return self.get_value(self.curr_name)
+
+    @property
+    def curr_label(self) -> str:
+        """
+        Label of the current survey element.
+
+        If not applicable, an empty string is returned.
+        """
+        return self._extract_text(self._curr_element.label)
+
+    @property
+    def curr_hint(self) -> str:
+        """
+        Hint of the current survey element.
+
+        If not applicable, an empty string is returned.
+        """
+        return self._extract_text(self._curr_element.hint)
+
+    @property
+    def curr_constraint_message(self) -> str:
+        """
+        Constraint message for the current survey element.
+
+        If not applicable, an empty string is returned.
+        """
+        field_content = self._curr_element.bind.get("jr:constraintMsg", "")
+        return self._extract_text(field_content)
+
+    @property
+    def curr_choices(self) -> Optional[list[tuple[str, str]]]:
+        """
+        Return the current survey element's choices/options if applicable.
+        If none or not applicable, return nothing.
+        """
+        if isinstance(self._curr_element, Question):
+            if len(self._curr_element.children) > 0:
+                return [
+                    (c.name, self._extract_text(c.label))
+                    for c in self._curr_element.children
+                ]
+
+        return None
+
+    def set_curr_lang(self, lang: str):
+        """
+        Set a new language for the current survey element.
+        """
+        if lang not in self.curr_lang_options:
+            raise KeyError(f"{lang} is not a supported language")
+        self._session.set_language(lang)
 
     def set_curr_value(self, value: Any) -> bool:
         """
@@ -236,12 +187,95 @@ class SurveyProcessor(SurveyProcessorBase):
             return False
         return True
 
+    def get_value(self, element_name: str) -> Any:
+        """
+        Get the response value of the given survey element.
+        """
+        value = self._session.retrieve_response(element_name)
+        if value is None:
+            raise KeyError(f"Value for {element_name} does not exist")
+        return value
+
+    def next(self):
+        """
+        Move to the next survey element to process.
+        """
+        if isinstance(self._curr_element, Question):
+            try:
+                next_element = self._get_next_sibling(self._curr_element)
+            except IndexError:
+                # If there is no more next sibling, move up to the parent node
+                # and return its next sibling.
+                next_element = self._get_next_sibling(
+                    self._curr_element.parent
+                )
+        elif isinstance(self._curr_element, Section):
+            next_element = self._curr_element.children[0]
+
+        # Update visit history
+        self._session.add_new_visit(next_element.name)
+
+    def back(self):
+        """
+        Move to the previously visited survey element.
+        Note that we need to clear out visit history forward
+        because changes in previous responses may change next questions.
+        """
+        self._session.drop_latest_visit()
+
     @property
-    def curr_in_repeat(self) -> bool:
+    def _curr_element(self) -> SurveyElement:
         """
-        Whether the current survey element is in a repeat loop.
+        Current survey element object.
         """
-        pass  # TODO: Implement
+        return self._get_element(self.curr_name)
+
+    @property
+    def _curr_constraint_met(self) -> bool:
+        """
+        Whether the response value of the current survey element meets
+        the constraint (if any).
+        """
+        formula_xlsform = self._curr_element.bind.get("constraint", None)
+        if formula_xlsform is None:
+            return True
+        formula_python = self._translate_xlsform_formula(formula_xlsform)
+
+        # TODO: Perform proper error handling
+        return eval(formula_python)
+
+    def _get_element(self, element_name: str) -> SurveyElement:
+        """
+        Get the survey element object by its name.
+        """
+        element = self._elements.get(element_name, None)
+        if element is None:
+            raise KeyError(f"Element does not exist: {element_name}")
+        return element
+
+    def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
+        """
+        Extract "proper" text from a text-related field of a survey element.
+
+        A text-related field in a survey element (constructed by `pyxform`)
+        can contain either a single string value or a dictionary of multiple
+        string values corresponding to different languages. This method handles
+        this complexity and simply returns the most relevant piece of text.
+        If nonexistent or not applicable, the method returns an empty string.
+        """
+        if isinstance(field_content, str):
+            return field_content
+        if isinstance(field_content, dict):
+            return field_content.get(self.curr_lang, "")
+        else:
+            return ""
+
+    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
+        """
+        Return the immediate next sibling of the given survey element.
+        """
+        element_index = element.parent.children.index(element)
+        return element.parent.children[element_index + 1]
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:
@@ -281,37 +315,3 @@ class SurveyProcessor(SurveyProcessorBase):
             formula = re.sub(match, replace, formula)  # type: ignore
 
         return formula
-
-    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
-        """
-        Return the immediate next sibling of the given survey element.
-        """
-        element_index = element.parent.children.index(element)
-        return element.parent.children[element_index + 1]
-
-    def next(self):
-        """
-        Move to the next survey element to process.
-        """
-        if isinstance(self._curr_element, Question):
-            try:
-                next_element = self._get_next_sibling(self._curr_element)
-            except IndexError:
-                # If there is no more next sibling, move up to the parent node
-                # and return its next sibling.
-                next_element = self._get_next_sibling(
-                    self._curr_element.parent
-                )
-        elif isinstance(self._curr_element, Section):
-            next_element = self._curr_element.children[0]
-
-        # Update visit history
-        self._session.add_new_visit(next_element.name)
-
-    def back(self):
-        """
-        Move to the previously visited survey element.
-        Note that we need to clear out visit history forward
-        because changes in previous responses may change next questions.
-        """
-        self._session.drop_latest_visit()
