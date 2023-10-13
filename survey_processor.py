@@ -9,6 +9,15 @@ from survey_session import SurveySession
 
 
 class SurveyProcessor(SurveyProcessorBase):
+    """
+    A survey processing engine that moves between different survey elements
+    and controls their properties to run the survey.
+
+    NOTE: `SurveyProcessor` is "stateless" as it caches client data
+    (e.g., current location in the survey) in server-side sessions via
+    `SurveySession`.
+    """
+
     def __init__(self, survey: Survey, survey_session: SurveySession):
         self._survey = survey
         self._session = survey_session
@@ -68,8 +77,18 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Whether the current survey element is of a type to show to the
         respondent (e.g., note, multiple-select question).
+
+        We leverage `pyxform` package's classification to identify such
+        elements. Specifically, `pyxform` assigns more concrete subclasses
+        (e.g., `InputQuestion`, `MultipleChoiceQuestion`) to survey elements
+        that are "real" questions to display to the respondent; and it uses
+        generic `Question` class for elements related to internal actions
+        such as calculation.
         """
-        pass  # TODO: Implement
+        c = self._curr_element
+        if isinstance(c, Question) and type(c) != Question:
+            return True
+        return False
 
     @property
     def curr_relevant(self) -> bool:
@@ -198,30 +217,22 @@ class SurveyProcessor(SurveyProcessorBase):
 
     def next(self):
         """
-        Move to the next survey element to process.
+        Move to the next relevant survey element to show to the respondent.
         """
-        if isinstance(self._curr_element, Question):
-            try:
-                next_element = self._get_next_sibling(self._curr_element)
-            except IndexError:
-                # If there is no more next sibling, move up to the parent node
-                # and return its next sibling.
-                next_element = self._get_next_sibling(
-                    self._curr_element.parent
-                )
-        elif isinstance(self._curr_element, Section):
-            next_element = self._curr_element.children[0]
-
-        # Update visit history
-        self._session.add_new_visit(next_element.name)
+        while True:
+            self._execute()
+            self._next()
+            if self.curr_relevant and self.curr_to_show:
+                break
 
     def back(self):
         """
-        Move to the previously visited survey element.
-        Note that we need to clear out visit history forward
-        because changes in previous responses may change next questions.
+        Move to the previous relevant survey element to show to the respondent.
         """
-        self._session.drop_latest_visit()
+        while True:
+            self._back()
+            if self.curr_relevant and self.curr_to_show:
+                break
 
     @property
     def _curr_element(self) -> SurveyElement:
@@ -276,6 +287,50 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         element_index = element.parent.children.index(element)
         return element.parent.children[element_index + 1]
+
+    def _execute(self):
+        """
+        Execute any session-state modification (e.g., calculation) encoded
+        in the current survey element.
+
+        NOTE: If calculations happen in question-type elements, the calculated
+        value will overwrite the initial response value, which may result in
+        undesirable issues. Hence, we allow calculations to take effect only in
+        elements of the "calculate" type.
+        """
+        if self.curr_type == "calculate":
+            formula_xlsform = self._curr_element.bind.get("calculate", None)
+            if formula_xlsform is None:
+                return
+            formula_python = self._translate_xlsform_formula(formula_xlsform)
+            self.set_curr_value(eval(formula_python))
+
+    def _next(self):
+        """
+        Move to the next survey element.
+        """
+        curr_element = self._curr_element
+
+        try:
+            if isinstance(curr_element, Section) and self.curr_relevant:
+                next_element = curr_element.children[0]
+            else:
+                next_element = self._get_next_sibling(curr_element)
+        except IndexError:
+            # If there is no more next sibling, move up to the parent node
+            # and return its next sibling.
+            next_element = self._get_next_sibling(curr_element.parent)
+
+        # Update visit history
+        self._session.add_new_visit(next_element.name)
+
+    def _back(self):
+        """
+        Move to the previously visited survey element.
+        Note that we need to clear out visit history forward
+        because changes in previous responses may change next questions.
+        """
+        self._session.drop_latest_visit()
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:
