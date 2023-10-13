@@ -121,13 +121,11 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Name of the current survey element.
         """
-        name = self._session.latest_visit
-        if name is None:
+        if self._session.latest_visit is None:
             # Start from the beginning, i.e. survey root
-            root_name = self._survey.name
-            self._session.add_new_visit(root_name)
-            return root_name
-        return name
+            self._session.add_new_visit(self._survey.name)
+            self.next()  # Roll forward to a meaningful element
+        return self._session.latest_visit  # type: ignore
 
     @property
     def curr_value(self) -> Any:
@@ -231,6 +229,9 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         while True:
             self._back()
+            if self.curr_name == self._survey.name:
+                self.next()
+                break
             if self.curr_relevant and self.curr_to_show:
                 break
 
