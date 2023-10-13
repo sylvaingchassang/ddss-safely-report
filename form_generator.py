@@ -75,7 +75,10 @@ class SurveyFormGenerator:
         # survey element designated as "required"
         # NOTE: This should come before any other validation
         def data_required(form: FlaskForm, field: Field):
-            if self._processor.curr_required is True and not field.data:
+            if self._processor.curr_required is True:
+                if field.raw_data and field.raw_data[0]:
+                    return
+                field.errors[:] = []
                 raise StopValidation("Response is required for this question")
 
         # Define validator to evaluate if the given response meets
