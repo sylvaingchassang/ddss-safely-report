@@ -124,7 +124,7 @@ class SurveyProcessor(SurveyProcessorBase):
         if self._session.latest_visit is None:
             # Start from the beginning, i.e. survey root
             self._session.add_new_visit(self._survey.name)
-            self.next()  # Roll forward to a meaningful element
+            self.next()  # Roll forward to the first displayable element
         return self._session.latest_visit  # type: ignore
 
     @property
@@ -218,8 +218,15 @@ class SurveyProcessor(SurveyProcessorBase):
         Move to the next relevant survey element to show to the respondent.
         """
         while True:
-            self._execute()
+            # If the current survey element is relevant, execute it
+            if self.curr_relevant:
+                self._execute()
+
+            # Move to the next survey element
             self._next()
+
+            # Repeat steps above until the new element is both relevant and
+            # of a type to display to the respondent
             if self.curr_relevant and self.curr_to_show:
                 break
 
@@ -228,10 +235,17 @@ class SurveyProcessor(SurveyProcessorBase):
         Move to the previous relevant survey element to show to the respondent.
         """
         while True:
+            # Move to the previous survey element
             self._back()
+
+            # If reaching the survey root, roll forward to the first
+            # displayable element
             if self.curr_name == self._survey.name:
                 self.next()
                 break
+
+            # Repeat steps above until the new element is both relevant and
+            # of a type to display to the respondent
             if self.curr_relevant and self.curr_to_show:
                 break
 
