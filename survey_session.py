@@ -49,6 +49,13 @@ class SurveySession:
     def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
         return self._response_values.get(survey_element_name, None)
 
+    def count_visit(self, survey_element_name: str) -> int:
+        """
+        Count the number of times that the given survey element has been
+        visited so far.
+        """
+        return self._visit_history.count(survey_element_name)
+
     @property
     def _visit_history(self) -> list[str]:
         visits = self._session.get(SurveySession.ELEMENT_VISITS)

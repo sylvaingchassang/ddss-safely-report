@@ -110,13 +110,6 @@ class SurveyProcessor(SurveyProcessorBase):
         return eval(formula_python)
 
     @property
-    def curr_in_repeat(self) -> bool:
-        """
-        Whether the current survey element is in a repeat loop.
-        """
-        pass  # TODO: Implement
-
-    @property
     def curr_name(self) -> str:
         """
         Name of the current survey element.
@@ -296,13 +289,6 @@ class SurveyProcessor(SurveyProcessorBase):
         else:
             return ""
 
-    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
-        """
-        Return the immediate next sibling of the given survey element.
-        """
-        element_index = element.parent.children.index(element)
-        return element.parent.children[element_index + 1]
-
     def _execute(self):
         """
         Execute any session-state modification (e.g., calculation) encoded
@@ -326,15 +312,20 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         curr_element = self._curr_element
 
-        try:
-            if isinstance(curr_element, Section) and self.curr_relevant:
-                next_element = curr_element.children[0]
+        # Determine the next element
+        if isinstance(curr_element, Section) and self.curr_relevant:
+            if curr_element.type == "repeat":
+                n = self._session.count_visit(curr_element.name)
+                limit = curr_element.control.get("jr:count", "float('inf')")
+                limit = eval(self._translate_xlsform_formula(limit))
+                if n <= limit:
+                    next_element = curr_element.children[0]
+                else:
+                    next_element = self._get_next_sibling(curr_element)
             else:
-                next_element = self._get_next_sibling(curr_element)
-        except IndexError:
-            # If there is no more next sibling, move up to the parent node
-            # and return its next sibling.
-            next_element = self._get_next_sibling(curr_element.parent)
+                next_element = curr_element.children[0]
+        else:
+            next_element = self._get_next_sibling(curr_element)
 
         # Update visit history
         self._session.add_new_visit(next_element.name)
@@ -346,6 +337,22 @@ class SurveyProcessor(SurveyProcessorBase):
         because changes in previous responses may change next questions.
         """
         self._session.drop_latest_visit()
+
+    @staticmethod
+    def _get_next_sibling(element: SurveyElement) -> SurveyElement:
+        """
+        Return the immediate next sibling of the given survey element.
+        If there is no more next sibling, move up to the parent node
+        and return its next sibling.
+        """
+        element_index = element.parent.children.index(element)
+        try:
+            return element.parent.children[element_index + 1]
+        except IndexError:
+            if element.parent.type == "repeat":
+                return element.parent
+            else:
+                return SurveyProcessor._get_next_sibling(element.parent)
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:
