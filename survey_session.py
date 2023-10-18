@@ -44,7 +44,7 @@ class SurveySession:
 
     def store_response(self, survey_element_name: str, response_value: Any):
         if response_value is None:
-            self._session.pop(survey_element_name, None)
+            self._response_values.pop(survey_element_name, None)
         else:
             self._response_values[survey_element_name] = response_value
 
