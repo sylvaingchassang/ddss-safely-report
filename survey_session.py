@@ -43,7 +43,11 @@ class SurveySession:
             self._session.modified = True
 
     def store_response(self, survey_element_name: str, response_value: Any):
-        self._response_values[survey_element_name] = response_value
+        if response_value is None:
+            self._session.pop(survey_element_name, None)
+        else:
+            self._response_values[survey_element_name] = response_value
+
         self._session.modified = True
 
     def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
