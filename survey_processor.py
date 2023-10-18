@@ -318,19 +318,19 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "repeat":
             return
 
-        n = self._session.count_visit(curr_element.name)
+        n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
                 name = child_element.name
                 value = self._session.retrieve_response(name)
 
                 # Store incumbent value into previous iteration version
-                name_prev_repeat = self._name_repeat_response(name, n - 1)
-                self._session.store_response(name_prev_repeat, value)
+                prev_resp_name = self._name_repeat_response(name, n_repeat - 1)
+                self._session.store_response(prev_resp_name, value)
 
                 # Update incumbent value with current iteration version
-                name_curr_repeat = self._name_repeat_response(name, n)
-                new_value = self._session.retrieve_response(name_curr_repeat)
+                curr_resp_name = self._name_repeat_response(name, n_repeat)
+                new_value = self._session.retrieve_response(curr_resp_name)
                 self._session.store_response(name, new_value)
 
     def _revert(self):
@@ -348,14 +348,14 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "repeat":
             return
 
-        n = self._session.count_visit(curr_element.name)
+        n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
                 name = child_element.name
 
                 # Update incumbent value with previous iteration version
-                name_prev_repeat = self._name_repeat_response(name, n - 1)
-                new_value = self._session.retrieve_response(name_prev_repeat)
+                prev_resp_name = self._name_repeat_response(name, n_repeat - 1)
+                new_value = self._session.retrieve_response(prev_resp_name)
                 self._session.store_response(name, new_value)
 
     def _next(self):
@@ -367,10 +367,10 @@ class SurveyProcessor(SurveyProcessorBase):
         # Determine the next element
         if isinstance(curr_element, Section) and self.curr_relevant:
             if curr_element.type == "repeat":
-                n = self._session.count_visit(curr_element.name)
+                n_repeat = self._session.count_visit(curr_element.name)
                 limit = curr_element.control.get("jr:count", "float('inf')")
                 limit = eval(self._translate_xlsform_formula(limit))
-                if n <= limit:
+                if n_repeat <= limit:
                     next_element = curr_element.children[0]
                 else:
                     next_element = self._get_next_sibling(curr_element)
