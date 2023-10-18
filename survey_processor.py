@@ -352,11 +352,6 @@ class SurveyProcessor(SurveyProcessorBase):
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
                 name = child_element.name
-                value = self._session.retrieve_response(name)
-
-                # Store incumbent value into current iteration version
-                name_curr_repeat = self._name_repeat_response(name, n)
-                self._session.store_response(name_curr_repeat, value)
 
                 # Update incumbent value with previous iteration version
                 name_prev_repeat = self._name_repeat_response(name, n - 1)
