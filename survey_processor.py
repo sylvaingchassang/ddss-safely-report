@@ -77,18 +77,8 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Whether the current survey element is of a type to show to the
         respondent (e.g., note, multiple-select question).
-
-        We leverage `pyxform` package's classification to identify such
-        elements. Specifically, `pyxform` assigns more concrete subclasses
-        (e.g., `InputQuestion`, `MultipleChoiceQuestion`) to survey elements
-        that are "real" questions to display to the respondent; and it uses
-        generic `Question` class for elements related to internal actions
-        such as calculation.
         """
-        element = self._curr_element
-        if isinstance(element, Question) and type(element) != Question:
-            return True
-        return False
+        return self._is_to_show(self._curr_element)
 
     @property
     def curr_relevant(self) -> bool:
@@ -228,6 +218,10 @@ class SurveyProcessor(SurveyProcessorBase):
         Move to the previous relevant survey element to show to the respondent.
         """
         while True:
+            # If the current survey element is relevant, reverse-execute it
+            if self.curr_relevant:
+                self._revert()
+
             # Move to the previous survey element
             self._back()
 
@@ -291,20 +285,83 @@ class SurveyProcessor(SurveyProcessorBase):
 
     def _execute(self):
         """
-        Execute any session-state modification (e.g., calculation) encoded
+        Execute session-state modifications (e.g., calculation) encoded
         in the current survey element.
+        """
+        self._execute_calculate()
+        self._execute_repeat()
+
+    def _execute_calculate(self):
+        """
+        Execute calculation in the current survey element.
 
         NOTE: If calculations happen in question-type elements, the calculated
         value will overwrite the initial response value, which may result in
         undesirable issues. Hence, we allow calculations to take effect only in
         elements of the "calculate" type.
         """
-        if self.curr_type == "calculate":
-            formula_xlsform = self._curr_element.bind.get("calculate", None)
-            if formula_xlsform is None:
-                return
-            formula_python = self._translate_xlsform_formula(formula_xlsform)
-            self.set_curr_value(eval(formula_python))
+        curr_element = self._curr_element
+        if curr_element.type != "calculate":
+            return
+
+        formula_xlsform = curr_element.bind.get("calculate", None)
+        if formula_xlsform is None:
+            return
+        formula_python = self._translate_xlsform_formula(formula_xlsform)
+        self.set_curr_value(eval(formula_python))
+
+    def _execute_repeat(self):
+        """
+        Update session states for the new iteration of the repeat.
+        """
+        curr_element = self._curr_element
+        if curr_element.type != "repeat":
+            return
+
+        n = self._session.count_visit(curr_element.name)
+        for child_element in curr_element.iter_descendants():
+            if self._is_to_show(child_element):
+                name = child_element.name
+                value = self._session.retrieve_response(name)
+
+                # Store incumbent value into previous iteration version
+                name_prev_repeat = self._name_repeat_response(name, n - 1)
+                self._session.store_response(name_prev_repeat, value)
+
+                # Update incumbent value with current iteration version
+                name_curr_repeat = self._name_repeat_response(name, n)
+                new_value = self._session.retrieve_response(name_curr_repeat)
+                self._session.store_response(name, new_value)
+
+    def _revert(self):
+        """
+        Reverse session-state modifications made in the current survey element.
+        """
+        self._revert_repeat()
+
+    def _revert_repeat(self):
+        """
+        Update session states to roll back to the previous iteration
+        of the repeat.
+        """
+        curr_element = self._curr_element
+        if curr_element.type != "repeat":
+            return
+
+        n = self._session.count_visit(curr_element.name)
+        for child_element in curr_element.iter_descendants():
+            if self._is_to_show(child_element):
+                name = child_element.name
+                value = self._session.retrieve_response(name)
+
+                # Store incumbent value into current iteration version
+                name_curr_repeat = self._name_repeat_response(name, n)
+                self._session.store_response(name_curr_repeat, value)
+
+                # Update incumbent value with previous iteration version
+                name_prev_repeat = self._name_repeat_response(name, n - 1)
+                new_value = self._session.retrieve_response(name_prev_repeat)
+                self._session.store_response(name, new_value)
 
     def _next(self):
         """
@@ -337,6 +394,23 @@ class SurveyProcessor(SurveyProcessorBase):
         because changes in previous responses may change next questions.
         """
         self._session.drop_latest_visit()
+
+    @staticmethod
+    def _is_to_show(element: SurveyElement) -> bool:
+        """
+        Determine whether the given survey element is of a type to show to
+        the respondent (e.g., note, multiple-select question).
+
+        We leverage `pyxform` package's classification to identify such
+        elements. Specifically, `pyxform` assigns more concrete subclasses
+        (e.g., `InputQuestion`, `MultipleChoiceQuestion`) to survey elements
+        that are "real" questions to display to the respondent; and it uses
+        generic `Question` class for elements related to internal actions
+        such as calculation.
+        """
+        if isinstance(element, Question) and type(element) != Question:
+            return True
+        return False
 
     @staticmethod
     def _get_next_sibling(element: SurveyElement) -> SurveyElement:
@@ -392,3 +466,10 @@ class SurveyProcessor(SurveyProcessorBase):
             formula = re.sub(match, replace, formula)  # type: ignore
 
         return formula
+
+    @staticmethod
+    def _name_repeat_response(element_name: str, repeat_turn_i: int):
+        """
+        Create name to use to store i-th response to the given question.
+        """
+        return f"{element_name}:REPEAT:#{repeat_turn_i}"
