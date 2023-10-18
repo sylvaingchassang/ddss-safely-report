@@ -50,8 +50,10 @@ class SurveySession:
 
         self._session.modified = True
 
-    def retrieve_response(self, survey_element_name: str) -> Optional[Any]:
-        return self._response_values.get(survey_element_name, None)
+    def retrieve_response(
+        self, survey_element_name: str, default_value: Optional[Any] = None
+    ) -> Optional[Any]:
+        return self._response_values.get(survey_element_name, default_value)
 
     def count_visit(self, survey_element_name: str) -> int:
         """

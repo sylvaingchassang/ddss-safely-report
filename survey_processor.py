@@ -321,17 +321,28 @@ class SurveyProcessor(SurveyProcessorBase):
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
-                name = child_element.name
-                value = self._session.retrieve_response(name)
+                # Get name and value of the element
+                varname = child_element.name
+                value = self._session.retrieve_response(varname)
+
+                # Get name and value of the element's "auxiliary" store
+                # that contains all repeated responses to the element
+                repeat_varname = self._term_repeat_varname(varname)
+                value_lst = self._session.retrieve_response(repeat_varname, [])
 
                 # Store incumbent value into previous iteration version
-                prev_resp_name = self._name_repeat_response(name, n_repeat - 1)
-                self._session.store_response(prev_resp_name, value)
+                try:
+                    value_lst[n_repeat - 2] = value  # Zero-indexed
+                except IndexError:
+                    value_lst.append(value)
+                self._session.store_response(repeat_varname, value_lst)
 
                 # Update incumbent value with current iteration version
-                curr_resp_name = self._name_repeat_response(name, n_repeat)
-                new_value = self._session.retrieve_response(curr_resp_name)
-                self._session.store_response(name, new_value)
+                try:
+                    value = value_lst[n_repeat - 1]  # Zero-indexed
+                except IndexError:
+                    value = None
+                self._session.store_response(varname, value)
 
     def _revert(self):
         """
@@ -351,12 +362,21 @@ class SurveyProcessor(SurveyProcessorBase):
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
-                name = child_element.name
+                # Get name and value of the element
+                varname = child_element.name
+                value = self._session.retrieve_response(varname)
+
+                # Get name and value of the element's "auxiliary" store
+                # that contains all repeated responses to the element
+                repeat_varname = self._term_repeat_varname(varname)
+                value_lst = self._session.retrieve_response(repeat_varname, [])
 
                 # Update incumbent value with previous iteration version
-                prev_resp_name = self._name_repeat_response(name, n_repeat - 1)
-                new_value = self._session.retrieve_response(prev_resp_name)
-                self._session.store_response(name, new_value)
+                try:
+                    value = value_lst[n_repeat - 2]  # Zero-indexed
+                except IndexError:
+                    value = None
+                self._session.store_response(varname, value)
 
     def _next(self):
         """
@@ -399,14 +419,15 @@ class SurveyProcessor(SurveyProcessorBase):
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if self._is_to_show(child_element):
-                name = child_element.name
-                i = n_repeat
-                while True:
-                    resp_name = self._name_repeat_response(name, i)
-                    if self._session.retrieve_response(resp_name) is None:
-                        break
-                    self._session.store_response(resp_name, None)
-                    i += 1
+                # Get name and value of the element's "auxiliary" store
+                # that contains all repeated responses to the element
+                repeat_varname = self._term_repeat_varname(child_element.name)
+                value_lst = self._session.retrieve_response(repeat_varname, [])
+
+                # If there are "excess" responses, cut them out
+                if len(value_lst) >= n_repeat:
+                    value_lst_sub = value_lst[: n_repeat - 1]  # Zero-indexed
+                    self._session.store_response(repeat_varname, value_lst_sub)
 
     def _back(self):
         """
@@ -489,8 +510,8 @@ class SurveyProcessor(SurveyProcessorBase):
         return formula
 
     @staticmethod
-    def _name_repeat_response(element_name: str, repeat_turn_i: int):
+    def _term_repeat_varname(element_name: str):
         """
-        Create name to use to store i-th response to the given question.
+        Create name to use to store repeat responses to the given question.
         """
-        return f"{element_name}:REPEAT:#{repeat_turn_i}"
+        return f"{element_name}::REPEATS"
