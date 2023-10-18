@@ -373,6 +373,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 if n_repeat <= limit:
                     next_element = curr_element.children[0]
                 else:
+                    self._clean_obsolete_repeat_responses()
                     next_element = self._get_next_sibling(curr_element)
             else:
                 next_element = curr_element.children[0]
@@ -381,6 +382,31 @@ class SurveyProcessor(SurveyProcessorBase):
 
         # Update visit history
         self._session.add_new_visit(next_element.name)
+
+    def _clean_obsolete_repeat_responses(self):
+        """
+        Remove any obsolete "excess" repeat responses under the current
+        repeat section.
+
+        NOTE: Obsolete "excess" repeat responses may result from the respondent
+        already submitting repeat responses and then decreasing the number of
+        "valid" repeats by modifying related previous responses.
+        """
+        curr_element = self._curr_element
+        if curr_element.type != "repeat":
+            return
+
+        n_repeat = self._session.count_visit(curr_element.name)
+        for child_element in curr_element.iter_descendants():
+            if self._is_to_show(child_element):
+                name = child_element.name
+                i = n_repeat
+                while True:
+                    resp_name = self._name_repeat_response(name, i)
+                    if self._session.retrieve_response(resp_name) is None:
+                        break
+                    self._session.store_response(resp_name, None)
+                    i += 1
 
     def _back(self):
         """
