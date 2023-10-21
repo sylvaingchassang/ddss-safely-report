@@ -1,26 +1,114 @@
-from typing import Any
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Optional
+
+
+class GarblingScheme(Enum):
+    IID = "Independent and Identically Distributed"
+    PopBlock = "Population-Blocked"
+    CovBlock = "Covariate-Blocked"
+
+
+@dataclass(frozen=True)
+class GarblingParams:
+    # Name of the survey element to be garbled
+    question: str
+
+    # Name (not label) of the choice option to be garbled *into*
+    # Most of the time, it is the name of the "yes" choice option
+    answer: str
+
+    # Garbling probability
+    rate: float
+
+    # Name of a covariate to use for Covariate-Blocked Garbling
+    covariate: Optional[str]
+
+    @property
+    def scheme(self) -> GarblingScheme:
+        if not self.covariate:
+            return GarblingScheme.IID
+        elif self.covariate == "*":
+            return GarblingScheme.PopBlock
+        else:
+            return GarblingScheme.CovBlock
 
 
 class Garbler:
-    def __init__(self, survey_json: dict[str, Any]):
-        self._params = self._parse_survey_json(survey_json)
+    """
+    A garbling engine that parses garbling specifications in XLSForm
+    and uses them to perform different garbling schemes.
 
-    def _parse_survey_json(
-        self, survey_json: dict[str, Any]
-    ) -> dict[str, Any]:
+    Parameters
+    ----------
+    survey_dict: dict[str, Any]
+        Dictionary representation of the survey produced by
+        `pyxform.xls2json.parse_file_to_json()`
+
+    Attributes
+    ----------
+    _params: dict[str, GarblingParams]
+        Dictionary that maps garbling parameters onto
+        the corresponding target question name
+    """
+
+    def __init__(self, survey_dict: dict[str, Any]):
+        self._params = self._parse_survey_dict(survey_dict)
+
+    def _parse_survey_dict(
+        self, survey_dict: dict[str, Any]
+    ) -> dict[str, GarblingParams]:
         """
-        Parse the JSON representation of the survey produced by
+        Parse dictionary representation of the survey produced by
         `pyxform.xls2json.parse_file_to_json()` to identify questions
         subject to garbling and their respective parameters.
         """
-        # TODO: Raise error if garbling is specified to elements that
-        # do NOT take user input
+        elements_with_garbling = []
 
-        # TODO: Raise error if not binary choice question
+        def find_elements_with_garbling(element):
+            if element.get("garbling"):
+                elements_with_garbling.append(element)
+            if element.get("children"):
+                for child in element["children"]:
+                    find_elements_with_garbling(child)
 
-        # TODO: Raise error if target answer is not in choice options
+        # Recursively identify survey elements subject to garbling
+        find_elements_with_garbling(survey_dict)
 
-        pass
+        # Extract and organize garbling parameters
+        garbling_params = {}
+        for element in elements_with_garbling:
+            name = element.get("name", "")
+            garbling_params[name] = self._extract_garbling_params(element)
+
+        return garbling_params
+
+    def _extract_garbling_params(
+        self, survey_element_record: dict[str, Any]
+    ) -> GarblingParams:
+        """
+        Extract, validate, and repackage garbling parameters
+        for the given survey element record.
+        """
+        # Unpack garbling parameters
+        params = survey_element_record.get("garbling", {})
+        question = survey_element_record.get("name", "")
+        answer = params.get("answer", "")
+        rate = params.get("rate", 0)
+        covariate = params.get("covariate", "")
+
+        # Validate garbling parameters
+        name = survey_element_record.get("name", "")
+        choices = survey_element_record.get("choices", [])
+        if len(choices) != 2:
+            raise Exception(
+                f"Garbling specified for a non binary-choice question: {name}"
+            )
+        choice_names = [c.get("name", "") for c in choices]
+        if answer not in choice_names:
+            raise Exception(f"{answer} not in choice options for {name}")
+
+        return GarblingParams(question, answer, rate, covariate)
 
     def is_subject_to_garbling(self, survey_element_name: str) -> bool:
         """
@@ -44,5 +132,7 @@ class Garbler:
         # table has each respondent's counter record as a separate record and
         # these records will be "summed up" when the counter data is downloaded
         # after survey deactivation)
+        # NOTE: Perhaps this should be done in SurveyProcessor as it has direct
+        # interaction with SurveySession
 
         pass
