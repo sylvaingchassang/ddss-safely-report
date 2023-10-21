@@ -45,14 +45,13 @@ class SurveyProcessor(SurveyProcessorBase):
         Language selected for the current survey element.
         """
         lang = self._session.language
-        lang_options = self.curr_lang_options
-        if len(lang_options) > 0 and lang == "":
-            # Set to default
-            default_lang = self._survey.default_language
-            if default_lang not in lang_options:
-                default_lang = lang_options[0]  # Randomly select
-            self.set_curr_lang(default_lang)
-            lang = self._session.language
+        if lang == "":
+            lang_options = self.curr_lang_options
+            if len(lang_options) > 0:
+                lang = self._survey.default_language
+                if lang not in lang_options:
+                    lang = lang_options[0]  # Randomly select
+                self._session.set_language(lang)
 
         return lang
 
@@ -114,6 +113,9 @@ class SurveyProcessor(SurveyProcessorBase):
     def curr_value(self) -> Any:
         """
         Response value of the current survey element (if applicable).
+
+        NOTE: Translation of XLSForm formula relies on this method,
+        so any modification to this method should be done with care.
         """
         return self.get_value(self.curr_name)
 
@@ -151,11 +153,12 @@ class SurveyProcessor(SurveyProcessorBase):
         Return the current survey element's choices/options if applicable.
         If none or not applicable, return nothing.
         """
-        if isinstance(self._curr_element, Question):
-            if len(self._curr_element.children) > 0:
+        curr_element = self._curr_element
+        if isinstance(curr_element, Question):
+            if len(curr_element.children) > 0:
                 return [
                     (c.name, self._extract_text(c.label))
-                    for c in self._curr_element.children
+                    for c in curr_element.children
                 ]
 
         return None
@@ -168,7 +171,7 @@ class SurveyProcessor(SurveyProcessorBase):
             raise KeyError(f"{lang} is not a supported language")
         self._session.set_language(lang)
 
-    def set_curr_value(self, value: Any) -> bool:
+    def set_curr_value(self, new_value: Any) -> bool:
         """
         Updates the response value of the current survey element
         if the new value meets the constraint; existing value (if any)
@@ -179,17 +182,20 @@ class SurveyProcessor(SurveyProcessorBase):
         bool
             True if the update was successful; False otherwise.
         """
-        prev_value = self._session.retrieve_response(self.curr_name)
-        self._session.store_response(self.curr_name, value)
+        curr_name = self.curr_name
+        curr_value = self._session.retrieve_response(curr_name)
+        self._session.store_response(curr_name, new_value)
         if self._curr_constraint_met is False:
-            if prev_value is not None:
-                self._session.store_response(self.curr_name, prev_value)
+            self._session.store_response(curr_name, curr_value)
             return False
         return True
 
     def get_value(self, element_name: str) -> Any:
         """
         Get the response value of the given survey element.
+
+        NOTE: Translation of XLSForm formula relies on this method,
+        so any modification to this method should be done with care.
         """
         value = self._session.retrieve_response(element_name)
         if value is None:
