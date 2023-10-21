@@ -77,7 +77,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the current survey element is of a type to show to the
         respondent (e.g., note, multiple-select question).
         """
-        return self._is_to_show(self._curr_element)
+        return SurveyProcessor._find_whether_to_show(self._curr_element)
 
     @property
     def curr_relevant(self) -> bool:
@@ -90,10 +90,10 @@ class SurveyProcessor(SurveyProcessorBase):
         no to the prerequisite question), in which case the survey element will
         neither be shown nor executed at all.
         """
-        formula_xlsform = self._curr_element.bind.get("relevant", None)
-        if formula_xlsform is None:
+        formula = self._curr_element.bind.get("relevant", None)
+        if formula is None:
             return True
-        formula_python = self._translate_xlsform_formula(formula_xlsform)
+        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
         return eval(formula_python)
@@ -255,10 +255,10 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the response value of the current survey element meets
         the constraint (if any).
         """
-        formula_xlsform = self._curr_element.bind.get("constraint", None)
-        if formula_xlsform is None:
+        formula = self._curr_element.bind.get("constraint", None)
+        if formula is None:
             return True
-        formula_python = self._translate_xlsform_formula(formula_xlsform)
+        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
         return eval(formula_python)
@@ -310,10 +310,10 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "calculate":
             return
 
-        formula_xlsform = curr_element.bind.get("calculate", None)
-        if formula_xlsform is None:
+        formula = curr_element.bind.get("calculate", None)
+        if formula is None:
             return
-        formula_python = self._translate_xlsform_formula(formula_xlsform)
+        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
         self.set_curr_value(eval(formula_python))
 
     def _execute_repeat(self):
@@ -326,14 +326,14 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if self._is_to_show(child_element):
+            if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element
                 varname = child_element.name
                 value = self._session.retrieve_response(varname)
 
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
-                repeat_varname = self._term_repeat_varname(varname)
+                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
 
                 # Store incumbent value into previous iteration version
@@ -367,14 +367,14 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if self._is_to_show(child_element):
+            if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element
                 varname = child_element.name
                 value = self._session.retrieve_response(varname)
 
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
-                repeat_varname = self._term_repeat_varname(varname)
+                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
 
                 # Update incumbent value with previous iteration version
@@ -395,16 +395,18 @@ class SurveyProcessor(SurveyProcessorBase):
             if curr_element.type == "repeat":
                 n_repeat = self._session.count_visit(curr_element.name)
                 limit = curr_element.control.get("jr:count", "float('inf')")
-                limit = eval(self._translate_xlsform_formula(limit))
+                limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
                     next_element = curr_element.children[0]
                 else:
                     self._clean_obsolete_repeat_responses()
-                    next_element = self._get_next_sibling(curr_element)
+                    next_element = SurveyProcessor._get_next_sibling(
+                        curr_element
+                    )
             else:
                 next_element = curr_element.children[0]
         else:
-            next_element = self._get_next_sibling(curr_element)
+            next_element = SurveyProcessor._get_next_sibling(curr_element)
 
         # Update visit history
         self._session.add_new_visit(next_element.name)
@@ -424,10 +426,11 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visit(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if self._is_to_show(child_element):
+            if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
-                repeat_varname = self._term_repeat_varname(child_element.name)
+                varname = child_element.name
+                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
 
                 # If there are "excess" responses, cut them out
@@ -444,7 +447,7 @@ class SurveyProcessor(SurveyProcessorBase):
         self._session.drop_latest_visit()
 
     @staticmethod
-    def _is_to_show(element: SurveyElement) -> bool:
+    def _find_whether_to_show(element: SurveyElement) -> bool:
         """
         Determine whether the given survey element is of a type to show to
         the respondent (e.g., note, multiple-select question).
