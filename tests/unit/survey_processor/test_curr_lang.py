@@ -26,16 +26,16 @@ from survey_processor import SurveyProcessor
 def test_curr_lang(
     # Fixture(s)
     mocker,
-    survey_session_processor_instance,
+    survey_processor_instance,
     # Parameter(s)
     current,
     default,
     options,
     expected,
 ):
-    survey, session, processor = survey_session_processor_instance
-    session.language = current
-    survey.default_language = default
+    processor = survey_processor_instance
+    processor._session.language = current
+    processor._survey.default_language = default
     mocker.patch.object(
         SurveyProcessor,
         "curr_lang_options",
