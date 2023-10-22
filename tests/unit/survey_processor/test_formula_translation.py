@@ -4,7 +4,7 @@ from survey_processor import SurveyProcessor
 
 
 @pytest.mark.parametrize(
-    "input_output",
+    "input, output",
     [
         # Test cases for translation of single equal sign
         ("a=1", "a==1"),
@@ -62,6 +62,5 @@ from survey_processor import SurveyProcessor
         ),
     ],
 )
-def test_translate_xlsform_formula(input_output):
-    input, output = input_output
+def test_translate_xlsform_formula(input, output):
     assert SurveyProcessor._translate_xlsform_formula(input) == output
