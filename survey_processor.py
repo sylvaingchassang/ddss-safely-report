@@ -283,11 +283,19 @@ class SurveyProcessor(SurveyProcessorBase):
         If nonexistent or not applicable, the method returns an empty string.
         """
         if isinstance(field_content, str):
-            return field_content
+            text = field_content
         if isinstance(field_content, dict):
-            return field_content.get(self.curr_lang, "")
+            text = field_content.get(self.curr_lang, "")
         else:
-            return ""
+            text = ""
+
+        # Evaluate any XLSForm variables in the extracted text
+        match = r"(\$\{)([^\}]+)(\})"
+        replace = r"{self.get_value('\2')}"
+        text = re.sub(match, replace, text)
+        text = eval(f'f"{text}"')
+
+        return text
 
     def _execute(self):
         """
