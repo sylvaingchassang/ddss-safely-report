@@ -1,2 +1,2 @@
 FLASK_SECRET_KEY=examplesecret
-FLASK_XLSFORM_PATH=./data/stats4sd_example_xlsform.xlsx
+FLASK_XLSFORM_PATH=./tests/data/stats4sd_example_xlsform_adapted.xlsx
