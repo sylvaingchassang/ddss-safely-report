@@ -26,7 +26,7 @@ from survey_processor import SurveyProcessor
             "self.get_value('some.variable') > 10 and self.curr_value > 5.6",
         ),
         (r"regex(., '\p{L}')", r"self._regex(self.curr_value, '\p{L}')"),
-        ("position(..)", "self._position(..)"),  # TODO: Handle this outlier
+        ("position(..)", "self._position()"),
         # Test cases for translation of XLSForm functions
         ("between(12, 100)", "self._between(12, 100)"),
         (

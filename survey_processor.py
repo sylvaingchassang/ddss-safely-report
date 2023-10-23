@@ -272,6 +272,15 @@ class SurveyProcessor(SurveyProcessorBase):
             raise KeyError(f"Element does not exist: {element_name}")
         return element
 
+    def _position(self) -> int:
+        """
+        Return the number of times that the current survey element has been
+        visited so far.
+
+        This function replaces its XLSForm counterpart (i.e., `position(..)`).
+        """
+        return self._session.count_visit(self.curr_name)
+
     def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
         """
         Extract "proper" text from a text-related field of a survey element.
@@ -502,11 +511,15 @@ class SurveyProcessor(SurveyProcessorBase):
             # Replace single equal signs with double equal signs
             # while escaping other valid operators (`!=`, `>=`, `<=`)
             (r"([^\!\>\<]{1})=", r"\1=="),
-            # Replace dots with the response value of the current survey
-            # element (e.g., question) except for those that are part of
-            # fractional numbers or part of variable names (i.e., wrapped
+            # Replace a single dot with the response value of the current
+            # survey element (e.g., question) except for those that are part
+            # of fractional numbers or part of variable names (i.e., wrapped
             # inside curly braces)
             (r"(?<!\d)(?<!\.)\.(?!\d)(?!\.)(?![^\{]*\})", "self.curr_value"),
+            # Remove double-dot path operator (`..`)
+            # NOTE: The operator logic will be directly implemented into any
+            # function that uses it (e.g., `position(..)`)
+            (r"(?<!\.)\.\.(?!\.)", ""),
             # Replace XLSForm functions (e.g., `selected-at()`) with
             # corresponding Python methods (e.g., `self._selected_at()`)
             (

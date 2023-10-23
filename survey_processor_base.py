@@ -4,7 +4,7 @@ from typing import Any
 class SurveyProcessorBase:
     """
     Base class defining survey processor's custom methods
-    (e.g., `self._selected_at()`) to replace XLSForm functions
+    (e.g., `_selected_at()`) to replace XLSForm functions
     (e.g., `selected-at()`).
 
     Functions to replace are listed in the ODK documentation:
