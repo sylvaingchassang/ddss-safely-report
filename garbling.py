@@ -108,6 +108,8 @@ class Garbler:
         choice_names = [c.get("name", "") for c in choices]
         if answer not in choice_names:
             raise Exception(f"{answer} not in choice options for {question}")
+        if rate < 0 or rate > 1:
+            raise Exception("Garbling rate should be between 0 and 1")
 
         return GarblingParams(question, answer, rate, covariate)
 
