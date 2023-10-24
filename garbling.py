@@ -159,8 +159,9 @@ class Garbler:
             raise Exception(f"{survey_element_name} not subject to garbling")
 
         # Determine garbling "shock" (i.e., `eta` in the garbling formula)
+        garbling_shock: bool
         if garbling_params.scheme == GarblingScheme.IID:
-            garbling_shock = 1 if random() < garbling_params.rate else 0
+            garbling_shock = True if random() < garbling_params.rate else False
         else:
             raise Exception(f"{garbling_params.scheme} is not supported")
 
@@ -168,7 +169,7 @@ class Garbler:
         if response_choice_name == garbling_params.answer:
             return response_choice_name
         else:
-            if garbling_shock > 0:
+            if garbling_shock is True:
                 return garbling_params.answer
             else:
                 return response_choice_name
