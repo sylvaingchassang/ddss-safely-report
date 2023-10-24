@@ -12,6 +12,7 @@
 !*.html
 !poetry.lock
 !pyproject.toml
+!requirements.txt
 !.flaskenv.example
 !.pre-commit-config.yaml
 !.flake8
