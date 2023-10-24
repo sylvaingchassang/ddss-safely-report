@@ -110,11 +110,13 @@ class Garbler:
 
         return GarblingParams(question, answer, rate, covariate)
 
-    def is_subject_to_garbling(self, survey_element_name: str) -> bool:
+    def find_whether_to_garble(self, survey_element_name: str) -> bool:
         """
         Determine whether the given survey element is subject to garbling.
         """
-        pass
+        if self._params.get(survey_element_name):
+            return True
+        return False
 
     def garble_response(
         self, survey_element_name: str, choice_name: str
