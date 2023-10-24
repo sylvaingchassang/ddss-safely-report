@@ -99,15 +99,15 @@ class Garbler:
         covariate = params.get("covariate", "")
 
         # Validate garbling parameters
-        name = survey_element_record.get("name", "")
         choices = survey_element_record.get("choices", [])
         if len(choices) != 2:
             raise Exception(
-                f"Garbling specified for a non binary-choice question: {name}"
+                "Garbling specified for a non binary-choice question: "
+                f"{question}"
             )
         choice_names = [c.get("name", "") for c in choices]
         if answer not in choice_names:
-            raise Exception(f"{answer} not in choice options for {name}")
+            raise Exception(f"{answer} not in choice options for {question}")
 
         return GarblingParams(question, answer, rate, covariate)
 
