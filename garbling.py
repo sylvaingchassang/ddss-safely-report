@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from random import random
 from typing import Any, Optional
 
 
@@ -119,14 +120,56 @@ class Garbler:
         return False
 
     def garble_response(
-        self, survey_element_name: str, choice_name: str
+        self, survey_element_name: str, response_choice_name: str
     ) -> str:
         """
-        Using the given element's garbling parameters,
-        apply garbling formula to garble the given response.
+        Garble the given response using the question's garbling parameters.
+
+        With binary response between 0 and 1, garbling is formally defined as:
+
+            r_tilde = r + (1 - r) * eta
+
+        where:
+
+            - `r` is the original raw response value
+            - `eta` is a garbling "shock" that takes the value of either 1 or 0
+            with the given garbling probability
+            - `r_tilde` is the garbled response value
+
+        For more details, consult the original paper:
+
+            https://www.nber.org/papers/w31011
+
+        Parameters
+        ----------
+        survey_element_name: str
+            Name of the survey element to be garbled
+        response_choice_name: str
+            Name (not label) of the choice option that the respondent selected
+
+        Returns
+        -------
+        str
+            Name (not label) of the choice option after garbling is applied
         """
-        # TODO: Raise error if the given survey element is NOT subject to
-        # garbling
+        garbling_params = self._params.get(survey_element_name)
+        if not garbling_params:
+            raise Exception(f"{survey_element_name} not subject to garbling")
+
+        # Determine garbling "shock" (i.e., `eta` in the garbling formula)
+        if garbling_params.scheme == GarblingScheme.IID:
+            garbling_shock = 1 if random() < garbling_params.rate else 0
+        else:
+            raise Exception(f"{garbling_params.scheme} is not supported")
+
+        # Perform garbling
+        if response_choice_name == garbling_params.answer:
+            return response_choice_name
+        else:
+            if garbling_shock > 0:
+                return garbling_params.answer
+            else:
+                return response_choice_name
 
         # TODO: If the response has actually been flipped/switched, increment
         # garbling counter (cached in server-side session; stored into DB's
@@ -136,5 +179,3 @@ class Garbler:
         # after survey deactivation)
         # NOTE: Perhaps this should be done in SurveyProcessor as it has direct
         # interaction with SurveySession
-
-        pass
