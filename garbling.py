@@ -63,6 +63,18 @@ class Garbler:
         Parse dictionary representation of the survey produced by
         `pyxform.xls2json.parse_file_to_json()` to identify questions
         subject to garbling and their respective parameters.
+
+        Parameters
+        ----------
+        survey_dict: dict[str, Any]
+            Dictionary representation of the survey produced by
+            `pyxform.xls2json.parse_file_to_json()`
+
+        Returns
+        -------
+        dict[str, GarblingParams]
+            Dictionary that maps garbling parameters onto
+            the corresponding target question name
         """
         elements_with_garbling = []
 
@@ -85,21 +97,32 @@ class Garbler:
         return garbling_params
 
     def _extract_garbling_params(
-        self, survey_element_record: dict[str, Any]
+        self, survey_dict_record: dict[str, Any]
     ) -> GarblingParams:
         """
         Extract, validate, and repackage garbling parameters
         for the given survey element record.
+
+        Parameters
+        ----------
+        survey_dict_record: dict[str, Any]
+            A record in the dictionary representation of the survey
+            produced by `pyxform.xls2json.parse_file_to_json()`
+
+        Returns
+        -------
+        GarblingParams
+            Streamlined packaging of validated garbling parameters
         """
         # Unpack garbling parameters
-        params = survey_element_record.get("garbling", {})
-        question = survey_element_record.get("name", "")
+        params = survey_dict_record.get("garbling", {})
+        question = survey_dict_record.get("name", "")
         answer = params.get("answer", "")
         rate = params.get("rate", 0)
         covariate = params.get("covariate", "")
 
         # Validate garbling parameters
-        choices = survey_element_record.get("choices", [])
+        choices = survey_dict_record.get("choices", [])
         if len(choices) != 2:
             raise Exception(
                 "Garbling specified for a non binary-choice question: "
@@ -116,6 +139,16 @@ class Garbler:
     def find_whether_to_garble(self, survey_element_name: str) -> bool:
         """
         Determine whether the given survey element is subject to garbling.
+
+        Parameters
+        ----------
+        survey_element_name: str
+            Name of the survey element to be garbled
+
+        Returns
+        -------
+        bool
+            Whether the given survey element is subject to garbling
         """
         if self._params.get(survey_element_name):
             return True
