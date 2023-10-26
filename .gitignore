@@ -3,6 +3,9 @@ instance/
 .flask_sessions/
 .flaskenv
 
+# REMOVE THIS WHEN SCHEMA DEV GETS STABLE
+migrations/versions/
+
 # Environments
 .env
 .venv

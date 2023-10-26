@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
+from flask_migrate import Migrate
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 from pyxform import builder, xls2json
 
 from form_generator import SurveyFormGenerator
@@ -18,6 +20,26 @@ app.config["SESSION_FILE_DIR"] = ".flask_sessions"
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_PERMANENT"] = False
 Session(app)
+
+# Set up database
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+Migrate(app, db)
+
+
+# TODO: Modularize into `models.py` when reorganizing app files
+class Response(db.Model):  # type: ignore
+    __tablename__ = "responses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    response = db.Column(db.String(), nullable=False)  # Stringified JSON
+
+    def __init__(self, response):
+        self.response = response
+
+    def __repr__(self):
+        return f"<Response ID: {self.id}>"
+
 
 # Parse survey form and pass it to processor
 survey_json = xls2json.parse_file_to_json(
