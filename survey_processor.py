@@ -30,6 +30,16 @@ class SurveyProcessor(SurveyProcessorBase):
             self._elements[item.name] = item
 
     @property
+    def survey_end_reached(self) -> bool:
+        """
+        Whether the end of the survey has ever been reached.
+
+        We can determine this by checking if the survey root
+        has been visited more than once.
+        """
+        return self._session.count_visit(self._survey.name) > 1
+
+    @property
     def curr_lang_options(self) -> list[str]:
         """
         Language options for the current survey element.
@@ -213,6 +223,11 @@ class SurveyProcessor(SurveyProcessorBase):
 
             # Move to the next survey element
             self._next()
+
+            # Stop if reaching the survey root because it means arriving at
+            # the end of the survey
+            if self.curr_name == self._survey.name:
+                break
 
             # Repeat steps above until the new element is both relevant and
             # of a type to display to the respondent

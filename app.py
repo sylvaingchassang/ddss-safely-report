@@ -58,6 +58,9 @@ def index():
 
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
+    if survey_processor.survey_end_reached:
+        return redirect(url_for("submit"))
+
     form = form_generator.make_curr_form()
 
     if form.validate_on_submit():
@@ -75,6 +78,11 @@ def survey():
 def back():
     survey_processor.back()
     return redirect(url_for("survey"))
+
+
+@app.route("/survey/submit")
+def submit():
+    return "Confirm or cancel response submission"
 
 
 if __name__ == "__main__":
