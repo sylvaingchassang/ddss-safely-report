@@ -442,6 +442,26 @@ class SurveyProcessor(SurveyProcessorBase):
         # Update visit history
         self._session.add_new_visit(next_element.name)
 
+    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
+        """
+        Return the immediate next sibling of the given survey element.
+        - If there is no more next sibling, move up to the parent node
+        and return its next sibling.
+        - If the given survey element is the survey root, simply return
+        itself as the survey root does not have any sibling or parent.
+        """
+        if element.name == self._survey.name:  # Survey root
+            return element
+
+        element_index = element.parent.children.index(element)
+        try:
+            return element.parent.children[element_index + 1]
+        except IndexError:
+            if element.parent.type == "repeat":
+                return element.parent
+            else:
+                return self._get_next_sibling(element.parent)
+
     def _clean_obsolete_repeat_responses(self):
         """
         Remove any obsolete "excess" repeat responses under the current
@@ -493,26 +513,6 @@ class SurveyProcessor(SurveyProcessorBase):
         if isinstance(element, Question) and type(element) != Question:
             return True
         return False
-
-    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
-        """
-        Return the immediate next sibling of the given survey element.
-        - If there is no more next sibling, move up to the parent node
-        and return its next sibling.
-        - If the given survey element is the survey root, simply return
-        itself as the survey root does not have any sibling or parent.
-        """
-        if element.name == self._survey.name:  # Survey root
-            return element
-
-        element_index = element.parent.children.index(element)
-        try:
-            return element.parent.children[element_index + 1]
-        except IndexError:
-            if element.parent.type == "repeat":
-                return element.parent
-            else:
-                return self._get_next_sibling(element.parent)
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:
