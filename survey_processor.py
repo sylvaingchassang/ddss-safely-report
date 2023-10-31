@@ -276,6 +276,12 @@ class SurveyProcessor(SurveyProcessorBase):
 
         return responses_to_store
 
+    def clear_session(self):
+        """
+        Clear all data in the current survey session.
+        """
+        self._session.clear()
+
     @property
     def _curr_element(self) -> SurveyElement:
         """

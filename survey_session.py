@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import Any, Optional
 
-from werkzeug.local import LocalProxy
+from flask.sessions import SessionMixin
 
 
 class SurveySession:
@@ -20,7 +20,7 @@ class SurveySession:
     ELEMENT_VISITS = "survey_elements_visited"
     ELEMENT_VALUES = "survey_response_values"
 
-    def __init__(self, session: LocalProxy):
+    def __init__(self, session: SessionMixin):
         self._session = session
 
     @property
@@ -75,6 +75,9 @@ class SurveySession:
         visited so far.
         """
         return self._visit_history.count(survey_element_name)
+
+    def clear(self):
+        self._session.clear()
 
     @property
     def _visit_history(self) -> list[str]:

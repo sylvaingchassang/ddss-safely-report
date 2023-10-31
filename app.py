@@ -86,10 +86,19 @@ def submit():
     if not survey_processor.survey_end_reached:
         return redirect(url_for("survey"))
 
-    response_data: dict = survey_processor.gather_responses_to_store()
-    response_db_obj = Response(response=serialize_response_data(response_data))
-    db.session.add(response_db_obj)
-    db.session.commit()
+    # Store survey response into database
+    try:
+        response_data = survey_processor.gather_responses_to_store()
+        response_serialized = serialize_response_data(response_data)
+        response_record = Response(response=response_serialized)
+        db.session.add(response_record)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return e
+
+    # Clear session data if response has been successfully stored in database
+    survey_processor.clear_session()
 
     return "Survey response submitted"
 
