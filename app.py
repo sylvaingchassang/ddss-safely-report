@@ -8,6 +8,7 @@ from pyxform import builder, xls2json
 from form_generator import SurveyFormGenerator
 from survey_processor import SurveyProcessor
 from survey_session import SurveySession
+from utils import serialize_response_data
 
 load_dotenv()
 
@@ -82,7 +83,15 @@ def back():
 
 @app.route("/survey/submit")
 def submit():
-    return "Confirm or cancel response submission"
+    if not survey_processor.survey_end_reached:
+        return redirect(url_for("survey"))
+
+    response_data: dict = survey_processor.gather_responses_to_store()
+    response_db_obj = Response(response=serialize_response_data(response_data))
+    db.session.add(response_db_obj)
+    db.session.commit()
+
+    return "Survey response submitted"
 
 
 if __name__ == "__main__":

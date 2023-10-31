@@ -257,6 +257,25 @@ class SurveyProcessor(SurveyProcessorBase):
             if self.curr_relevant and self.curr_to_show:
                 break
 
+    def gather_responses_to_store(self) -> dict[str, Any]:
+        """
+        Collect survey responses to store in the database.
+        """
+        responses = self._session.retrieve_all_responses()
+        visits = set(self._session.get_all_visits())
+
+        # Prepare data to store
+        responses_to_store = {}
+        for varname in responses:
+            if varname in visits:
+                responses_to_store[varname] = responses[varname]
+        for varname in visits:
+            repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+            if repeat_varname in responses:
+                responses_to_store[repeat_varname] = responses[repeat_varname]
+
+        return responses_to_store
+
     @property
     def _curr_element(self) -> SurveyElement:
         """

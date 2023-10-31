@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Optional
 
 from werkzeug.local import LocalProxy
@@ -47,6 +48,9 @@ class SurveySession:
             self._visit_history.pop()
             self._session.modified = True
 
+    def get_all_visits(self) -> list[str]:
+        return deepcopy(self._visit_history)
+
     def store_response(self, survey_element_name: str, response_value: Any):
         if response_value is None:
             self._response_values.pop(survey_element_name, None)
@@ -58,7 +62,12 @@ class SurveySession:
     def retrieve_response(
         self, survey_element_name: str, default_value: Optional[Any] = None
     ) -> Optional[Any]:
-        return self._response_values.get(survey_element_name, default_value)
+        return deepcopy(
+            self._response_values.get(survey_element_name, default_value)
+        )
+
+    def retrieve_all_responses(self) -> dict[str, Any]:
+        return deepcopy(self._response_values)
 
     def count_visits(self, survey_element_name: str) -> int:
         """
