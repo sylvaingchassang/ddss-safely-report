@@ -48,6 +48,13 @@ class SurveySession:
             self._visit_history.pop()
             self._session.modified = True
 
+    def count_visits(self, survey_element_name: str) -> int:
+        """
+        Count the number of times that the given survey element has been
+        visited so far.
+        """
+        return self._visit_history.count(survey_element_name)
+
     def get_all_visits(self) -> list[str]:
         return deepcopy(self._visit_history)
 
@@ -68,13 +75,6 @@ class SurveySession:
 
     def retrieve_all_responses(self) -> dict[str, Any]:
         return deepcopy(self._response_values)
-
-    def count_visits(self, survey_element_name: str) -> int:
-        """
-        Count the number of times that the given survey element has been
-        visited so far.
-        """
-        return self._visit_history.count(survey_element_name)
 
     def clear(self):
         self._session.clear()
