@@ -30,14 +30,24 @@ class SurveyProcessor(SurveyProcessorBase):
             self._elements[item.name] = item
 
     @property
-    def survey_end_reached(self) -> bool:
+    def curr_survey_start(self) -> bool:
         """
-        Whether the end of the survey has ever been reached.
+        Whether the current survey element represents the start of the survey.
+        """
+        if self.curr_name == self._survey.name:
+            if self._session.count_visit(self._survey.name) == 1:
+                return True
+        return False
 
-        We can determine this by checking if the survey root
-        has been visited more than once.
+    @property
+    def curr_survey_end(self) -> bool:
         """
-        return self._session.count_visit(self._survey.name) > 1
+        Whether the current survey element represents the end of the survey.
+        """
+        if self.curr_name == self._survey.name:
+            if self._session.count_visit(self._survey.name) > 1:
+                return True
+        return False
 
     @property
     def curr_lang_options(self) -> list[str]:
@@ -116,7 +126,6 @@ class SurveyProcessor(SurveyProcessorBase):
         if self._session.latest_visit is None:
             # Start from the beginning, i.e. survey root
             self._session.add_new_visit(self._survey.name)
-            self.next()  # Roll forward to the first displayable element
         return self._session.latest_visit  # type: ignore
 
     @property
@@ -224,9 +233,8 @@ class SurveyProcessor(SurveyProcessorBase):
             # Move to the next survey element
             self._next()
 
-            # Stop if reaching the survey root because it means arriving at
-            # the end of the survey
-            if self.curr_name == self._survey.name:
+            # Stop if reaching the survey end
+            if self.curr_survey_end:
                 break
 
             # Repeat steps above until the new element is both relevant and
@@ -246,10 +254,8 @@ class SurveyProcessor(SurveyProcessorBase):
             # Move to the previous survey element
             self._back()
 
-            # If reaching the survey root, roll forward to the first
-            # displayable element
-            if self.curr_name == self._survey.name:
-                self.next()
+            # Stop if reaching the survey start
+            if self.curr_survey_start:
                 break
 
             # Repeat steps above until the new element is both relevant and

@@ -59,8 +59,11 @@ def index():
 
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
-    if survey_processor.survey_end_reached:
+    if survey_processor.curr_survey_end:
         return redirect(url_for("submit"))
+
+    if survey_processor.curr_survey_start:
+        survey_processor.next()  # Roll forward to first displayable element
 
     form = form_generator.make_curr_form()
 
@@ -77,13 +80,18 @@ def survey():
 
 @app.route("/survey/back")
 def back():
+    # Ensure full "refresh" by moving back twice and forward once
     survey_processor.back()
+    if not survey_processor.curr_survey_start:
+        survey_processor.back()
+    survey_processor.next()
+
     return redirect(url_for("survey"))
 
 
 @app.route("/survey/submit")
 def submit():
-    if not survey_processor.survey_end_reached:
+    if not survey_processor.curr_survey_end:
         return redirect(url_for("survey"))
 
     # Store survey response into database
