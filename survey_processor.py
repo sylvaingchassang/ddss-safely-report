@@ -393,6 +393,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 # that contains all repeated responses to the element
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # Store incumbent value into previous iteration version
                 try:
@@ -434,6 +435,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 # that contains all repeated responses to the element
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # Update incumbent value with previous iteration version
                 try:
@@ -451,8 +453,8 @@ class SurveyProcessor(SurveyProcessorBase):
         # Determine the next element
         if isinstance(curr_element, Section) and self.curr_relevant:
             if curr_element.type == "repeat":
-                n_repeat = self._session.count_visits(curr_element.name)
-                limit = curr_element.control.get("jr:count", "float('inf')")
+                n_repeat = self._session.count_visit(curr_element.name)
+                limit = curr_element.control.get("jr:count", "0")
                 limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
                     next_element = curr_element.children[0]
@@ -508,6 +510,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 varname = child_element.name
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # If there are "excess" responses, cut them out
                 if len(value_lst) >= n_repeat:
