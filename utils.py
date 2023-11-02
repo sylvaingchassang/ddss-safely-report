@@ -3,6 +3,14 @@ from datetime import date
 from typing import Any, Optional
 
 
+def serialize_response_data(response_data: dict) -> str:
+    return json.dumps(response_data, default=_default)
+
+
+def deserialize_response_data(response_data: str) -> dict:
+    return json.loads(response_data, object_hook=_object_hook)
+
+
 def _default(obj: Any) -> Optional[dict]:
     """
     Custom method to serialize otherwise non-serializable data types
@@ -20,11 +28,3 @@ def _object_hook(obj: Any) -> Any:
     if _isoformat is not None:
         return date.fromisoformat(_isoformat)
     return obj
-
-
-def serialize_response_data(response_data: dict) -> str:
-    return json.dumps(response_data, default=_default)
-
-
-def deserialize_response_data(response_data: str) -> dict:
-    return json.loads(response_data, object_hook=_object_hook)
