@@ -8,13 +8,12 @@ from survey_session import SurveySession
 
 
 @pytest.fixture(scope="function")
-def survey_processor_instance():
+def survey_processor_instance(mocker):
     """
     An instance of `SurveyProcessor` with mock initiation.
     """
-    survey = Mock(spec=Survey)
-    survey.iter_descendants = MagicMock()
-    survey_session = Mock(spec=SurveySession)
-    survey_processor = SurveyProcessor(survey, survey_session)
+    mocker.patch("survey_processor.read_xlsform")
+    mocker.patch("survey_processor.SurveySession")
+    survey_processor = SurveyProcessor("", {})
 
     return survey_processor
