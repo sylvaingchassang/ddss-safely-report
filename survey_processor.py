@@ -93,10 +93,10 @@ class SurveyProcessor(SurveyProcessorBase):
         formula = self._curr_element.bind.get("relevant")
         if formula is None:
             return True
-        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
+        formula_py = SurveyProcessor._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
-        return eval(formula_python)
+        return eval(formula_py)
 
     @property
     def curr_name(self) -> str:
@@ -185,7 +185,7 @@ class SurveyProcessor(SurveyProcessorBase):
         curr_name = self.curr_name
         curr_value = self._session.retrieve_response(curr_name)
         self._session.store_response(curr_name, new_value)
-        if self._curr_constraint_met is False:
+        if not self._curr_constraint_met:
             self._session.store_response(curr_name, curr_value)
             return False
         return True
@@ -258,10 +258,10 @@ class SurveyProcessor(SurveyProcessorBase):
         formula = self._curr_element.bind.get("constraint")
         if formula is None:
             return True
-        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
+        formula_py = SurveyProcessor._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
-        return eval(formula_python)
+        return eval(formula_py)
 
     def _get_element(self, element_name: str) -> SurveyElement:
         """
@@ -279,7 +279,7 @@ class SurveyProcessor(SurveyProcessorBase):
 
         This function replaces its XLSForm counterpart (i.e., `position(..)`).
         """
-        return self._session.count_visit(self.curr_name)
+        return self._session.count_visits(self.curr_name)
 
     def _extract_text(self, field_content: Union[str, dict[str, str]]) -> str:
         """
@@ -328,10 +328,9 @@ class SurveyProcessor(SurveyProcessorBase):
             return
 
         formula = curr_element.bind.get("calculate")
-        if formula is None:
-            return
-        formula_python = SurveyProcessor._translate_xlsform_formula(formula)
-        self.set_curr_value(eval(formula_python))
+        if formula is not None:
+            formula_py = SurveyProcessor._translate_xlsform_formula(formula)
+            self.set_curr_value(eval(formula_py))
 
     def _execute_repeat(self):
         """
@@ -341,7 +340,7 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "repeat":
             return
 
-        n_repeat = self._session.count_visit(curr_element.name)
+        n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element
@@ -382,7 +381,7 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "repeat":
             return
 
-        n_repeat = self._session.count_visit(curr_element.name)
+        n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element
@@ -410,7 +409,7 @@ class SurveyProcessor(SurveyProcessorBase):
         # Determine the next element
         if isinstance(curr_element, Section) and self.curr_relevant:
             if curr_element.type == "repeat":
-                n_repeat = self._session.count_visit(curr_element.name)
+                n_repeat = self._session.count_visits(curr_element.name)
                 limit = curr_element.control.get("jr:count", "float('inf')")
                 limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
@@ -441,7 +440,7 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "repeat":
             return
 
-        n_repeat = self._session.count_visit(curr_element.name)
+        n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
             if SurveyProcessor._find_whether_to_show(child_element):
                 # Get name and value of the element's "auxiliary" store

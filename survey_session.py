@@ -55,7 +55,7 @@ class SurveySession:
     ) -> Optional[Any]:
         return self._response_values.get(survey_element_name, default_value)
 
-    def count_visit(self, survey_element_name: str) -> int:
+    def count_visits(self, survey_element_name: str) -> int:
         """
         Count the number of times that the given survey element has been
         visited so far.
