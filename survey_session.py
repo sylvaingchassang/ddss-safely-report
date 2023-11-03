@@ -16,13 +16,13 @@ class SurveySession:
 
     def __init__(self, session: LocalProxy):
         self._session = session
-        self._session[SurveySession.LANGUAGE] = ""
-        self._session[SurveySession.ELEMENT_VISITS] = []
-        self._session[SurveySession.ELEMENT_VALUES] = {}
 
     @property
     def language(self) -> str:
-        return self._session[SurveySession.LANGUAGE]
+        lang = self._session.get(SurveySession.LANGUAGE)
+        if lang is None:
+            self._session[SurveySession.LANGUAGE] = lang = ""
+        return lang
 
     @property
     def latest_visit(self) -> Optional[str]:
@@ -64,8 +64,14 @@ class SurveySession:
 
     @property
     def _visit_history(self) -> list[str]:
-        return self._session[SurveySession.ELEMENT_VISITS]
+        visits = self._session.get(SurveySession.ELEMENT_VISITS)
+        if visits is None:
+            self._session[SurveySession.ELEMENT_VISITS] = visits = []
+        return visits
 
     @property
     def _response_values(self) -> dict[str, Any]:
-        return self._session[SurveySession.ELEMENT_VALUES]
+        values = self._session.get(SurveySession.ELEMENT_VALUES)
+        if values is None:
+            self._session[SurveySession.ELEMENT_VALUES] = values = {}
+        return values
