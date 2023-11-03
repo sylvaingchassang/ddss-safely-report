@@ -16,7 +16,7 @@
 !.flaskenv.example
 !.pre-commit-config.yaml
 !.flake8
-!.vscode/settings.json
+!.vscode/settings-default.json
 !alembic.ini
 !migrations/script.py.mako
 !.dockerignore
