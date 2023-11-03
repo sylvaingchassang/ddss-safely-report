@@ -293,7 +293,7 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         if isinstance(field_content, str):
             text = field_content
-        if isinstance(field_content, dict):
+        elif isinstance(field_content, dict):
             text = field_content.get(self.curr_lang, "")
         else:
             text = ""
