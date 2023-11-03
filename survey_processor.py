@@ -67,7 +67,7 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Whether response to the current survey element is required.
         """
-        if self._curr_element.bind.get("required", "") == "yes":
+        if self._curr_element.bind.get("required") == "yes":
             return True
         return False
 
@@ -90,7 +90,7 @@ class SurveyProcessor(SurveyProcessorBase):
         no to the prerequisite question), in which case the survey element will
         neither be shown nor executed at all.
         """
-        formula = self._curr_element.bind.get("relevant", None)
+        formula = self._curr_element.bind.get("relevant")
         if formula is None:
             return True
         formula_python = SurveyProcessor._translate_xlsform_formula(formula)
@@ -255,7 +255,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the response value of the current survey element meets
         the constraint (if any).
         """
-        formula = self._curr_element.bind.get("constraint", None)
+        formula = self._curr_element.bind.get("constraint")
         if formula is None:
             return True
         formula_python = SurveyProcessor._translate_xlsform_formula(formula)
@@ -267,7 +267,7 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         Get the survey element object by its name.
         """
-        element = self._elements.get(element_name, None)
+        element = self._elements.get(element_name)
         if element is None:
             raise KeyError(f"Element does not exist: {element_name}")
         return element
@@ -327,7 +327,7 @@ class SurveyProcessor(SurveyProcessorBase):
         if curr_element.type != "calculate":
             return
 
-        formula = curr_element.bind.get("calculate", None)
+        formula = curr_element.bind.get("calculate")
         if formula is None:
             return
         formula_python = SurveyProcessor._translate_xlsform_formula(formula)
