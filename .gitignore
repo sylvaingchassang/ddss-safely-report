@@ -1,24 +1,26 @@
-# Ignore everything
-*
+# Flask
+instance/
+.flask_sessions/
+.flaskenv
 
-# Except for those ending with slash (i.e. directories)
-!*/
-*.venv/
+# Environments
+.env
+.venv
+env/
+venv/
 
-# And do not ignore the following file types
-!.gitignore
-!*.md
-!*.py
-!*.html
-!poetry.lock
-!pyproject.toml
-!requirements.txt
-!.flaskenv.example
-!.pre-commit-config.yaml
-!.flake8
-!.vscode/settings-default.json
-!alembic.ini
-!migrations/script.py.mako
-!.dockerignore
-!docker-compose.yml
-!Dockerfile*
+# Testing
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# MkDocs
+/site
+
+# VS Code
+.vscode/settings.json
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.DS_Store
