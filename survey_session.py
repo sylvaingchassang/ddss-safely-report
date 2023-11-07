@@ -7,6 +7,11 @@ class SurveySession:
     """
     An interface to limit and structure interaction with the (server-side)
     session object.
+
+    NOTE: Flask session object cannot be modified outside of request context,
+    which means session fields cannot be initiated before the app is running.
+    To resolve this, we embed field initiation logic inside retrieval methods,
+    i.e., we initiate the field if it does not exist.
     """
 
     # Define field names for storing user state info
