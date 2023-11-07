@@ -289,14 +289,16 @@ class SurveyProcessor(SurveyProcessorBase):
         can contain either a single string value or a dictionary of multiple
         string values corresponding to different languages. This method handles
         this complexity and simply returns the most relevant piece of text.
-        If nonexistent or not applicable, the method returns an empty string.
+        If nonexistent or not applicable, the method raises an error.
         """
         if isinstance(field_content, str):
             text = field_content
         elif isinstance(field_content, dict):
-            text = field_content.get(self.curr_lang, "")
+            if self.curr_lang not in field_content:
+                raise Exception("Please select another language")
+            text = field_content[self.curr_lang]
         else:
-            text = ""
+            raise Exception("The field does not contain text data")
 
         # Evaluate any XLSForm variables in the extracted text
         match = r"(\$\{)([^\}]+)(\})"
