@@ -35,7 +35,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the current survey element represents the start of the survey.
         """
         if self.curr_name == self._survey.name:
-            if self._session.count_visit(self._survey.name) == 1:
+            if self._session.count_visits(self._survey.name) == 1:
                 return True
         return False
 
@@ -45,7 +45,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the current survey element represents the end of the survey.
         """
         if self.curr_name == self._survey.name:
-            if self._session.count_visit(self._survey.name) > 1:
+            if self._session.count_visits(self._survey.name) > 1:
                 return True
         return False
 
@@ -459,7 +459,7 @@ class SurveyProcessor(SurveyProcessorBase):
         # Determine the next element
         if isinstance(curr_element, Section) and self.curr_relevant:
             if curr_element.type == "repeat":
-                n_repeat = self._session.count_visit(curr_element.name)
+                n_repeat = self._session.count_visits(curr_element.name)
                 limit = curr_element.control.get("jr:count", "0")
                 limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
