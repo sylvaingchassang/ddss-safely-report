@@ -76,71 +76,6 @@ class Garbler:
         """
         return self._params.get(survey_element_name)
 
-    def garble_responses(
-        self,
-        garbling_params: GarblingParams,
-        response_values: list[Union[str, None]],
-        covariate_values: Optional[list[str]] = [],
-    ) -> tuple[list[Union[str, None]], int]:
-        """
-        Garble responses to the given survey element.
-
-        Parameters
-        ----------
-        garbling_params: GarblingParams
-            Garbling parameters
-        response_values: list[Union[str, None]]
-            Name (not label) of the choice option that each respondent selected
-        covariate_values: list[str], optional
-            Covariate value (e.g., "married") for each respondent
-
-        Returns
-        -------
-        list[Union[str, None]]
-            Names (not labels) of the choice options after garbling is applied
-        int:
-            Count of cases where garbling has been applied
-
-        Notes
-        -----
-        - In a survey, some participants do not complete their responses, and
-        such cases are captured by `None` values in `response_values`. We do
-        not apply garbling in these cases.
-        - Covariate information is part of the survey respondent roster, so
-        `covariate_values` cannot contain any `None` values.
-        """
-        # Generate garbling shocks (i.e., `eta`s in the garbling formula)
-        if garbling_params.scheme == GarblingScheme.IID:
-            garbling_shocks = Garbler._generate_garbling_shocks_per_individual(
-                rate=GarblingParams.rate, n=len(response_values)
-            )
-        elif garbling_params.scheme == GarblingScheme.PopBlock:
-            garbling_shocks = Garbler._generate_garbling_shocks_per_block(
-                rate=GarblingParams.rate, n=len(response_values)
-            )
-        elif garbling_params.scheme == GarblingScheme.CovBlock:
-            pass
-        else:
-            raise Exception(f"{garbling_params.scheme} is not supported")
-
-        # Perform garbling
-        garbled_response_values: list[Union[str, None]] = []
-        garbling_counter = 0
-        for value, shock in zip(response_values, garbling_shocks):
-            if value is None:
-                garbled_response_values.append(None)
-            else:
-                if shock is True:
-                    garbling_counter += 1
-                garbled_value = Garbler._garble_response(
-                    garbling_answer=GarblingParams.answer,
-                    garbling_shock=shock,
-                    response_value=value,
-                )
-                garbled_response_values.append(garbled_value)
-
-        return garbled_response_values, garbling_counter
-
     def _parse_survey_dict(
         self, survey_dict: dict[str, Any]
     ) -> dict[str, GarblingParams]:
@@ -222,58 +157,103 @@ class Garbler:
         return GarblingParams(question, answer, rate, covariate)
 
     @staticmethod
-    def _generate_garbling_shocks_per_individual(
-        rate: float, n: int
-    ) -> list[bool]:
+    def garble_individual_response(
+        garbling_params: GarblingParams,
+        response_value: str,
+    ) -> tuple[str, int]:
         """
-        Randomize garbling shocks (i.e., `eta`s in the garbling formula)
-        at the individual level.
+        Garble the given response at the individual level.
 
         Parameters
         ----------
-        rate: float
-            Garbling probability
-        n: int
-            Number of garbling shocks to generate
+        garbling_params: GarblingParams
+            Garbling parameters
+        response_value: str
+            Name (not label) of the choice option that the respondent selected
 
         Returns
         -------
-        list[bool]
-            Array of garbling shocks generated
+        str
+            Name (not label) of the choice option after garbling is applied
+        int:
+            Count of cases where garbling has been applied
         """
-        garbling_shocks = []
-        for _ in range(n):
-            shock = True if random() < rate else False
-            garbling_shocks.append(shock)
+        if garbling_params.scheme != GarblingScheme.IID:
+            raise Exception("This method is valid only for IID Garbling")
 
-        return garbling_shocks
+        # Randomize garbling shock at the individual level
+        garbling_shock = True if random() < garbling_params.rate else False
+
+        # Perform garbling
+        garbled_value = Garbler._garble_response(
+            garbling_answer=GarblingParams.answer,
+            garbling_shock=garbling_shock,
+            response_value=response_value,
+        )
+
+        return garbled_value, int(garbling_shock)
 
     @staticmethod
-    def _generate_garbling_shocks_per_block(rate: float, n: int) -> list[bool]:
+    def garble_block_responses(
+        garbling_params: GarblingParams,
+        response_values: list[Union[str, None]],
+    ) -> tuple[list[Union[str, None]], int]:
         """
-        Randomize garbling shocks (i.e., `eta`s in the garbling formula)
-        at the block level.
+        Garble the given responses at the block level.
 
         Parameters
         ----------
-        rate: float
-            Garbling probability
-        n: int
-            Number of garbling shocks to generate
+        garbling_params: GarblingParams
+            Garbling parameters
+        response_values: list[Union[str, None]]
+            Name (not label) of the choice option that each respondent selected
 
         Returns
         -------
-        list[bool]
-            Array of garbling shocks generated
+        list[Union[str, None]]
+            Names (not labels) of the choice options after garbling is applied
+        int:
+            Count of cases where garbling has been applied
+
+        Notes
+        -----
+        - Note that this method performs Population-Blocked Garbling on the
+        provided response values. Hence, for Covariate-Blocked Garbling, one
+        should only pass in response values from the same covariate block; and
+        repeat the process for different covariate blocks.
+        - In a survey, some participants do not complete their responses, and
+        such cases are captured by `None` values in `response_values`. We do
+        not apply garbling in these cases.
         """
+        block_schemes = [GarblingScheme.PopBlock, GarblingScheme.CovBlock]
+        if garbling_params.scheme not in block_schemes:
+            raise Exception("This method is valid only for Blocked Garbling")
+
         # Initialize the array of garbling shocks
-        k = ceil(rate * n)  # To ensure we use integer
+        n = len(response_values)
+        k = ceil(garbling_params.rate * n)  # To ensure we use integer
         garbling_shocks = [True] * k + [False] * (n - k)
 
         # Shuffle the array for randomization
         shuffle(garbling_shocks)
 
-        return garbling_shocks
+        # Perform garbling
+        garbled_response_values: list[Union[str, None]] = []
+        garbling_counter = 0
+        for value, shock in zip(response_values, garbling_shocks):
+            if value is None:
+                garbled_response_values.append(None)
+            else:
+                if shock is True:
+                    garbling_counter += 1
+                garbled_value = Garbler._garble_response(
+                    garbling_answer=GarblingParams.answer,
+                    garbling_shock=shock,
+                    response_value=value,
+                )
+                garbled_response_values.append(garbled_value)
+
+        return garbled_response_values, garbling_counter
 
     @staticmethod
     def _garble_response(
