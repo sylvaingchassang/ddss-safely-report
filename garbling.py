@@ -4,6 +4,8 @@ from math import ceil
 from random import random, shuffle
 from typing import Any, Optional, Union
 
+from read_xlsform import read_xlsform
+
 
 class GarblingScheme(Enum):
     IID = "Independent and Identically Distributed"
@@ -43,9 +45,8 @@ class Garbler:
 
     Parameters
     ----------
-    survey_dict: dict[str, Any]
-        Dictionary representation of the survey produced by
-        `pyxform.xls2json.parse_file_to_json()`
+    path_to_xlsform: str
+        Path to the XLSForm file specifying the survey
 
     Attributes
     ----------
@@ -54,8 +55,8 @@ class Garbler:
         the corresponding target question name
     """
 
-    def __init__(self, survey_dict: dict[str, Any]):
-        self._params = self._parse_survey_dict(survey_dict)
+    def __init__(self, path_to_xlsform: str):
+        self._params = self._parse_xlsform(path_to_xlsform)
 
     def get_garbling_params(
         self, survey_element_name: str
@@ -76,19 +77,16 @@ class Garbler:
         """
         return self._params.get(survey_element_name)
 
-    def _parse_survey_dict(
-        self, survey_dict: dict[str, Any]
-    ) -> dict[str, GarblingParams]:
+    @staticmethod
+    def _parse_xlsform(path_to_xlsform: str) -> dict[str, GarblingParams]:
         """
-        Parse dictionary representation of the survey produced by
-        `pyxform.xls2json.parse_file_to_json()` to identify questions
-        subject to garbling and their respective parameters.
+        Parse XLSForm to identify questions subject to garbling
+        and their respective parameters.
 
         Parameters
         ----------
-        survey_dict: dict[str, Any]
-            Dictionary representation of the survey produced by
-            `pyxform.xls2json.parse_file_to_json()`
+        path_to_xlsform: str
+            Path to the XLSForm file specifying the survey
 
         Returns
         -------
@@ -96,6 +94,9 @@ class Garbler:
             Dictionary that maps garbling parameters onto
             the corresponding target question name
         """
+        survey_dict = read_xlsform(path_to_xlsform)
+
+        # Initiate array to store survey elements subject to garbling
         elements_with_garbling = []
 
         def find_elements_with_garbling(element):
@@ -112,12 +113,13 @@ class Garbler:
         garbling_params = {}
         for element in elements_with_garbling:
             name = element.get("name", "")
-            garbling_params[name] = self._extract_garbling_params(element)
+            garbling_params[name] = Garbler._extract_garbling_params(element)
 
         return garbling_params
 
+    @staticmethod
     def _extract_garbling_params(
-        self, survey_dict_record: dict[str, Any]
+        survey_dict_record: dict[str, Any]
     ) -> GarblingParams:
         """
         Extract, validate, and repackage garbling parameters
