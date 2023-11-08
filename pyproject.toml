@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "safely-report"
+version = "0.1.0"
+description = "A survey web application that can provide plausible deniability to survey respondents"
+authors = ["Sangyoon Park <datumvitae@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flask = "^2.3.3"
+pyxform = "^1.12.2"
+python-dotenv = "^1.0.0"
+flask-session = "^0.5.0"
+flask-wtf = "^1.2.1"
+pytest-mock = "^3.12.0"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.4.0"
+pytest = "^7.4.2"
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+line_length = 79
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

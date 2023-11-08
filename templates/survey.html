@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+  <li>Element Name: {{ survey_processor.curr_name }}</li>
+  <li>Element Type: {{ survey_processor.curr_type }}</li>
+  <li>Language Selected: {{ survey_processor.curr_lang }}</li>
+  <li>Language Options: {{ survey_processor.curr_lang_options }}</li>
+  <li>Label: {{ survey_processor.curr_label }}</li>
+  <li>Hint: {{ survey_processor.curr_hint }}</li>
+</ul>
+
+<form method="POST">
+  {{ form.hidden_tag() }}
+  {% if form.field.errors %}
+    {% for message in form.field.errors %}
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {{ form.field.label }}
+  <br>
+  {{ form.field }}
+  <br>
+  <a href="{{ url_for('back') }}">
+    <button type="button">Back</button>
+  </a>
+  {{ form.submit() }}
+</form>
+
+{% endblock %}
