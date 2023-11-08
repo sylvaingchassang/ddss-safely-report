@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from random import random
-from typing import Any, Optional
+from math import ceil
+from random import random, shuffle
+from typing import Any, Optional, Union
 
 
 class GarblingScheme(Enum):
@@ -56,9 +57,12 @@ class Garbler:
     def __init__(self, survey_dict: dict[str, Any]):
         self._params = self._parse_survey_dict(survey_dict)
 
-    def find_whether_to_garble(self, survey_element_name: str) -> bool:
+    def get_garbling_params(
+        self, survey_element_name: str
+    ) -> Optional[GarblingParams]:
         """
-        Determine whether the given survey element is subject to garbling.
+        Retrieve garbling parameters of the given survey element.
+        Return `None` if the given survey element is not subject to garbling.
 
         Parameters
         ----------
@@ -67,74 +71,75 @@ class Garbler:
 
         Returns
         -------
-        bool
-            Whether the given survey element is subject to garbling
+        GarblingParams, optional
+            Garbling parameters of the given survey element
         """
-        if self._params.get(survey_element_name):
-            return True
-        return False
+        return self._params.get(survey_element_name)
 
-    def garble_response(
-        self, survey_element_name: str, response_choice_name: str
-    ) -> str:
+    def garble_responses(
+        self,
+        garbling_params: GarblingParams,
+        response_values: list[Union[str, None]],
+        covariate_values: Optional[list[str]] = [],
+    ) -> tuple[list[Union[str, None]], int]:
         """
-        Garble the given response using the question's garbling parameters.
-
-        With binary response between 0 and 1, garbling is formally defined as:
-
-            r_tilde = r + (1 - r) * eta
-
-        where:
-
-            - `r` is the original raw response value
-            - `eta` is a garbling "shock" that takes the value of either 1 or 0
-            with the given garbling probability
-            - `r_tilde` is the garbled response value
-
-        For more details, consult the original paper:
-
-            https://www.nber.org/papers/w31011
+        Garble responses to the given survey element.
 
         Parameters
         ----------
-        survey_element_name: str
-            Name of the survey element to be garbled
-        response_choice_name: str
-            Name (not label) of the choice option that the respondent selected
+        garbling_params: GarblingParams
+            Garbling parameters
+        response_values: list[Union[str, None]]
+            Name (not label) of the choice option that each respondent selected
+        covariate_values: list[str], optional
+            Covariate value (e.g., "married") for each respondent
 
         Returns
         -------
-        str
-            Name (not label) of the choice option after garbling is applied
-        """
-        garbling_params = self._params.get(survey_element_name)
-        if not garbling_params:
-            raise Exception(f"{survey_element_name} not subject to garbling")
+        list[Union[str, None]]
+            Names (not labels) of the choice options after garbling is applied
+        int:
+            Count of cases where garbling has been applied
 
-        # Determine garbling "shock" (i.e., `eta` in the garbling formula)
-        garbling_shock: bool
+        Notes
+        -----
+        - In a survey, some participants do not complete their responses, and
+        such cases are captured by `None` values in `response_values`. We do
+        not apply garbling in these cases.
+        - Covariate information is part of the survey respondent roster, so
+        `covariate_values` cannot contain any `None` values.
+        """
+        # Generate garbling shocks (i.e., `eta`s in the garbling formula)
         if garbling_params.scheme == GarblingScheme.IID:
-            garbling_shock = True if random() < garbling_params.rate else False
+            garbling_shocks = Garbler._generate_garbling_shocks_per_individual(
+                rate=GarblingParams.rate, n=len(response_values)
+            )
+        elif garbling_params.scheme == GarblingScheme.PopBlock:
+            garbling_shocks = Garbler._generate_garbling_shocks_per_block(
+                rate=GarblingParams.rate, n=len(response_values)
+            )
+        elif garbling_params.scheme == GarblingScheme.CovBlock:
+            pass
         else:
             raise Exception(f"{garbling_params.scheme} is not supported")
 
         # Perform garbling
-        if response_choice_name == garbling_params.answer:
-            return response_choice_name
-        else:
-            if garbling_shock is True:
-                return garbling_params.answer
+        garbled_response_values: list[Union[str, None]] = []
+        garbling_counter = 0
+        for value, shock in zip(response_values, garbling_shocks):
+            if value is None:
+                garbled_response_values.append(None)
             else:
-                return response_choice_name
+                if shock is True:
+                    garbling_counter += 1
+                garbled_value = Garbler._garble_response(
+                    garbling_answer=GarblingParams.answer,
+                    garbling_shock=shock,
+                    response_value=value,
+                )
+                garbled_response_values.append(garbled_value)
 
-        # TODO: If the response has actually been flipped/switched, increment
-        # garbling counter (cached in server-side session; stored into DB's
-        # counter table once the current survey session is submitted; counter
-        # table has each respondent's counter record as a separate record and
-        # these records will be "summed up" when the counter data is downloaded
-        # after survey deactivation)
-        # NOTE: Perhaps this should be done in SurveyProcessor as it has direct
-        # interaction with SurveySession
+        return garbled_response_values, garbling_counter
 
     def _parse_survey_dict(
         self, survey_dict: dict[str, Any]
@@ -215,3 +220,105 @@ class Garbler:
             raise Exception("Garbling rate should be between 0 and 1")
 
         return GarblingParams(question, answer, rate, covariate)
+
+    @staticmethod
+    def _generate_garbling_shocks_per_individual(
+        rate: float, n: int
+    ) -> list[bool]:
+        """
+        Randomize garbling shocks (i.e., `eta`s in the garbling formula)
+        at the individual level.
+
+        Parameters
+        ----------
+        rate: float
+            Garbling probability
+        n: int
+            Number of garbling shocks to generate
+
+        Returns
+        -------
+        list[bool]
+            Array of garbling shocks generated
+        """
+        garbling_shocks = []
+        for _ in range(n):
+            shock = True if random() < rate else False
+            garbling_shocks.append(shock)
+
+        return garbling_shocks
+
+    @staticmethod
+    def _generate_garbling_shocks_per_block(rate: float, n: int) -> list[bool]:
+        """
+        Randomize garbling shocks (i.e., `eta`s in the garbling formula)
+        at the block level.
+
+        Parameters
+        ----------
+        rate: float
+            Garbling probability
+        n: int
+            Number of garbling shocks to generate
+
+        Returns
+        -------
+        list[bool]
+            Array of garbling shocks generated
+        """
+        # Initialize the array of garbling shocks
+        k = ceil(rate * n)  # To ensure we use integer
+        garbling_shocks = [True] * k + [False] * (n - k)
+
+        # Shuffle the array for randomization
+        shuffle(garbling_shocks)
+
+        return garbling_shocks
+
+    @staticmethod
+    def _garble_response(
+        garbling_answer: str,
+        garbling_shock: bool,
+        response_value: str,
+    ) -> str:
+        """
+        Apply garbling formula to the given response.
+
+        With binary response between 0 and 1, garbling is formally defined as:
+
+            r_tilde = r + (1 - r) * eta
+
+        where:
+
+            - `r` is the original raw response value
+            - `eta` is a garbling "shock" that takes the value of either 1 or 0
+            with the given garbling probability
+            - `r_tilde` is the garbled response value
+
+        For more details, consult the original paper:
+
+            https://www.nber.org/papers/w31011
+
+        Parameters
+        ----------
+        garbling_answer: str
+            Name (not label) of the choice option to be garbled *into*
+            (most of the time, it is the name of the "yes" choice option)
+        garbling_shock: bool
+            Garbling "shock" that takes the value of either 1 or 0
+            with the given garbling probability
+        response_value: str
+            Name (not label) of the choice option that the respondent selected
+
+        Returns
+        -------
+        str
+            Name (not label) of the choice option after garbling is applied
+        """
+        if response_value == garbling_answer:
+            return response_value
+        else:
+            if garbling_shock is True:
+                return garbling_answer
+            else:
+                return response_value
