@@ -3,17 +3,23 @@ from datetime import date
 from typing import Any, Optional
 
 
-def serialize_response_data(response_data: dict) -> str:
-    return json.dumps(response_data, default=_default)
+def serialize_dict(data: dict) -> str:
+    """
+    Transform Python dictionary into JSON string.
+    """
+    return json.dumps(data, default=_default)
 
 
-def deserialize_response_data(response_data: str) -> dict:
-    return json.loads(response_data, object_hook=_object_hook)
+def deserialize_json(data: str) -> dict:
+    """
+    Transform JSON string into Python dictionary.
+    """
+    return json.loads(data, object_hook=_object_hook)
 
 
 def _default(obj: Any) -> Optional[dict]:
     """
-    Custom method to serialize otherwise non-serializable data types
+    Custom method to serialize otherwise non-serializable data types.
     """
     if isinstance(obj, date):
         return {"_isoformat": obj.isoformat()}
@@ -22,7 +28,7 @@ def _default(obj: Any) -> Optional[dict]:
 
 def _object_hook(obj: Any) -> Any:
     """
-    Hook to deserialize data that have been serialized by custom method
+    Hook to deserialize data that have been serialized by custom method.
     """
     _isoformat = obj.get("_isoformat")
     if _isoformat is not None:

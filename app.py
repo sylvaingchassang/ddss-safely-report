@@ -8,7 +8,7 @@ from pyxform import builder, xls2json
 from form_generator import SurveyFormGenerator
 from survey_processor import SurveyProcessor
 from survey_session import SurveySession
-from utils import serialize_response_data
+from utils import serialize_dict
 
 load_dotenv()
 
@@ -96,8 +96,8 @@ def submit():
 
     # Store survey response into database
     try:
-        response_data = survey_processor.gather_responses_to_store()
-        response_serialized = serialize_response_data(response_data)
+        response_dict = survey_processor.gather_responses_to_store()
+        response_serialized = serialize_dict(response_dict)
         response_record = Response(response=response_serialized)
         db.session.add(response_record)
         db.session.commit()
