@@ -1,10 +1,6 @@
-from unittest.mock import MagicMock, Mock
-
 import pytest
-from pyxform.survey import Survey
 
 from survey_processor import SurveyProcessor
-from survey_session import SurveySession
 
 
 @pytest.fixture(scope="function")
