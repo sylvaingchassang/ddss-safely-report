@@ -30,6 +30,26 @@ class SurveyProcessor(SurveyProcessorBase):
             self._elements[item.name] = item
 
     @property
+    def curr_survey_start(self) -> bool:
+        """
+        Whether the current survey element represents the start of the survey.
+        """
+        if self.curr_name == self._survey.name:
+            if self._session.count_visits(self._survey.name) == 1:
+                return True
+        return False
+
+    @property
+    def curr_survey_end(self) -> bool:
+        """
+        Whether the current survey element represents the end of the survey.
+        """
+        if self.curr_name == self._survey.name:
+            if self._session.count_visits(self._survey.name) > 1:
+                return True
+        return False
+
+    @property
     def curr_lang_options(self) -> list[str]:
         """
         Language options for the current survey element.
@@ -106,7 +126,6 @@ class SurveyProcessor(SurveyProcessorBase):
         if self._session.latest_visit is None:
             # Start from the beginning, i.e. survey root
             self._session.add_new_visit(self._survey.name)
-            self.next()  # Roll forward to the first displayable element
         return self._session.latest_visit  # type: ignore
 
     @property
@@ -214,6 +233,10 @@ class SurveyProcessor(SurveyProcessorBase):
             # Move to the next survey element
             self._next()
 
+            # Stop if reaching the survey end
+            if self.curr_survey_end:
+                break
+
             # Repeat steps above until the new element is both relevant and
             # of a type to display to the respondent
             if self.curr_relevant and self.curr_to_show:
@@ -231,16 +254,39 @@ class SurveyProcessor(SurveyProcessorBase):
             # Move to the previous survey element
             self._back()
 
-            # If reaching the survey root, roll forward to the first
-            # displayable element
-            if self.curr_name == self._survey.name:
-                self.next()
+            # Stop if reaching the survey start
+            if self.curr_survey_start:
                 break
 
             # Repeat steps above until the new element is both relevant and
             # of a type to display to the respondent
             if self.curr_relevant and self.curr_to_show:
                 break
+
+    def gather_responses_to_store(self) -> dict[str, Any]:
+        """
+        Collect survey responses to store in the database.
+        """
+        responses = self._session.retrieve_all_responses()
+        visits = set(self._session.get_all_visits())
+
+        # Prepare data to store
+        responses_to_store = {}
+        for varname in responses:
+            if varname in visits:
+                responses_to_store[varname] = responses[varname]
+        for varname in visits:
+            repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+            if repeat_varname in responses:
+                responses_to_store[repeat_varname] = responses[repeat_varname]
+
+        return responses_to_store
+
+    def clear_session(self):
+        """
+        Clear all data in the current survey session.
+        """
+        self._session.clear()
 
     @property
     def _curr_element(self) -> SurveyElement:
@@ -353,6 +399,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 # that contains all repeated responses to the element
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # Store incumbent value into previous iteration version
                 try:
@@ -394,6 +441,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 # that contains all repeated responses to the element
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # Update incumbent value with previous iteration version
                 try:
@@ -412,22 +460,40 @@ class SurveyProcessor(SurveyProcessorBase):
         if isinstance(curr_element, Section) and self.curr_relevant:
             if curr_element.type == "repeat":
                 n_repeat = self._session.count_visits(curr_element.name)
-                limit = curr_element.control.get("jr:count", "float('inf')")
+                limit = curr_element.control.get("jr:count", "0")
                 limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
                     next_element = curr_element.children[0]
                 else:
                     self._clean_obsolete_repeat_responses()
-                    next_element = SurveyProcessor._get_next_sibling(
-                        curr_element
-                    )
+                    next_element = self._get_next_sibling(curr_element)
             else:
                 next_element = curr_element.children[0]
         else:
-            next_element = SurveyProcessor._get_next_sibling(curr_element)
+            next_element = self._get_next_sibling(curr_element)
 
         # Update visit history
         self._session.add_new_visit(next_element.name)
+
+    def _get_next_sibling(self, element: SurveyElement) -> SurveyElement:
+        """
+        Return the immediate next sibling of the given survey element.
+        - If there is no more next sibling, move up to the parent node
+        and return its next sibling.
+        - If the given survey element is the survey root, simply return
+        itself as the survey root does not have any sibling or parent.
+        """
+        if element.name == self._survey.name:  # Survey root
+            return element
+
+        element_index = element.parent.children.index(element)
+        try:
+            return element.parent.children[element_index + 1]
+        except IndexError:
+            if element.parent.type == "repeat":
+                return element.parent
+            else:
+                return self._get_next_sibling(element.parent)
 
     def _clean_obsolete_repeat_responses(self):
         """
@@ -450,6 +516,7 @@ class SurveyProcessor(SurveyProcessorBase):
                 varname = child_element.name
                 repeat_varname = SurveyProcessor._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
+                assert isinstance(value_lst, list)  # For type check to work
 
                 # If there are "excess" responses, cut them out
                 if len(value_lst) >= n_repeat:
@@ -480,22 +547,6 @@ class SurveyProcessor(SurveyProcessorBase):
         if isinstance(element, Question) and type(element) != Question:
             return True
         return False
-
-    @staticmethod
-    def _get_next_sibling(element: SurveyElement) -> SurveyElement:
-        """
-        Return the immediate next sibling of the given survey element.
-        If there is no more next sibling, move up to the parent node
-        and return its next sibling.
-        """
-        element_index = element.parent.children.index(element)
-        try:
-            return element.parent.children[element_index + 1]
-        except IndexError:
-            if element.parent.type == "repeat":
-                return element.parent
-            else:
-                return SurveyProcessor._get_next_sibling(element.parent)
 
     @staticmethod
     def _translate_xlsform_formula(formula: str) -> str:

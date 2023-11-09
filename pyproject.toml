@@ -13,6 +13,8 @@ python-dotenv = "^1.0.0"
 flask-session = "^0.5.0"
 flask-wtf = "^1.2.1"
 pytest-mock = "^3.12.0"
+flask-sqlalchemy = "^3.1.1"
+flask-migrate = "^4.0.5"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.4.0"
@@ -20,11 +22,16 @@ pytest = "^7.4.2"
 
 [tool.black]
 line-length = 79
+exclude = 'migrations'
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
+skip = ["migrations"]
 line_length = 79
+
+[tool.mypy]
+exclude = ["migrations"]
 
 [build-system]
 requires = ["poetry-core"]

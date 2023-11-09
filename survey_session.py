@@ -1,6 +1,7 @@
+from copy import deepcopy
 from typing import Any, Optional
 
-from werkzeug.local import LocalProxy
+from flask.sessions import SessionMixin
 
 
 class SurveySession:
@@ -19,7 +20,7 @@ class SurveySession:
     ELEMENT_VISITS = "survey_elements_visited"
     ELEMENT_VALUES = "survey_response_values"
 
-    def __init__(self, session: LocalProxy):
+    def __init__(self, session: SessionMixin):
         self._session = session
 
     @property
@@ -47,6 +48,16 @@ class SurveySession:
             self._visit_history.pop()
             self._session.modified = True
 
+    def count_visits(self, survey_element_name: str) -> int:
+        """
+        Count the number of times that the given survey element has been
+        visited so far.
+        """
+        return self._visit_history.count(survey_element_name)
+
+    def get_all_visits(self) -> list[str]:
+        return deepcopy(self._visit_history)
+
     def store_response(self, survey_element_name: str, response_value: Any):
         if response_value is None:
             self._response_values.pop(survey_element_name, None)
@@ -58,14 +69,15 @@ class SurveySession:
     def retrieve_response(
         self, survey_element_name: str, default_value: Optional[Any] = None
     ) -> Optional[Any]:
-        return self._response_values.get(survey_element_name, default_value)
+        return deepcopy(
+            self._response_values.get(survey_element_name, default_value)
+        )
 
-    def count_visits(self, survey_element_name: str) -> int:
-        """
-        Count the number of times that the given survey element has been
-        visited so far.
-        """
-        return self._visit_history.count(survey_element_name)
+    def retrieve_all_responses(self) -> dict[str, Any]:
+        return deepcopy(self._response_values)
+
+    def clear(self):
+        self._session.clear()
 
     @property
     def _visit_history(self) -> list[str]:
