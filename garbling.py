@@ -4,7 +4,7 @@ from math import ceil
 from random import random, shuffle
 from typing import Any, Optional, Union
 
-from read_xlsform import read_xlsform
+from pyxform.xls2json import parse_file_to_json
 
 
 class GarblingScheme(Enum):
@@ -107,7 +107,7 @@ class Garbler:
 
         # Perform garbling
         garbled_value = Garbler._garble_response(
-            garbling_answer=GarblingParams.answer,
+            garbling_answer=garbling_params.answer,
             garbling_shock=garbling_shock,
             response_value=response_value,
         )
@@ -168,7 +168,7 @@ class Garbler:
                 if shock is True:
                     garbling_counter += 1
                 garbled_value = Garbler._garble_response(
-                    garbling_answer=GarblingParams.answer,
+                    garbling_answer=garbling_params.answer,
                     garbling_shock=shock,
                     response_value=value,
                 )
@@ -193,7 +193,7 @@ class Garbler:
             Dictionary that maps garbling parameters onto
             the corresponding target question name
         """
-        survey_dict = read_xlsform(path_to_xlsform)
+        survey_dict = parse_file_to_json(path=path_to_xlsform)
 
         # Initiate array to store survey elements subject to garbling
         elements_with_garbling = []
@@ -239,7 +239,7 @@ class Garbler:
         params = survey_dict_record.get("garbling", {})
         question = survey_dict_record.get("name", "")
         answer = params.get("answer", "")
-        rate = params.get("rate", 0)
+        rate = float(params.get("rate", 0))
         covariate = params.get("covariate", "")
 
         # Validate garbling parameters
