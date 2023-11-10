@@ -8,11 +8,11 @@ def read_xlsform(path_to_xlsform: str) -> Survey:
     Parse and validate XLSForm to generate its Python representation.
     """
     # Parse the form
-    survey_json = parse_file_to_json(
+    survey_dict = parse_file_to_json(
         path=path_to_xlsform,
         default_name="__survey__",
     )
-    survey_tree = create_survey_element_from_dict(survey_json)
+    survey_tree = create_survey_element_from_dict(survey_dict)
 
     # TODO: Validate the form
     assert isinstance(survey_tree, Survey)
