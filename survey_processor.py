@@ -18,6 +18,13 @@ class SurveyProcessor(SurveyProcessorBase):
     NOTE: `SurveyProcessor` is "stateless" as it caches client data
     (e.g., current location in the survey) in server-side sessions via
     `SurveySession`.
+
+    Parameters
+    ----------
+    path_to_xlsform: str
+        Path to the XLSForm file specifying the survey
+    session: SessionMixin
+        Flask session object for caching survey response data
     """
 
     def __init__(self, path_to_xlsform: str, session: SessionMixin):

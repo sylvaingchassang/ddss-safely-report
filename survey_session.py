@@ -13,6 +13,11 @@ class SurveySession:
     which means session fields cannot be initiated before the app is running.
     To resolve this, we embed field initiation logic inside retrieval methods,
     i.e., we initiate the field if it does not exist.
+
+    Parameters
+    ----------
+    session: SessionMixin
+        Flask session object for caching survey response data
     """
 
     # Define field names for storing user state info
