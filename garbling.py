@@ -216,6 +216,9 @@ class Garbler:
             name = element.get("name", "")
             garbling_params[name] = Garbler._extract_garbling_params(element)
 
+        # TODO: Ensure no garbling happens inside any repeat section
+        pass
+
         return garbling_params
 
     @staticmethod
