@@ -1,7 +1,22 @@
 import json
 import os
 from datetime import date
-from typing import Any, Optional
+from typing import Any, Optional, Type
+
+
+def check_dict_required_fields(
+    data: dict, required_fields: list[tuple[str, Type]]
+):
+    """
+    Check if the given data dictionary has all required fields
+    with expected data types.
+    """
+    for field_name, field_type in required_fields:
+        field_value = data.get(field_name)
+        if field_value is None:
+            raise KeyError(f"Missing field: {field_name}")
+        if not isinstance(field_value, field_type):
+            raise ValueError(f"{field_name} should contain {field_type}")
 
 
 def get_env_var(name: str) -> Optional[str]:

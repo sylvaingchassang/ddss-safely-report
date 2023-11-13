@@ -6,6 +6,8 @@ from typing import Any, Optional, Union
 
 from pyxform.xls2json import parse_file_to_json
 
+from utils import check_dict_required_fields
+
 
 class GarblingScheme(Enum):
     IID = "Independent and Identically Distributed"
@@ -235,28 +237,29 @@ class Garbler:
         GarblingParams
             Streamlined packaging of validated garbling parameters
         """
-        # Check required fields and their types
-        required_fields = [
-            ("name", str),
-            ("choices", list),
-            ("garbling", dict),
-        ]
-        for field_name, field_type in required_fields:
-            field_value = survey_dict_record.get(field_name)
-            if field_value is None:
-                raise KeyError(f"Missing field: {field_name}")
-            if not isinstance(field_value, field_type):
-                raise ValueError(f"{field_name} should contain {field_type}")
-
-        # Unpack garbling parameters
+        # Unpack the given survey record
+        check_dict_required_fields(
+            data=survey_dict_record,
+            required_fields=[
+                ("name", str),
+                ("choices", list),
+                ("garbling", dict),
+            ],
+        )
         params = survey_dict_record["garbling"]
         question = survey_dict_record["name"]
-        answer = params.get("answer", "")
-        rate = float(params.get("rate", 0))
-        covariate = params.get("covariate", None)
+        choices = survey_dict_record["choices"]
+
+        # Unpack garbling parameters
+        check_dict_required_fields(
+            data=params,
+            required_fields=[("answer", str), ("rate", str)],
+        )
+        answer = params["answer"]
+        rate = float(params["rate"])
+        covariate = params.get("covariate")  # Optional param
 
         # Validate garbling parameters
-        choices = survey_dict_record["choices"]
         if len(choices) != 2:
             raise Exception(
                 "Garbling specified for a non binary-choice question: "
