@@ -235,15 +235,28 @@ class Garbler:
         GarblingParams
             Streamlined packaging of validated garbling parameters
         """
+        # Check required fields and their types
+        required_fields = [
+            ("name", str),
+            ("choices", list),
+            ("garbling", dict),
+        ]
+        for field_name, field_type in required_fields:
+            field_value = survey_dict_record.get(field_name)
+            if field_value is None:
+                raise KeyError(f"Missing field: {field_name}")
+            if not isinstance(field_value, field_type):
+                raise ValueError(f"{field_name} should contain {field_type}")
+
         # Unpack garbling parameters
-        params = survey_dict_record.get("garbling", {})
-        question = survey_dict_record.get("name", "")
+        params = survey_dict_record["garbling"]
+        question = survey_dict_record["name"]
         answer = params.get("answer", "")
         rate = float(params.get("rate", 0))
         covariate = params.get("covariate", None)
 
         # Validate garbling parameters
-        choices = survey_dict_record.get("choices", [])
+        choices = survey_dict_record["choices"]
         if len(choices) != 2:
             raise Exception(
                 "Garbling specified for a non binary-choice question: "
