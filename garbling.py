@@ -240,7 +240,7 @@ class Garbler:
         question = survey_dict_record.get("name", "")
         answer = params.get("answer", "")
         rate = float(params.get("rate", 0))
-        covariate = params.get("covariate", "")
+        covariate = params.get("covariate", None)
 
         # Validate garbling parameters
         choices = survey_dict_record.get("choices", [])
