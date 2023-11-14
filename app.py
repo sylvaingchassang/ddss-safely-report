@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, session, url_for
 from flask_migrate import Migrate
 from flask_session import Session
@@ -8,20 +7,13 @@ from form_generator import SurveyFormGenerator
 from survey_processor import SurveyProcessor
 from utils import serialize_dict
 
-load_dotenv()
-
 app = Flask(__name__)
-app.config.from_prefixed_env(prefix="FLASK")
+app.config.from_pyfile("settings.py")
 
 # Set up use of server-side sessions
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_FILE_DIR"] = ".flask_sessions"
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_PERMANENT"] = False
 Session(app)
 
 # Set up database
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 Migrate(app, db)
 
