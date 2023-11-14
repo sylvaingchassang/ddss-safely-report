@@ -258,16 +258,14 @@ class Garbler:
         return elements_with_garbling
 
     @staticmethod
-    def _extract_garbling_params(
-        survey_dict_record: dict[str, Any]
-    ) -> GarblingParams:
+    def _extract_garbling_params(element: dict[str, Any]) -> GarblingParams:
         """
         Extract, validate, and repackage garbling parameters
         for the given survey element record.
 
         Parameters
         ----------
-        survey_dict_record: dict[str, Any]
+        element: dict[str, Any]
             A record in the dictionary representation of the survey
             produced by `pyxform.xls2json.parse_file_to_json()`
 
@@ -278,16 +276,16 @@ class Garbler:
         """
         # Unpack the given survey record
         check_dict_required_fields(
-            data=survey_dict_record,
+            data=element,
             required_fields=[
                 ("name", str),
                 ("choices", list),
                 ("garbling", dict),
             ],
         )
-        params = survey_dict_record["garbling"]
-        question = survey_dict_record["name"]
-        choices = survey_dict_record["choices"]
+        params = element["garbling"]
+        question = element["name"]
+        choices = element["choices"]
 
         # Unpack garbling parameters
         check_dict_required_fields(
