@@ -24,9 +24,9 @@ repos:
         types: [python]
         pass_filenames: false
       - id: mypy
-        args: [--ignore-missing-imports]
         name: mypy
         entry: mypy .
+        args: [--ignore-missing-imports]
         language: python
         types: [python]
         pass_filenames: false
@@ -41,8 +41,8 @@ repos:
         name: poetry-export
         description: run poetry export to sync lock file with requirements.txt
         entry: poetry export
+        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
         language: python
         language_version: python3
         pass_filenames: false
         files: ^poetry.lock$
-        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
