@@ -30,6 +30,13 @@ repos:
         language: python
         types: [python]
         pass_filenames: false
+      - id: pytest
+        name: pytest
+        entry: pytest
+        args: ["tests"]
+        language: python
+        types: [python]
+        pass_filenames: false
       - id: poetry-export
         name: poetry-export
         description: run poetry export to sync lock file with requirements.txt
