@@ -553,7 +553,7 @@ class SurveyProcessor(SurveyProcessorBase):
         generic `Question` class for elements related to internal actions
         such as calculation.
         """
-        if isinstance(element, Question) and type(element) != Question:
+        if isinstance(element, Question) and type(element) is not Question:
             return True
         return False
 
