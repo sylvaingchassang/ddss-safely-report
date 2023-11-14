@@ -197,18 +197,13 @@ class Garbler:
         """
         survey_dict = parse_file_to_json(path=path_to_xlsform)
 
-        # Initiate array to store survey elements subject to garbling
-        elements_with_garbling = []
-
-        def find_elements_with_garbling(element):
-            if element.get("garbling"):
-                elements_with_garbling.append(element)
-            if element.get("children"):
-                for child in element["children"]:
-                    find_elements_with_garbling(child)
-
         # Recursively identify survey elements subject to garbling
-        find_elements_with_garbling(survey_dict)
+        # NOTE: Ensure no garbling happens inside any repeat section
+        a = Garbler._find_elements_with_garbling(survey_dict)
+        b = Garbler._find_elements_with_garbling(survey_dict, skip_repeat=True)
+        if len(a) > len(b):
+            raise Exception("Garbling should not be applied inside repeats")
+        elements_with_garbling = b
 
         # Extract and organize garbling parameters
         garbling_params = {}
@@ -216,10 +211,51 @@ class Garbler:
             name = element.get("name", "")
             garbling_params[name] = Garbler._extract_garbling_params(element)
 
-        # TODO: Ensure no garbling happens inside any repeat section
-        pass
-
         return garbling_params
+
+    @staticmethod
+    def _find_elements_with_garbling(
+        element: dict[str, Any],
+        skip_repeat: bool = False,
+        elements_with_garbling: Optional[list[dict[str, Any]]] = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Recursively identify survey elements subject to garbling.
+
+        Parameters
+        ----------
+        element: dict[str, Any]
+            A record in the dictionary representation of the survey
+            produced by `pyxform.xls2json.parse_file_to_json()`
+        skip_repeat: bool
+            Whether to discard survey elements under repeat sections
+        elements_with_garbling: list[dict[str, Any]], optional
+            Existing array of survey elements subject to garbling
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            Array of survey elements subject to garbling
+        """
+        if elements_with_garbling is None:
+            elements_with_garbling = []
+
+        # Determine whether the given survey element is a repeat section
+        is_repeat = element.get("type") == "repeat"
+
+        # Recursively identify survey elements subject to garbling
+        if not skip_repeat or (skip_repeat and not is_repeat):
+            if element.get("garbling"):
+                elements_with_garbling.append(element)
+            if element.get("children"):
+                for child in element["children"]:
+                    Garbler._find_elements_with_garbling(
+                        element=child,
+                        skip_repeat=skip_repeat,
+                        elements_with_garbling=elements_with_garbling,
+                    )
+
+        return elements_with_garbling
 
     @staticmethod
     def _extract_garbling_params(
