@@ -1,6 +1,14 @@
 import json
+import os
 from datetime import date
 from typing import Any, Optional
+
+
+def get_env_var(name: str) -> Optional[str]:
+    value = os.environ.get(name)
+    if value is None:
+        raise KeyError(f"{name} should be defined in .env file")
+    return value
 
 
 def serialize_dict(data: dict) -> str:

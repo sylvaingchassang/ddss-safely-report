@@ -1,15 +1,12 @@
-from os import environ
-
 from dotenv import load_dotenv
+
+from utils import get_env_var
 
 # Load environment variables
 load_dotenv()
 
 # Configure security
-SECRET_KEY = environ.get(
-    "SECRET_KEY",
-    "examplesecret",  # Default
-)
+SECRET_KEY = get_env_var("SECRET_KEY")
 
 # Configure server-side session
 SESSION_TYPE = "filesystem"
@@ -18,14 +15,8 @@ SESSION_USE_SIGNER = True
 SESSION_PERMANENT = False
 
 # Configure database
-SQLALCHEMY_DATABASE_URI = environ.get(
-    "SQLALCHEMY_DATABASE_URI",
-    "sqlite:///db.sqlite",  # Default
-)
+SQLALCHEMY_DATABASE_URI = get_env_var("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Configure survey
-XLSFORM_PATH = environ.get(
-    "XLSFORM_PATH",
-    "./tests/data/stats4sd_example_xlsform_adapted.xlsx",  # Default
-)
+XLSFORM_PATH = get_env_var("XLSFORM_PATH")
