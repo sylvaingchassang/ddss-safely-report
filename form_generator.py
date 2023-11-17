@@ -72,6 +72,8 @@ class SurveyFormGenerator:
                 widget=widgets.ListWidget(prefix_label=False),
                 option_widget=widgets.CheckboxInput(),
             )
+        else:
+            raise Exception(f"Unsupported input type: {curr_type}")
 
     @property
     def _curr_label(self) -> str:
