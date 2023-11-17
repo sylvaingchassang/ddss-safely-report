@@ -46,6 +46,7 @@ class SurveyFormGenerator:
         # Collect function arguments common to all field types
         common_args = {
             "label": self._curr_label,
+            "description": self._curr_hint,
             "validators": self._curr_validators,
             "default": self._curr_default,
         }
@@ -75,6 +76,10 @@ class SurveyFormGenerator:
     @property
     def _curr_label(self) -> str:
         return self._processor.curr_label
+
+    @property
+    def _curr_hint(self) -> str:
+        return self._processor.curr_hint
 
     @property
     def _curr_validators(self) -> list[Callable]:

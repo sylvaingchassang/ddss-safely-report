@@ -21,6 +21,10 @@
     {% endfor %}
   {% endif %}
   {{ form.field.label }}
+  {% if form.field.description %}
+    <br>
+    {{ form.field.description }}
+  {% endif %}
   {% if form.field.widget %}
     <br>
     {{ form.field }}
