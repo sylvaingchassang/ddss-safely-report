@@ -50,7 +50,9 @@ class SurveyFormGenerator:
             "default": self._curr_default,
         }
 
-        if curr_type == "text":
+        if curr_type == "note":
+            return Field(**common_args)
+        elif curr_type == "text":
             return StringField(**common_args)
         elif curr_type == "integer":
             return IntegerField(**common_args)
@@ -67,7 +69,7 @@ class SurveyFormGenerator:
                 **common_args,
                 choices=self._curr_choices,
                 widget=widgets.ListWidget(prefix_label=False),
-                option_widget=widgets.CheckboxInput()
+                option_widget=widgets.CheckboxInput(),
             )
 
     @property

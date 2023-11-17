@@ -21,8 +21,10 @@
     {% endfor %}
   {% endif %}
   {{ form.field.label }}
-  <br>
-  {{ form.field }}
+  {% if form.field.widget %}
+    <br>
+    {{ form.field }}
+  {% endif %}
   <br>
   <a href="{{ url_for('back') }}">
     <button type="button">Back</button>
