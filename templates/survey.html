@@ -10,30 +10,29 @@
   <li>Hint: {{ survey_processor.curr_hint }}</li>
 </ul>
 
-<form method="POST">
-  {{ form.hidden_tag() }}
-  {% if form.field.errors %}
-    {% for message in form.field.errors %}
-      <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-  {{ form.field.label }}
-  {% if form.field.description %}
-    <br>
-    {{ form.field.description }}
-  {% endif %}
-  {% if form.field.widget %}
-    <br>
-    {{ form.field }}
-  {% endif %}
-  <br>
-  <a href="{{ url_for('back') }}">
-    <button type="button">Back</button>
-  </a>
-  {{ form.submit() }}
-</form>
+<div class="form-container">
+  <form method="POST" class="bg-light p-4 rounded">
+    {{ form.hidden_tag() }}
+    {% if form.field.errors %}
+      {% for message in form.field.errors %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    <div class="mb-3">
+      {{ form.field.label(class="form-label") }}
+      {% if form.field.description %}
+        <small class="text-muted">{{ form.field.description }}</small>
+      {% endif %}
+      {% if form.field.widget %}
+        {{ form.field(class="form-control") }}
+      {% endif %}
+    </div>
+    <a href="{{ url_for('back') }}" class="btn btn-secondary">Back</a>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+</div>
 
 {% endblock %}
