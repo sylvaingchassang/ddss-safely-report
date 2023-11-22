@@ -30,8 +30,10 @@
         {{ form.field(class="form-control") }}
       {% endif %}
     </div>
-    <a href="{{ url_for('back') }}" class="btn btn-secondary">Back</a>
-    {{ form.submit(class="btn btn-primary") }}
+    <div class="d-flex justify-content-between">
+      <a href="{{ url_for('back') }}" class="btn btn-secondary">Back</a>
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
   </form>
 </div>
 
