@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+{# <!-- FOR DEBUGGING -->
 <ul>
   <li>Element Name: {{ survey_processor.curr_name }}</li>
   <li>Element Type: {{ survey_processor.curr_type }}</li>
@@ -8,7 +10,7 @@
   <li>Language Options: {{ survey_processor.curr_lang_options }}</li>
   <li>Label: {{ survey_processor.curr_label }}</li>
   <li>Hint: {{ survey_processor.curr_hint }}</li>
-</ul>
+</ul> #}
 
 <div class="form-container">
   <form method="POST" class="bg-light p-4 rounded">
