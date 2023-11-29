@@ -22,6 +22,11 @@ class SurveyFormGenerator:
     """
     Generate a WTForms form for the survey processor's current element,
     which can be used by the front end to render the element.
+
+    Parameters
+    ----------
+    survey_processor: SurveyProcessor
+        An instance of the survey processing engine
     """
 
     def __init__(self, survey_processor: SurveyProcessor):

@@ -1,9 +1,11 @@
 import re
 from typing import Any, Optional, Union
 
-from pyxform import Question, Section, Survey
+from flask.sessions import SessionMixin
+from pyxform import Question, Section
 from pyxform.survey_element import SurveyElement
 
+from read_xlsform import read_xlsform
 from survey_processor_base import SurveyProcessorBase
 from survey_session import SurveySession
 
@@ -16,11 +18,18 @@ class SurveyProcessor(SurveyProcessorBase):
     NOTE: `SurveyProcessor` is "stateless" as it caches client data
     (e.g., current location in the survey) in server-side sessions via
     `SurveySession`.
+
+    Parameters
+    ----------
+    path_to_xlsform: str
+        Path to the XLSForm file specifying the survey
+    session: SessionMixin
+        Flask session object for caching survey response data
     """
 
-    def __init__(self, survey: Survey, survey_session: SurveySession):
-        self._survey = survey
-        self._session = survey_session
+    def __init__(self, path_to_xlsform: str, session: SessionMixin):
+        self._survey = read_xlsform(path_to_xlsform)
+        self._session = SurveySession(session)
 
         # Build a lookup table that maps element name to object
         # NOTE: This will NOT create too much memory overhead as the lookup

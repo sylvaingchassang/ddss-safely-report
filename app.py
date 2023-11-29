@@ -3,11 +3,9 @@ from flask import Flask, redirect, render_template, session, url_for
 from flask_migrate import Migrate
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
-from pyxform import builder, xls2json
 
 from form_generator import SurveyFormGenerator
 from survey_processor import SurveyProcessor
-from survey_session import SurveySession
 from utils import serialize_dict
 
 load_dotenv()
@@ -42,13 +40,9 @@ class Response(db.Model):  # type: ignore
         return f"<Response ID: {self.id}>"
 
 
-# Parse survey form and pass it to processor
-survey_json = xls2json.parse_file_to_json(
-    path=app.config["XLSFORM_PATH"], default_name="__survey__"
-)
-survey_tree = builder.create_survey_element_from_dict(survey_json)
-survey_session = SurveySession(session)
-survey_processor = SurveyProcessor(survey_tree, survey_session)
+# Construct survey processor and form generator
+path_to_xlsform = app.config["XLSFORM_PATH"]
+survey_processor = SurveyProcessor(path_to_xlsform, session)
 form_generator = SurveyFormGenerator(survey_processor)
 
 
