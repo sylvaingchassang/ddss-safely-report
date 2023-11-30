@@ -46,7 +46,7 @@ def index():
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
     if survey_processor.curr_survey_end:
-        return redirect(url_for("submit"))
+        return render_template("submit.html")
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element

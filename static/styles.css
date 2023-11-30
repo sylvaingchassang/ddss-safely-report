@@ -1,0 +1,27 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.form-container {
+  max-width: 400px;
+  margin: auto;
+  margin-top: 50px;
+}
+
+.form-control ul {
+  list-style-type: none;
+}
+
+.form-control li {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.form-control input {
+  margin-top: 6px;
+}
+
+.form-control label {
+  margin-left: 10px;
+}

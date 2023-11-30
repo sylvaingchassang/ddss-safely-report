@@ -46,11 +46,14 @@ class SurveyFormGenerator:
         # Collect function arguments common to all field types
         common_args = {
             "label": self._curr_label,
+            "description": self._curr_hint,
             "validators": self._curr_validators,
             "default": self._curr_default,
         }
 
-        if curr_type == "text":
+        if curr_type == "note":
+            return Field(**common_args)
+        elif curr_type == "text":
             return StringField(**common_args)
         elif curr_type == "integer":
             return IntegerField(**common_args)
@@ -67,12 +70,18 @@ class SurveyFormGenerator:
                 **common_args,
                 choices=self._curr_choices,
                 widget=widgets.ListWidget(prefix_label=False),
-                option_widget=widgets.CheckboxInput()
+                option_widget=widgets.CheckboxInput(),
             )
+        else:
+            raise Exception(f"Unsupported input type: {curr_type}")
 
     @property
     def _curr_label(self) -> str:
         return self._processor.curr_label
+
+    @property
+    def _curr_hint(self) -> str:
+        return self._processor.curr_hint
 
     @property
     def _curr_validators(self) -> list[Callable]:
