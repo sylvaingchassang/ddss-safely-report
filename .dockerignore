@@ -1,0 +1,26 @@
+# Flask
+instance/
+.flask_sessions/
+.flaskenv
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Testing
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# MkDocs
+/site
+
+# VS Code
+.vscode/settings.json
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.DS_Store
