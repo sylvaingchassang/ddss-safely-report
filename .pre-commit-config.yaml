@@ -9,37 +9,40 @@ repos:
         name: flake8
         entry: flake8 .
         language: python
-        additional_dependencies: ["flake8==4.0.1"]
         types: [python]
         pass_filenames: false
       - id: isort
         name: isort
         entry: isort .
         language: python
-        additional_dependencies: ["isort==5.10.1"]
         types: [python]
         pass_filenames: false
       - id: black
         name: black
         entry: black .
         language: python
-        additional_dependencies: ["black==22.3.0"]
         types: [python]
         pass_filenames: false
       - id: mypy
-        args: [--ignore-missing-imports]
         name: mypy
         entry: mypy .
+        args: [--ignore-missing-imports]
         language: python
-        additional_dependencies: ["mypy==0.931"]
+        types: [python]
+        pass_filenames: false
+      - id: pytest
+        name: pytest
+        entry: pytest
+        args: ["tests"]
+        language: python
         types: [python]
         pass_filenames: false
       - id: poetry-export
         name: poetry-export
         description: run poetry export to sync lock file with requirements.txt
         entry: poetry export
+        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
         language: python
         language_version: python3
         pass_filenames: false
         files: ^poetry.lock$
-        args: ["-f", "requirements.txt", "-o", "requirements.txt"]

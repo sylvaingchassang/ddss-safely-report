@@ -9,5 +9,5 @@ class MockFlaskSession(dict):
 
 def instantiate_survey_processor(path_to_xlsform: str) -> SurveyProcessor:
     session = MockFlaskSession()
-    survey_processor = SurveyProcessor(path_to_xlsform, session)
+    survey_processor = SurveyProcessor(path_to_xlsform, session)  # type: ignore
     return survey_processor
