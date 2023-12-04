@@ -24,7 +24,7 @@ class SurveyProcessor(SurveyProcessorBase):
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
     session: SessionMixin
-        Flask session object for caching survey response data
+        Flask session object for caching data
     """
 
     def __init__(self, path_to_xlsform: str, session: SessionMixin):

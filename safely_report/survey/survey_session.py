@@ -17,7 +17,7 @@ class SurveySession:
     Parameters
     ----------
     session: SessionMixin
-        Flask session object for caching survey response data
+        Flask session object for caching data
     """
 
     # Define field names for storing user state info
