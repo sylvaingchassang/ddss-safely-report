@@ -1,6 +1,6 @@
 import pytest
 
-from survey_processor import SurveyProcessor
+from safely_report.survey.survey_processor import SurveyProcessor
 from tests.utils import instantiate_survey_processor
 
 
