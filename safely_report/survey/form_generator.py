@@ -15,7 +15,7 @@ from wtforms import (
 )
 from wtforms.validators import StopValidation, ValidationError
 
-from survey_processor import SurveyProcessor
+from safely_report.survey.survey_processor import SurveyProcessor
 
 
 class SurveyFormGenerator:

@@ -5,9 +5,9 @@ from flask.sessions import SessionMixin
 from pyxform import Question, Section
 from pyxform.survey_element import SurveyElement
 
-from read_xlsform import read_xlsform
-from survey_processor_base import SurveyProcessorBase
-from survey_session import SurveySession
+from safely_report.survey.read_xlsform import read_xlsform
+from safely_report.survey.survey_processor_base import SurveyProcessorBase
+from safely_report.survey.survey_session import SurveySession
 
 
 class SurveyProcessor(SurveyProcessorBase):

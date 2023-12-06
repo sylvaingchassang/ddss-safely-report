@@ -1,6 +1,6 @@
 from unittest.mock import PropertyMock
 
-from survey_processor import SurveyProcessor
+from safely_report.survey.survey_processor import SurveyProcessor
 
 
 def test_set_curr_value_constraint_met(mocker, survey_processor_instance):

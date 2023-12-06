@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from utils import get_env_var
+from safely_report.utils import get_env_var
 
 # Load environment variables
 load_dotenv()

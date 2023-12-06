@@ -1,6 +1,6 @@
 import pytest
 
-from survey_processor import SurveyProcessor
+from safely_report.survey.survey_processor import SurveyProcessor
 
 
 @pytest.mark.parametrize(
