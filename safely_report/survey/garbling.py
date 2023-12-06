@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
-from math import ceil
-from random import random, shuffle
-from typing import Any, Optional, Union
+from random import random
+from typing import Any, Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
@@ -103,105 +102,6 @@ class Garbler:
             pass
 
         return garbling_shock
-
-    @staticmethod
-    def garble_individual_response(
-        garbling_params: GarblingParams,
-        response_value: str,
-    ) -> tuple[str, int]:
-        """
-        Garble the given response at the individual level.
-
-        Parameters
-        ----------
-        garbling_params: GarblingParams
-            Garbling parameters
-        response_value: str
-            Name (not label) of the choice option that the respondent selected
-
-        Returns
-        -------
-        str
-            Name (not label) of the choice option after garbling is applied
-        int:
-            Count of cases where garbling has been applied
-        """
-        if garbling_params.scheme != GarblingScheme.IID:
-            raise Exception("This method is valid only for IID Garbling")
-
-        # Randomize garbling shock at the individual level
-        garbling_shock = True if random() < garbling_params.rate else False
-
-        # Perform garbling
-        garbled_value = Garbler._garble_response(
-            garbling_answer=garbling_params.answer,
-            garbling_shock=garbling_shock,
-            response_value=response_value,
-        )
-
-        return garbled_value, int(garbling_shock)
-
-    @staticmethod
-    def garble_block_responses(
-        garbling_params: GarblingParams,
-        response_values: list[Union[str, None]],
-    ) -> tuple[list[Union[str, None]], int]:
-        """
-        Garble the given responses at the block level.
-
-        Parameters
-        ----------
-        garbling_params: GarblingParams
-            Garbling parameters
-        response_values: list[Union[str, None]]
-            Name (not label) of the choice option that each respondent selected
-
-        Returns
-        -------
-        list[Union[str, None]]
-            Names (not labels) of the choice options after garbling is applied
-        int:
-            Count of cases where garbling has been applied
-
-        Notes
-        -----
-        - Note that this method performs Population-Blocked Garbling on the
-        provided response values. Hence, for Covariate-Blocked Garbling, one
-        should only pass in response values from the same covariate block; and
-        repeat the process for different covariate blocks.
-        - In a survey, some participants do not complete their responses, and
-        such cases are captured by `None` values in `response_values`. We do
-        not apply garbling in these cases.
-        """
-        block_schemes = [GarblingScheme.PopBlock, GarblingScheme.CovBlock]
-        if garbling_params.scheme not in block_schemes:
-            raise Exception("This method is valid only for Blocked Garbling")
-
-        # Initialize the array of garbling shocks
-        n = len(response_values)
-        k = ceil(garbling_params.rate * n)  # To ensure we use integer
-        garbling_shocks = [True] * k + [False] * (n - k)
-
-        # Shuffle the array for randomization
-        shuffle(garbling_shocks)
-
-        # Perform garbling
-        garbled_response_values: list[Union[str, None]] = []
-        garbling_counter = 0
-        for value, shock in zip(response_values, garbling_shocks):
-            if value is None:
-                garbled_response_values.append(None)
-            else:
-                if shock is True:
-                    garbling_counter += 1
-                garbled_value = Garbler._garble_response(
-                    garbling_answer=garbling_params.answer,
-                    garbling_shock=shock,
-                    response_value=value,
-                )
-                garbled_response_values.append(garbled_value)
-
-        return garbled_response_values, garbling_counter
 
     @staticmethod
     def _parse_xlsform(path_to_xlsform: str) -> dict[str, GarblingParams]:
