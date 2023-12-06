@@ -4,8 +4,10 @@ from math import ceil
 from random import random, shuffle
 from typing import Any, Optional, Union
 
+from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
 
+from safely_report.survey.survey_session import SurveySession
 from safely_report.utils import check_dict_required_fields
 
 
@@ -49,16 +51,22 @@ class Garbler:
     ----------
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
-
-    Attributes
-    ----------
-    _params: dict[str, GarblingParams]
-        Dictionary that maps garbling parameters onto
-        the corresponding target question name
+    session: SurveySession
+        Session object for caching data specific to current survey respondent
+    db: SQLAlchemy
+        An instance of database connection
     """
 
-    def __init__(self, path_to_xlsform: str):
+    def __init__(
+        self, path_to_xlsform: str, session: SurveySession, db: SQLAlchemy
+    ):
         self._params = self._parse_xlsform(path_to_xlsform)
+        self._session = session
+        self._db = db
+
+        # TODO: Cache covariate info of current survey respondent
+        # (create and use related methods in SurveySession)
+        pass
 
     def get_garbling_params(
         self, survey_element_name: str
@@ -78,6 +86,23 @@ class Garbler:
             Garbling parameters of the given survey element
         """
         return self._params.get(survey_element_name)
+
+    def get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
+        if garbling_params.scheme == GarblingScheme.IID:
+            # Randomize garbling shock at the individual level
+            garbling_shock = True if random() < garbling_params.rate else False
+
+            # TODO: Cache it in session for potential later reuse
+            pass
+        elif garbling_params.scheme == GarblingScheme.PopBlock:
+            # TODO: Try using cached data (if existing)
+            pass
+
+            # TODO: If cached data is not available, pull it from DB
+            # (and cache it in session for potential later reuse)
+            pass
+
+        return garbling_shock
 
     @staticmethod
     def garble_individual_response(
