@@ -91,14 +91,16 @@ class Garbler:
             # Randomize garbling shock at the individual level
             garbling_shock = True if random() < garbling_params.rate else False
 
-            # TODO: Cache it in session for potential later reuse
+            # TODO: Cache the value in session for updating garbling "counter"
+            # upon submission success
             pass
         elif garbling_params.scheme == GarblingScheme.PopBlock:
-            # TODO: Try using cached data (if existing)
+            # TODO: Try using cached value (if existing)
             pass
 
-            # TODO: If cached data is not available, pull it from DB
-            # (and cache it in session for potential later reuse)
+            # TODO: If the value does not exist in cache, pull it from DB
+            # and cache it in session for reuse in case of submission failure
+            # and for updating garbling "counter" upon submission success
             pass
 
         return garbling_shock
