@@ -19,7 +19,7 @@ def test_garble_response(
     response_value: str,
     garbled_value_expected: str,
 ):
-    garbled_value = Garbler._garble_response(
+    garbled_value = Garbler.garble_response(
         garbling_answer, garbling_shock, response_value
     )
     assert garbled_value == garbled_value_expected

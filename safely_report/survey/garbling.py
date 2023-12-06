@@ -104,6 +104,52 @@ class Garbler:
         return garbling_shock
 
     @staticmethod
+    def garble_response(
+        garbling_answer: str, garbling_shock: bool, response_value: str
+    ) -> str:
+        """
+        Apply garbling formula to the given response.
+
+        With binary response between 0 and 1, garbling is formally defined as:
+
+            r_tilde = r + (1 - r) * eta
+
+        where:
+
+            - `r` is the original raw response value
+            - `eta` is a garbling "shock" that takes the value of either 1 or 0
+            with the given garbling probability
+            - `r_tilde` is the garbled response value
+
+        For more details, consult the original paper:
+
+            https://www.nber.org/papers/w31011
+
+        Parameters
+        ----------
+        garbling_answer: str
+            Name (not label) of the choice option to be garbled *into*
+            (most of the time, it is the name of the "yes" choice option)
+        garbling_shock: bool
+            Garbling "shock" that takes the value of either 1 or 0
+            with the given garbling probability
+        response_value: str
+            Name (not label) of the choice option that the respondent selected
+
+        Returns
+        -------
+        str
+            Name (not label) of the choice option after garbling is applied
+        """
+        if response_value == garbling_answer:
+            return response_value
+        else:
+            if garbling_shock is True:
+                return garbling_answer
+            else:
+                return response_value
+
+    @staticmethod
     def _parse_xlsform(path_to_xlsform: str) -> dict[str, GarblingParams]:
         """
         Parse XLSForm to identify questions subject to garbling
@@ -234,51 +280,3 @@ class Garbler:
             raise Exception("Garbling rate should be between 0 and 1")
 
         return GarblingParams(question, answer, rate, covariate)
-
-    @staticmethod
-    def _garble_response(
-        garbling_answer: str,
-        garbling_shock: bool,
-        response_value: str,
-    ) -> str:
-        """
-        Apply garbling formula to the given response.
-
-        With binary response between 0 and 1, garbling is formally defined as:
-
-            r_tilde = r + (1 - r) * eta
-
-        where:
-
-            - `r` is the original raw response value
-            - `eta` is a garbling "shock" that takes the value of either 1 or 0
-            with the given garbling probability
-            - `r_tilde` is the garbled response value
-
-        For more details, consult the original paper:
-
-            https://www.nber.org/papers/w31011
-
-        Parameters
-        ----------
-        garbling_answer: str
-            Name (not label) of the choice option to be garbled *into*
-            (most of the time, it is the name of the "yes" choice option)
-        garbling_shock: bool
-            Garbling "shock" that takes the value of either 1 or 0
-            with the given garbling probability
-        response_value: str
-            Name (not label) of the choice option that the respondent selected
-
-        Returns
-        -------
-        str
-            Name (not label) of the choice option after garbling is applied
-        """
-        if response_value == garbling_answer:
-            return response_value
-        else:
-            if garbling_shock is True:
-                return garbling_answer
-            else:
-                return response_value
