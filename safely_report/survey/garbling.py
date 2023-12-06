@@ -6,7 +6,7 @@ from typing import Any, Optional, Union
 
 from pyxform.xls2json import parse_file_to_json
 
-from utils import check_dict_required_fields
+from safely_report.utils import check_dict_required_fields
 
 
 class GarblingScheme(Enum):

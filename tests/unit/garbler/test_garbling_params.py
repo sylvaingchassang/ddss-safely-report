@@ -1,6 +1,10 @@
 import pytest
 
-from garbling import Garbler, GarblingParams, GarblingScheme
+from safely_report.survey.garbling import (
+    Garbler,
+    GarblingParams,
+    GarblingScheme,
+)
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ from typing import Union
 import pytest
 from pytest_mock import MockerFixture
 
-from garbling import Garbler, GarblingScheme
+from safely_report.survey.garbling import Garbler, GarblingScheme
 
 
 @pytest.mark.parametrize(
@@ -48,7 +48,10 @@ def test_garble_individual_response(
     garbled_value_expected: str,
     garbling_counter_expected: int,
 ):
-    mocker.patch("garbling.random", return_value=random_number)
+    mocker.patch(
+        "safely_report.survey.garbling.random",
+        return_value=random_number,
+    )
     garbling_params = mocker.Mock()
     garbling_params.answer = garbling_answer
     garbling_params.rate = garbling_rate
@@ -91,7 +94,7 @@ def test_garble_block_responses(
     garbled_values_expected: list[Union[str, None]],
     garbling_counter_expected: int,
 ):
-    mocker.patch("garbling.shuffle")
+    mocker.patch("safely_report.survey.garbling.shuffle")
     garbling_params = mocker.Mock()
     garbling_params.answer = garbling_answer
     garbling_params.rate = garbling_rate

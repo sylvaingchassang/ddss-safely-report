@@ -1,6 +1,6 @@
 import pytest
 
-from garbling import Garbler
+from safely_report.survey.garbling import Garbler
 
 
 @pytest.fixture
