@@ -92,6 +92,21 @@ class Garbler:
         return self._params.get(survey_element_name)
 
     def get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
+        """
+        Produce a random state for garbling a survey response according to
+        the given parameters.
+
+        Parameters
+        ----------
+        garbling_params: GarblingParams
+            Garbling parameters of a survey element
+
+        Returns
+        -------
+        bool
+            Garbling "shock" that takes the value of either 1 (`True`)
+            or 0 (`False`) with the given garbling probability
+        """
         if garbling_params.scheme == GarblingScheme.IID:
             # Randomize garbling shock at the individual level
             garbling_shock = True if random() < garbling_params.rate else False
@@ -126,6 +141,11 @@ class Garbler:
         reports will eventually result in 50% garbling rate (excluding the last
         "incomplete" batch that may exist if the block size is not a multiple
         of the batch size).
+
+        Parameters
+        ----------
+        garbling_rate: float
+            Garbling probability
         """
         # Define shock batch for each supported garbling rate
         shock_batch = {
@@ -179,8 +199,8 @@ class Garbler:
             Name (not label) of the choice option to be garbled *into*
             (most of the time, it is the name of the "yes" choice option)
         garbling_shock: bool
-            Garbling "shock" that takes the value of either 1 or 0
-            with the given garbling probability
+            Garbling "shock" that takes the value of either 1 (`True`)
+            or 0 (`False`) with the given garbling probability
         response_value: str
             Name (not label) of the choice option that the respondent selected
 
