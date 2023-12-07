@@ -1,13 +1,18 @@
 from dataclasses import dataclass
 from enum import Enum
-from random import random
+from random import random, sample
 from typing import Any, Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
 
+from safely_report.models import GarblingBlock
 from safely_report.survey.survey_session import SurveySession
-from safely_report.utils import check_dict_required_fields
+from safely_report.utils import (
+    check_dict_required_fields,
+    deserialize,
+    serialize,
+)
 
 
 class GarblingScheme(Enum):
@@ -90,20 +95,61 @@ class Garbler:
         if garbling_params.scheme == GarblingScheme.IID:
             # Randomize garbling shock at the individual level
             garbling_shock = True if random() < garbling_params.rate else False
-
-            # TODO: Cache the value in session for updating garbling "counter"
-            # upon submission success
-            pass
         elif garbling_params.scheme == GarblingScheme.PopBlock:
-            # TODO: Try using cached value (if existing)
-            pass
+            # Get the garbling block info
+            block_name = garbling_params.question
+            block = GarblingBlock.query.filter_by(name=block_name).first()
+            if block is None:
+                block = GarblingBlock(name=block_name, shocks=serialize([]))
+            if len(deserialize(block.shocks)) == 0:
+                block.shocks = self._generate_block_garbling_shocks(
+                    garbling_params.rate
+                )
 
-            # TODO: If the value does not exist in cache, pull it from DB
-            # and cache it in session for reuse in case of submission failure
-            # and for updating garbling "counter" upon submission success
-            pass
+            # Randomize garbling shock at the block level
+            garbling_shock = block.shocks.pop()
+
+            # Register changes in the garbling block info
+            # NOTE: To be committed to the database later
+            self._db.session.add(block)
 
         return garbling_shock
+
+    @staticmethod
+    def _generate_block_garbling_shocks(garbling_rate: float) -> list[bool]:
+        """
+        Generate garbling shocks to be used for block garbling.
+
+        To better support different block sizes, we use a mini-batch approach,
+        where shocks are generated and used in small batches that achieve
+        the target garbling rate. For instance, garbling one out of every two
+        reports will eventually result in 50% garbling rate (excluding the last
+        "incomplete" batch that may exist if the block size is not a multiple
+        of the batch size).
+        """
+        # Define shock batch for each supported garbling rate
+        shock_batch = {
+            0.2: [True] * 1 + [False] * 4,
+            0.25: [True] * 1 + [False] * 3,
+            0.4: [True] * 2 + [False] * 3,
+            0.5: [True] * 1 + [False] * 1,
+            0.6: [True] * 3 + [False] * 2,
+            0.75: [True] * 3 + [False] * 1,
+            0.8: [True] * 4 + [False] * 1,
+        }
+
+        # Retrieve shock batch for the given garbling rate
+        batch = shock_batch.get(garbling_rate)
+        if batch is None:
+            raise ValueError(
+                "Block garbling supports the following rates only: "
+                f"{list(shock_batch.keys())}"
+            )
+
+        # Shuffle the batch
+        shocks = sample(batch, len(batch))
+
+        return shocks
 
     @staticmethod
     def garble_response(
