@@ -72,26 +72,7 @@ class Garbler:
         # (create and use related methods in SurveySession)
         pass
 
-    def get_garbling_params(
-        self, survey_element_name: str
-    ) -> Optional[GarblingParams]:
-        """
-        Retrieve garbling parameters of the given survey element.
-        Return `None` if the given survey element is not subject to garbling.
-
-        Parameters
-        ----------
-        survey_element_name: str
-            Name of the survey element to be garbled
-
-        Returns
-        -------
-        GarblingParams, optional
-            Garbling parameters of the given survey element
-        """
-        return self._params.get(survey_element_name)
-
-    def get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
+    def _get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
         """
         Produce a random state for garbling a survey response according to
         the given parameters.
@@ -180,7 +161,7 @@ class Garbler:
         return shocks
 
     @staticmethod
-    def garble_response(
+    def _garble_response(
         garbling_answer: str, garbling_shock: bool, response_value: str
     ) -> str:
         """
