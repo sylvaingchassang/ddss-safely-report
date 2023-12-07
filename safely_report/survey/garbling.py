@@ -61,6 +61,23 @@ class Garbler:
         An instance of database connection
     """
 
+    # To better support different block sizes in block garbling, we use
+    # a mini-batch approach, where shocks are generated and used in small
+    # batches that achieve the target garbling rate. For instance, garbling
+    # one out of every two reports will eventually result in 50% garbling rate
+    # (excluding the last "incomplete" batch that may exist if the block size
+    # is not a multiple of the batch size). The following class attribute
+    # defines shock batch for each supported rate in block garbling
+    _block_garbling_shocks = {
+        0.2: [True] * 1 + [False] * 4,
+        0.25: [True] * 1 + [False] * 3,
+        0.4: [True] * 2 + [False] * 3,
+        0.5: [True] * 1 + [False] * 1,
+        0.6: [True] * 3 + [False] * 2,
+        0.75: [True] * 3 + [False] * 1,
+        0.8: [True] * 4 + [False] * 1,
+    }
+
     def __init__(
         self, path_to_xlsform: str, session: SurveySession, db: SQLAlchemy
     ):
@@ -105,9 +122,8 @@ class Garbler:
             if block is None:
                 block = GarblingBlock(name=block_name, shocks=serialize([]))
             if len(deserialize(block.shocks)) == 0:
-                block.shocks = self._generate_block_garbling_shocks(
-                    garbling_params.rate
-                )
+                shocks = Garbler._block_garbling_shocks[garbling_params.rate]
+                block.shocks = sample(shocks, len(shocks))  # Copy and shuffle
 
             # Randomize garbling shock at the block level
             garbling_shock = block.shocks.pop()
@@ -118,47 +134,6 @@ class Garbler:
             raise Exception(f"Unsupported garbling scheme: {scheme}")
 
         return garbling_shock
-
-    @staticmethod
-    def _generate_block_garbling_shocks(garbling_rate: float) -> list[bool]:
-        """
-        Generate garbling shocks to be used for block garbling.
-
-        To better support different block sizes, we use a mini-batch approach,
-        where shocks are generated and used in small batches that achieve
-        the target garbling rate. For instance, garbling one out of every two
-        reports will eventually result in 50% garbling rate (excluding the last
-        "incomplete" batch that may exist if the block size is not a multiple
-        of the batch size).
-
-        Parameters
-        ----------
-        garbling_rate: float
-            Garbling probability
-        """
-        # Define shock batch for each supported garbling rate
-        shock_batch = {
-            0.2: [True] * 1 + [False] * 4,
-            0.25: [True] * 1 + [False] * 3,
-            0.4: [True] * 2 + [False] * 3,
-            0.5: [True] * 1 + [False] * 1,
-            0.6: [True] * 3 + [False] * 2,
-            0.75: [True] * 3 + [False] * 1,
-            0.8: [True] * 4 + [False] * 1,
-        }
-
-        # Retrieve shock batch for the given garbling rate
-        batch = shock_batch.get(garbling_rate)
-        if batch is None:
-            raise ValueError(
-                "Block garbling supports the following rates only: "
-                f"{list(shock_batch.keys())}"
-            )
-
-        # Shuffle the batch
-        shocks = sample(batch, len(batch))
-
-        return shocks
 
     @staticmethod
     def _garble_response(
@@ -334,6 +309,11 @@ class Garbler:
         if answer not in choice_names:
             raise Exception(f"{answer} not in choice options for {question}")
         if rate < 0 or rate > 1:
-            raise Exception("Garbling rate should be between 0 and 1")
+            raise ValueError("Garbling rate should be between 0 and 1")
+        if covariate and (rate not in Garbler._block_garbling_shocks):
+            raise ValueError(
+                "Block garbling supports the following rates only: "
+                f"{list(Garbler._block_garbling_shocks.keys())}"
+            )
 
         return GarblingParams(question, answer, rate, covariate)

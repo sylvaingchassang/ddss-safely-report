@@ -55,9 +55,9 @@ def test_garbling_scheme(garbling_covariate, garbling_scheme_expected):
             GarblingScheme.PopBlock,
         ),
         (
-            {"rate": "0.7", "answer": "yes", "covariate": "married"},
+            {"rate": "0.75", "answer": "yes", "covariate": "married"},
             "yes",
-            0.7,
+            0.75,
             "married",
             GarblingScheme.CovBlock,
         ),
@@ -119,9 +119,27 @@ def test_extract_garbling_params_with_rate_out_of_range(
     garbling_dict,
 ):
     survey_dict_record["garbling"] = garbling_dict
-    with pytest.raises(Exception) as e:
+    with pytest.raises(ValueError) as e:
         Garbler._extract_garbling_params(survey_dict_record)
         assert e.value == "Garbling rate should be between 0 and 1"
+
+
+@pytest.mark.parametrize(
+    "garbling_dict",
+    [
+        {"rate": "0.3", "answer": "yes", "covariate": "*"},
+        {"rate": "0.7", "answer": "yes", "covariate": "*"},
+    ],
+)
+def test_extract_garbling_params_with_unsupported_rate_in_block_garbling(
+    # Fixture(s)
+    survey_dict_record,
+    # Parameter(s)
+    garbling_dict,
+):
+    survey_dict_record["garbling"] = garbling_dict
+    with pytest.raises(ValueError):
+        Garbler._extract_garbling_params(survey_dict_record)
 
 
 def test_extract_garbling_params_with_answer_not_in_choices(
