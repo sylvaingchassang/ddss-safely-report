@@ -107,12 +107,19 @@ class Garbler:
             Garbling "shock" that takes the value of either 1 (`True`)
             or 0 (`False`) with the given garbling probability
         """
-        if garbling_params.scheme == GarblingScheme.IID:
+        scheme = garbling_params.scheme
+
+        if scheme == GarblingScheme.IID:
             # Randomize garbling shock at the individual level
             garbling_shock = True if random() < garbling_params.rate else False
-        elif garbling_params.scheme == GarblingScheme.PopBlock:
-            # Get the garbling block info
+        elif scheme in [GarblingScheme.PopBlock, GarblingScheme.CovBlock]:
             block_name = garbling_params.question
+            if GarblingParams.covariate:
+                # TODO: Update block_name to be a combination of the question
+                # name and the respondent's covariate value (e.g., married)
+                pass
+
+            # Get the garbling block info
             block = GarblingBlock.query.filter_by(name=block_name).first()
             if block is None:
                 block = GarblingBlock(name=block_name, shocks=serialize([]))
@@ -125,8 +132,9 @@ class Garbler:
             garbling_shock = block.shocks.pop()
 
             # Register changes in the garbling block info
-            # NOTE: To be committed to the database later
-            self._db.session.add(block)
+            self._db.session.add(block)  # To be committed later
+        else:
+            raise Exception(f"Unsupported garbling scheme: {scheme}")
 
         return garbling_shock
 
