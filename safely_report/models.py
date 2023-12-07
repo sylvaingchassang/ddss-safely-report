@@ -14,3 +14,15 @@ class Response(db.Model):  # type: ignore
 
     def __repr__(self):
         return f"<Response ID: {self.id}>"
+
+
+class GarblingBlock(db.Model):  # type: ignore
+    __tablename__ = "garbling_blocks"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    shocks = Column(String, nullable=False)  # Stringified array
+    version = Column(Integer, nullable=False)
+
+    # For optimistic locking
+    __mapper_args__ = {"version_id_col": version}
