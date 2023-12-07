@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, url_for
 
 from safely_report import db, form_generator, survey_processor
 from safely_report.models import Response
-from safely_report.utils import serialize_dict
+from safely_report.utils import serialize
 
 survey_blueprint = Blueprint(
     "survey", __name__, template_folder="templates/survey"
@@ -49,7 +49,7 @@ def submit():
     # Store survey response into database
     try:
         response_dict = survey_processor.gather_responses_to_store()
-        response_serialized = serialize_dict(response_dict)
+        response_serialized = serialize(response_dict)
         response_record = Response(response=response_serialized)
         db.session.add(response_record)
         db.session.commit()

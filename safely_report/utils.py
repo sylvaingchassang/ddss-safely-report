@@ -26,16 +26,16 @@ def get_env_var(name: str) -> Optional[str]:
     return value
 
 
-def serialize_dict(data: dict) -> str:
+def serialize(data: Any) -> str:
     """
-    Transform Python dictionary into JSON string.
+    Transform Python object into JSON string.
     """
     return json.dumps(data, default=_default)
 
 
-def deserialize_json(data: str) -> dict:
+def deserialize(data: str) -> Any:
     """
-    Transform JSON string into Python dictionary.
+    Transform JSON string into Python object.
     """
     return json.loads(data, object_hook=_object_hook)
 
