@@ -163,7 +163,7 @@ class Garbler:
 
     @staticmethod
     def _garble_response(
-        garbling_answer: str, garbling_shock: bool, response_value: str
+        response_value: str, garbling_shock: bool, garbling_answer: str
     ) -> str:
         """
         Apply garbling formula to the given response.
@@ -185,14 +185,14 @@ class Garbler:
 
         Parameters
         ----------
-        garbling_answer: str
-            Name (not label) of the choice option to be garbled *into*
-            (most of the time, it is the name of the "yes" choice option)
+        response_value: str
+            Name (not label) of the choice option that the respondent selected
         garbling_shock: bool
             Garbling "shock" that takes the value of either 1 (`True`)
             or 0 (`False`) with the given garbling probability
-        response_value: str
-            Name (not label) of the choice option that the respondent selected
+        garbling_answer: str
+            Name (not label) of the choice option to be garbled *into*
+            (most of the time, it is the name of the "yes" choice option)
 
         Returns
         -------
