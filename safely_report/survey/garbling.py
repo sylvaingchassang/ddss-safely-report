@@ -94,9 +94,19 @@ class Garbler:
 
     def garble_and_store(self, survey_response: dict[str, Any]):
         try:
-            # TODO: Apply garbling
-            pass
+            # Apply garbling
+            for varname, response_value in survey_response.items():
+                garbling_params = self._params.get(varname)
+                if garbling_params is None:
+                    continue
+                garbling_shock = self._get_garbling_shock(garbling_params)
+                survey_response[varname] = Garbler._garble_response(
+                    response_value=response_value,
+                    garbling_shock=garbling_shock,
+                    garbling_answer=garbling_params.answer,
+                )
 
+            # Serialize and store the garbled survey response
             response_serialized = serialize(survey_response)
             response_record = SurveyResponse(response=response_serialized)
             self._db.session.add(response_record)
