@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template, url_for
 
 from safely_report import db, form_generator, survey_processor
-from safely_report.models import Response
+from safely_report.models import SurveyResponse
 from safely_report.utils import serialize
 
 survey_blueprint = Blueprint(
@@ -50,7 +50,7 @@ def submit():
     try:
         response_dict = survey_processor.gather_responses_to_store()
         response_serialized = serialize(response_dict)
-        response_record = Response(response=response_serialized)
+        response_record = SurveyResponse(response=response_serialized)
         db.session.add(response_record)
         db.session.commit()
     except Exception as e:

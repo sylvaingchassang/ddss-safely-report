@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String
 from safely_report import db
 
 
-class Response(db.Model):  # type: ignore
+class SurveyResponse(db.Model):  # type: ignore
     __tablename__ = "responses"
 
     id = Column(Integer, primary_key=True)
@@ -13,7 +13,7 @@ class Response(db.Model):  # type: ignore
         self.response = response
 
     def __repr__(self):
-        return f"<Response ID: {self.id}>"
+        return f"<SurveyResponse ID: {self.id}>"
 
 
 class GarblingBlock(db.Model):  # type: ignore
