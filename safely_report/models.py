@@ -1,6 +1,7 @@
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
 
-from safely_report import db
+db = SQLAlchemy()
 
 
 class SurveyResponse(db.Model):  # type: ignore

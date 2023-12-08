@@ -1,8 +1,8 @@
 from flask import Flask, session
 from flask_migrate import Migrate
 from flask_session import Session
-from flask_sqlalchemy import SQLAlchemy
 
+from safely_report.models import db
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.survey_processor import SurveyProcessor
 
@@ -14,7 +14,7 @@ app.config.from_pyfile("settings.py")
 Session(app)
 
 # Set up database
-db = SQLAlchemy(app)
+db.init_app(app)
 Migrate(app, db)
 
 # Construct survey processor and form generator
