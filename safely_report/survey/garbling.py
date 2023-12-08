@@ -6,7 +6,7 @@ from typing import Any, Optional
 from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
 
-from safely_report.models import GarblingBlock
+from safely_report.models import GarblingBlock, SurveyResponse
 from safely_report.survey.survey_session import SurveySession
 from safely_report.utils import (
     check_dict_required_fields,
@@ -91,6 +91,19 @@ class Garbler:
         # TODO: Cache covariate info of current survey respondent
         # (create and use related methods in SurveySession)
         pass
+
+    def garble_and_store(self, survey_response: dict[str, Any]):
+        try:
+            # TODO: Apply garbling
+            pass
+
+            response_serialized = serialize(survey_response)
+            response_record = SurveyResponse(response=response_serialized)
+            self._db.session.add(response_record)
+            self._db.session.commit()
+        except Exception as e:
+            self._db.session.rollback()
+            raise e
 
     def _get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
         """
