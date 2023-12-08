@@ -48,7 +48,7 @@ def submit():
 
     # Store survey response into database
     try:
-        response_dict = survey_processor.gather_responses_to_store()
+        response_dict = survey_processor.gather_survey_response()
         response_serialized = serialize(response_dict)
         response_record = SurveyResponse(response=response_serialized)
         db.session.add(response_record)
