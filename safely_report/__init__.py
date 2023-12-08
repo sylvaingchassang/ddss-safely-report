@@ -5,6 +5,7 @@ from flask_session import Session
 from safely_report.models import db
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.survey_processor import SurveyProcessor
+from safely_report.survey.survey_session import SurveySession
 
 # Create and configure app
 app = Flask(__name__)
@@ -19,7 +20,8 @@ Migrate(app, db)
 
 # Construct survey processor and form generator
 path_to_xlsform = app.config["XLSFORM_PATH"]
-survey_processor = SurveyProcessor(path_to_xlsform, session)
+survey_session = SurveySession(session)
+survey_processor = SurveyProcessor(path_to_xlsform, survey_session)
 form_generator = SurveyFormGenerator(survey_processor)
 
 from safely_report.survey.views import survey_blueprint  # noqa

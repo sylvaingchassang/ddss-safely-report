@@ -55,7 +55,7 @@ class Garbler:
     ----------
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
-    session: SurveySession
+    survey_session: SurveySession
         Session object for caching data specific to current survey respondent
     db: SQLAlchemy
         An instance of database connection
@@ -79,10 +79,13 @@ class Garbler:
     }
 
     def __init__(
-        self, path_to_xlsform: str, session: SurveySession, db: SQLAlchemy
+        self,
+        path_to_xlsform: str,
+        survey_session: SurveySession,
+        db: SQLAlchemy,
     ):
         self._params = self._parse_xlsform(path_to_xlsform)
-        self._session = session
+        self._session = survey_session
         self._db = db
 
         # TODO: Cache covariate info of current survey respondent
