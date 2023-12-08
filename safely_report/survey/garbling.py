@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from random import random, sample
+from random import random, shuffle
 from typing import Any, Optional
 
 from flask_sqlalchemy import SQLAlchemy
@@ -138,7 +138,7 @@ class Garbler:
             garbling_shock = True if random() < garbling_params.rate else False
         elif scheme in [GarblingScheme.PopBlock, GarblingScheme.CovBlock]:
             block_name = garbling_params.question
-            if GarblingParams.covariate:
+            if garbling_params.covariate:
                 # TODO: Update block_name to be a combination of the question
                 # name and the respondent's covariate value (e.g., married)
                 pass
@@ -149,10 +149,13 @@ class Garbler:
                 block = GarblingBlock(name=block_name, shocks=serialize([]))
             if len(deserialize(block.shocks)) == 0:
                 shocks = Garbler._block_garbling_shocks[garbling_params.rate]
-                block.shocks = sample(shocks, len(shocks))  # Copy and shuffle
+                shuffle(shocks)
+                block.shocks = serialize(shocks)
 
             # Randomize garbling shock at the block level
-            garbling_shock = block.shocks.pop()
+            shocks = deserialize(block.shocks)
+            garbling_shock = shocks.pop()
+            block.shocks = serialize(shocks)
 
             # Register changes in the garbling block info
             self._db.session.add(block)  # To be committed later
