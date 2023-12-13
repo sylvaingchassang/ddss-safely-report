@@ -48,4 +48,4 @@ Finally, run the following to launch the application:
 flask --app app run
 ```
 
-If running on a local server, visit `http://127.0.0.1:5000` to access the application.
+If running on a local server, visit `http://127.0.0.1:5000/survey` to access the application.
