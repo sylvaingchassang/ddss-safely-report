@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 
 class SurveyResponse(db.Model):  # type: ignore
-    __tablename__ = "responses"
+    __tablename__ = "survey_responses"
 
     id = Column(Integer, primary_key=True)
     response = Column(String, nullable=False)  # Stringified JSON
