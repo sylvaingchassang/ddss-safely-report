@@ -149,11 +149,11 @@ class Garbler:
                 block = GarblingBlock(name=block_name, shocks=serialize([]))
             if len(deserialize(block.shocks)) == 0:
                 shocks = Garbler._block_garbling_shocks[garbling_params.rate]
-                shuffle(shocks)
                 block.shocks = serialize(shocks)
 
             # Randomize garbling shock at the block level
             shocks = deserialize(block.shocks)
+            shuffle(shocks)
             garbling_shock = shocks.pop()
             block.shocks = serialize(shocks)
 
