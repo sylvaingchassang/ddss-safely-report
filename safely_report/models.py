@@ -25,5 +25,12 @@ class GarblingBlock(db.Model):  # type: ignore
     shocks = Column(String, nullable=False)  # Stringified array
     version = Column(Integer, nullable=False)
 
+    def __init__(self, name, shocks):
+        self.name = name
+        self.shocks = shocks
+
+    def __repr__(self):
+        return f"<GarblingBlock Name: {self.name}>"
+
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
