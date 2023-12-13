@@ -84,7 +84,7 @@ class Garbler:
         survey_session: SurveySession,
         db: SQLAlchemy,
     ):
-        self._params = self._parse_xlsform(path_to_xlsform)
+        self._params = Garbler._parse_xlsform(path_to_xlsform)
         self._session = survey_session
         self._db = db
 
