@@ -22,7 +22,7 @@ def check_dict_required_fields(
 def get_env_var(name: str) -> Optional[str]:
     value = os.environ.get(name)
     if value is None:
-        raise KeyError(f"{name} should be defined in .env file")
+        raise KeyError(f"Missing environment variable: {name}")
     return value
 
 
