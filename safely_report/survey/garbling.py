@@ -93,6 +93,20 @@ class Garbler:
         pass
 
     def garble_and_store(self, survey_response: dict[str, Any]):
+        """
+        Garble and store survey response gathered by survey processor.
+
+        With the optimistic locking mechanism in place, all changes in the
+        current "transaction" (defined by a single database commit) will fail
+        as a whole if there is concurrency control conflict, which may happen
+        when another respondent makes their transaction around the same time.
+
+        Parameters
+        ----------
+        survey_response: dict[str, Any]
+            A survey response record that maps each question name to the
+            corresponding response value
+        """
         try:
             # Apply garbling
             for varname, response_value in survey_response.items():

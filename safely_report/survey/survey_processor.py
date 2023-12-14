@@ -274,6 +274,12 @@ class SurveyProcessor(SurveyProcessorBase):
     def gather_survey_response(self) -> dict[str, Any]:
         """
         Collect survey response to store in the database.
+
+        Returns
+        -------
+        dict[str, Any]
+            A survey response record that maps each question name to the
+            corresponding response value
         """
         responses = self._session.retrieve_all_responses()
         visits = set(self._session.get_all_visits())
