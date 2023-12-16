@@ -20,3 +20,4 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Configure survey
 XLSFORM_PATH = get_env_var("XLSFORM_PATH")
+ROSTER_PATH = get_env_var("ROSTER_PATH")

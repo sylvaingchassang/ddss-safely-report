@@ -1,5 +1,10 @@
+from csv import DictReader
+from uuid import uuid4
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
+
+from safely_report.settings import ROSTER_PATH
 
 db = SQLAlchemy()
 
@@ -34,3 +39,16 @@ class GarblingBlock(db.Model):  # type: ignore
 
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
+
+
+class Respondent(db.Model):  # type: ignore
+    __tablename__ = "respondents"
+
+    uuid = Column(String(36), primary_key=True, default=str(uuid4()))
+
+
+# Model respondents table after roster file
+with open(ROSTER_PATH, "r") as file:  # type: ignore
+    csv_reader = DictReader(file)
+    for name in csv_reader.fieldnames or []:
+        setattr(Respondent, name, Column(String, nullable=True))
