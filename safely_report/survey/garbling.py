@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 from random import random, shuffle
-from typing import Any, Optional
+from types import MappingProxyType
+from typing import Any, Mapping, Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
@@ -91,6 +92,23 @@ class Garbler:
         # TODO: Cache covariate info of current survey respondent
         # (create and use related methods in SurveySession)
         pass
+
+    @property
+    def params(self) -> Mapping[str, GarblingParams]:
+        """
+        An immutable dynamic "view" of the mapping between question names and
+        their corresponding garbling parameters.
+
+        NOTE: With `GarblingParams` defined as an immutable class itself,
+        the entire view object is immutable.
+
+        Returns
+        -------
+        Mapping[str, GarblingParams]
+            An immutable dynamic view of a dictionary that maps garbling
+            parameters onto the corresponding target question name
+        """
+        return MappingProxyType(self._params)
 
     def garble_and_store(self, survey_response: dict[str, Any]):
         """
