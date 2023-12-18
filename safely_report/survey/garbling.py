@@ -178,8 +178,10 @@ class Garbler:
             # Get the garbling block info
             block = GarblingBlock.query.filter_by(name=block_name).first()
             if block is None:
+                # Create a new instance
                 block = GarblingBlock(name=block_name, shocks=serialize([]))
             if len(deserialize(block.shocks)) == 0:
+                # Generate a new batch of garbling shocks
                 shocks = Garbler._block_garbling_shocks[garbling_params.rate]
                 block.shocks = serialize(shocks)
 

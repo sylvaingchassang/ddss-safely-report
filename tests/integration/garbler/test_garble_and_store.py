@@ -23,7 +23,7 @@ def test_iid_garbling_working(garbler: Garbler):
     garbling_params = GarblingParams(
         question="question",
         answer="yes",
-        rate=0.9,
+        rate=1.0,
         covariate=None,
     )
     garbler._params[garbling_params.question] = garbling_params
@@ -42,7 +42,7 @@ def test_iid_garbling_working(garbler: Garbler):
             n_garbled += 1
 
     # Check if garbling had an effect
-    assert n_garbled > 0
+    assert n_garbled == 10
 
 
 @pytest.mark.parametrize(

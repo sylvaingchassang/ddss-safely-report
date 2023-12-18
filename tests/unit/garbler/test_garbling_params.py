@@ -138,8 +138,10 @@ def test_extract_garbling_params_with_unsupported_rate_in_block_garbling(
     garbling_dict,
 ):
     survey_dict_record["garbling"] = garbling_dict
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception) as e:
         Garbler._extract_garbling_params(survey_dict_record)
+        assert e.value == "Block garbling supports the following rates only: "
+        "[0.2, 0.25, 0.4, 0.5, 0.6, 0.75, 0.8]"
 
 
 def test_extract_garbling_params_with_answer_not_in_choices(
