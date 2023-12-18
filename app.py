@@ -1,4 +1,6 @@
-from safely_report import app
+from safely_report import create_app
+
+app = create_app()
 
 
 @app.route("/")
