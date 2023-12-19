@@ -1,5 +1,4 @@
 from csv import DictReader
-from uuid import uuid4
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
@@ -44,7 +43,7 @@ class GarblingBlock(db.Model):  # type: ignore
 class Respondent(db.Model):  # type: ignore
     __tablename__ = "respondents"
 
-    uuid = Column(String(36), primary_key=True, default=str(uuid4()))
+    id = Column(Integer, primary_key=True)
 
 
 # Model respondents table after roster file
