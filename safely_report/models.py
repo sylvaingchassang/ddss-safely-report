@@ -8,6 +8,7 @@ from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
     RESPONDENT_ROSTER_PATH,
 )
+from safely_report.utils import generate_uuid4
 
 db = SQLAlchemy()
 
@@ -31,14 +32,14 @@ def add_columns_from_csv(path_to_csv: str) -> Callable:
 class Respondent(db.Model):  # type: ignore
     __tablename__ = "respondents"
 
-    id = Column(Integer, primary_key=True)
+    uuid = db.Column(db.String(36), primary_key=True, default=generate_uuid4)
 
 
 @add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
 class Enumerator(db.Model):  # type: ignore
     __tablename__ = "enumerators"
 
-    id = Column(Integer, primary_key=True)
+    uuid = db.Column(db.String(36), primary_key=True, default=generate_uuid4)
 
 
 class SurveyResponse(db.Model):  # type: ignore

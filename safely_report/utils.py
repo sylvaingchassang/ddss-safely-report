@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from datetime import date
 from typing import Any, Optional, Type
 
@@ -24,6 +25,10 @@ def get_env_var(name: str) -> str:
     if value is None:
         raise KeyError(f"Missing environment variable: {name}")
     return value
+
+
+def generate_uuid4() -> str:
+    return str(uuid.uuid4())
 
 
 def serialize(data: Any) -> str:
