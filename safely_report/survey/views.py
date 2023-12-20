@@ -1,17 +1,16 @@
 from flask import Blueprint, redirect, render_template, session, url_for
 
 from safely_report.models import db
-from safely_report.settings import XLSFORM_PATH as path_to_xlsform
+from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
 from safely_report.survey.survey_processor import SurveyProcessor
 from safely_report.survey.survey_session import SurveySession
 
 # Instantiate classes for conducting the survey
-assert isinstance(path_to_xlsform, str)  # For type check to work
 survey_session = SurveySession(session)
-survey_processor = SurveyProcessor(path_to_xlsform, survey_session)
-garbler = Garbler(path_to_xlsform, survey_session, db)
+survey_processor = SurveyProcessor(XLSFORM_PATH, survey_session)
+garbler = Garbler(XLSFORM_PATH, survey_session, db)
 form_generator = SurveyFormGenerator(survey_processor)
 
 

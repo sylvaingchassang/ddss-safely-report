@@ -19,7 +19,7 @@ def check_dict_required_fields(
             raise ValueError(f"{field_name} should contain {field_type}")
 
 
-def get_env_var(name: str) -> Optional[str]:
+def get_env_var(name: str) -> str:
     value = os.environ.get(name)
     if value is None:
         raise KeyError(f"Missing environment variable: {name}")
