@@ -1,7 +1,6 @@
 import re
 from typing import Any, Optional, Union
 
-from flask.sessions import SessionMixin
 from pyxform import Question, Section
 from pyxform.survey_element import SurveyElement
 
@@ -23,13 +22,13 @@ class SurveyProcessor(SurveyProcessorBase):
     ----------
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
-    session: SessionMixin
-        Flask session object for caching survey response data
+    survey_session: SurveySession
+        Session object for caching data specific to current survey respondent
     """
 
-    def __init__(self, path_to_xlsform: str, session: SessionMixin):
+    def __init__(self, path_to_xlsform: str, survey_session: SurveySession):
         self._survey = read_xlsform(path_to_xlsform)
-        self._session = SurveySession(session)
+        self._session = survey_session
 
         # Build a lookup table that maps element name to object
         # NOTE: This will NOT create too much memory overhead as the lookup
@@ -272,24 +271,30 @@ class SurveyProcessor(SurveyProcessorBase):
             if self.curr_relevant and self.curr_to_show:
                 break
 
-    def gather_responses_to_store(self) -> dict[str, Any]:
+    def gather_survey_response(self) -> dict[str, Any]:
         """
-        Collect survey responses to store in the database.
+        Collect survey response to store in the database.
+
+        Returns
+        -------
+        dict[str, Any]
+            A survey response record that maps each question name to the
+            corresponding response value
         """
         responses = self._session.retrieve_all_responses()
         visits = set(self._session.get_all_visits())
 
         # Prepare data to store
-        responses_to_store = {}
+        survey_response = {}
         for varname in responses:
             if varname in visits:
-                responses_to_store[varname] = responses[varname]
+                survey_response[varname] = responses[varname]
         for varname in visits:
             repeat_varname = SurveyProcessor._term_repeat_varname(varname)
             if repeat_varname in responses:
-                responses_to_store[repeat_varname] = responses[repeat_varname]
+                survey_response[repeat_varname] = responses[repeat_varname]
 
-        return responses_to_store
+        return survey_response
 
     def clear_session(self):
         """

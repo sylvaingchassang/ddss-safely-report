@@ -1,8 +1,6 @@
 from flask import Blueprint, redirect, render_template, url_for
 
-from safely_report import db, form_generator, survey_processor
-from safely_report.models import Response
-from safely_report.utils import serialize_dict
+from safely_report import form_generator, garbler, survey_processor
 
 survey_blueprint = Blueprint(
     "survey", __name__, template_folder="templates/survey"
@@ -46,16 +44,9 @@ def submit():
     if not survey_processor.curr_survey_end:
         return redirect(url_for("survey.index"))
 
-    # Store survey response into database
-    try:
-        response_dict = survey_processor.gather_responses_to_store()
-        response_serialized = serialize_dict(response_dict)
-        response_record = Response(response=response_serialized)
-        db.session.add(response_record)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return e
+    # Garble survey response and store it into database
+    survey_response = survey_processor.gather_survey_response()
+    garbler.garble_and_store(survey_response)
 
     # Clear session data if response has been successfully stored in database
     survey_processor.clear_session()

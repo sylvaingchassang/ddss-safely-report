@@ -1,10 +1,11 @@
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
 
-from safely_report import db
+db = SQLAlchemy()
 
 
-class Response(db.Model):  # type: ignore
-    __tablename__ = "responses"
+class SurveyResponse(db.Model):  # type: ignore
+    __tablename__ = "survey_responses"
 
     id = Column(Integer, primary_key=True)
     response = Column(String, nullable=False)  # Stringified JSON
@@ -13,4 +14,23 @@ class Response(db.Model):  # type: ignore
         self.response = response
 
     def __repr__(self):
-        return f"<Response ID: {self.id}>"
+        return f"<SurveyResponse ID: {self.id}>"
+
+
+class GarblingBlock(db.Model):  # type: ignore
+    __tablename__ = "garbling_blocks"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    shocks = Column(String, nullable=False)  # Stringified array
+    version = Column(Integer, nullable=False)
+
+    def __init__(self, name, shocks):
+        self.name = name
+        self.shocks = shocks
+
+    def __repr__(self):
+        return f"<GarblingBlock Name: {self.name}>"
+
+    # For optimistic locking
+    __mapper_args__ = {"version_id_col": version}

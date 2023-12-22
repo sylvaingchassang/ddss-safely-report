@@ -4,8 +4,10 @@ from safely_report.survey.survey_processor import SurveyProcessor
 
 
 @pytest.fixture
-def processor(processor_for_holidays_survey) -> SurveyProcessor:
-    return processor_for_holidays_survey
+def processor(
+    path_to_xlsform_holidays, test_survey_session
+) -> SurveyProcessor:
+    return SurveyProcessor(path_to_xlsform_holidays, test_survey_session)
 
 
 def test_survey_start(processor: SurveyProcessor):

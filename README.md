@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-Before running the application, define necessary environment variables in `.env` file:
+Before running the application, define necessary environment variables:
 
 | Name                       | Description                                                              |
 | -------------------------- | ------------------------------------------------------------------------ |
@@ -33,7 +33,7 @@ Before running the application, define necessary environment variables in `.env`
 | `SQLALCHEMY_DATABASE_URI`  | URI for connecting to a relational database                              |
 | `XLSFORM_PATH`             | Path to the XLSForm file specifying the survey                           |
 
-Check `.env.example` file for a concrete example.
+Check `.env.test` file for a concrete example.
 
 To synchronize the database schema, run:
 
@@ -48,4 +48,4 @@ Finally, run the following to launch the application:
 flask --app app run
 ```
 
-If running on a local server, visit `http://127.0.0.1:5000` to access the application.
+If running on a local server, visit `http://127.0.0.1:5000/survey` to access the application.
