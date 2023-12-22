@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from datetime import date
 from typing import Any, Optional, Type
 
@@ -19,11 +20,15 @@ def check_dict_required_fields(
             raise ValueError(f"{field_name} should contain {field_type}")
 
 
-def get_env_var(name: str) -> Optional[str]:
+def get_env_var(name: str) -> str:
     value = os.environ.get(name)
     if value is None:
         raise KeyError(f"Missing environment variable: {name}")
     return value
+
+
+def generate_uuid4() -> str:
+    return str(uuid.uuid4())
 
 
 def serialize(data: Any) -> str:

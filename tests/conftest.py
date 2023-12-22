@@ -1,6 +1,6 @@
 import pytest
 
-from safely_report import app
+from safely_report import create_app
 from safely_report.models import db
 from safely_report.survey.survey_session import SurveySession
 
@@ -13,6 +13,7 @@ class MockFlaskSession(dict):
 
 @pytest.fixture
 def test_db():
+    app = create_app()
     with app.app_context():
         # Create tables in the test database
         db.create_all()

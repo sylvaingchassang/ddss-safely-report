@@ -32,6 +32,8 @@ Before running the application, define necessary environment variables:
 | `SECRET_KEY`               | A key to be used for enhancing the security of the Flask application     |
 | `SQLALCHEMY_DATABASE_URI`  | URI for connecting to a relational database                              |
 | `XLSFORM_PATH`             | Path to the XLSForm file specifying the survey                           |
+| `RESPONDENT_ROSTER_PATH`   | Path to the CSV file containing survey respondent roster                 |
+| `ENUMERATOR_ROSTER_PATH`   | Path to the CSV file containing survey enumerator roster                 |
 
 Check `.env.test` file for a concrete example.
 
