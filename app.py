@@ -1,7 +1,5 @@
-from csv import DictReader
-
 from safely_report import create_app
-from safely_report.models import Enumerator, Respondent, db
+from safely_report.models import Enumerator, Respondent, add_data_from_csv
 from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
     RESPONDENT_ROSTER_PATH,
@@ -14,17 +12,9 @@ app = create_app()
 def pre_populate_database():
     if not app.config.get("PREPOPULATED"):
         if Respondent.query.first() is None:
-            with open(RESPONDENT_ROSTER_PATH, "r") as file:
-                csv_reader = DictReader(file)
-                for row in csv_reader:
-                    db.session.add(Respondent(**row))
-            db.session.commit()
+            add_data_from_csv(Respondent, RESPONDENT_ROSTER_PATH)
         if Enumerator.query.first() is None:
-            with open(ENUMERATOR_ROSTER_PATH, "r") as file:
-                csv_reader = DictReader(file)
-                for row in csv_reader:
-                    db.session.add(Enumerator(**row))
-            db.session.commit()
+            add_data_from_csv(Enumerator, ENUMERATOR_ROSTER_PATH)
         app.config["PREPOPULATED"] = True
 
 

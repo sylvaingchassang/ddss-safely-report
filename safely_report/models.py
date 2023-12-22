@@ -29,6 +29,23 @@ def add_columns_from_csv(path_to_csv: str) -> Callable:
     return decorator
 
 
+def add_data_from_csv(table_cls: Type[Model], path_to_csv: str):
+    """
+    Add data from the given CSV file to the specified database table.
+    """
+    try:
+        table_records = []
+        with open(path_to_csv, "r") as file:
+            csv_reader = DictReader(file)
+            for row in csv_reader:
+                table_records.append(table_cls(**row))
+        db.session.add_all(table_records)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
 @add_columns_from_csv(RESPONDENT_ROSTER_PATH)
 class Respondent(db.Model):  # type: ignore
     __tablename__ = "respondents"
