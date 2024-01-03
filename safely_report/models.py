@@ -57,14 +57,14 @@ class DynamicTable(db.Model):  # type: ignore
 class Respondent(DynamicTable):
     __tablename__ = "respondents"
 
-    uuid = db.Column(db.String(36), primary_key=True, default=generate_uuid4)
+    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
 
 
 @DynamicTable.add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
 class Enumerator(DynamicTable):
     __tablename__ = "enumerators"
 
-    uuid = db.Column(db.String(36), primary_key=True, default=generate_uuid4)
+    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
 
 
 class SurveyResponse(db.Model):  # type: ignore
