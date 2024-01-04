@@ -2,6 +2,7 @@ import enum
 from csv import DictReader
 from typing import Callable, Type, Union
 
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Enum, Integer, String, delete, event, insert
 from sqlalchemy.engine import Connection
@@ -75,11 +76,14 @@ class Role(enum.Enum):
     Respondent = "Respondent"
 
 
-class User(db.Model):  # type: ignore
+class User(db.Model, UserMixin):  # type: ignore
     __tablename__ = "users"
 
     uuid = Column(String(36), primary_key=True)
     role = Column(Enum(Role), nullable=False)  # type: ignore
+
+    def get_id(self):
+        return str(self.uuid)
 
 
 @event.listens_for(Respondent, "after_insert")

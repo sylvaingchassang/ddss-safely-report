@@ -1,3 +1,5 @@
+from flask import redirect, url_for
+
 from safely_report import create_app
 from safely_report.models import Enumerator, Respondent
 from safely_report.settings import (
@@ -20,7 +22,7 @@ def pre_populate_database():
 
 @app.route("/")
 def index():
-    return "Welcome!"
+    return redirect(url_for("auth.index"))
 
 
 if __name__ == "__main__":

@@ -19,6 +19,9 @@ defusedxml==0.7.1 ; python_version >= "3.9" and python_version < "4.0" \
 et-xmlfile==1.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c \
     --hash=sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada
+flask-login==0.6.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:5e23d14a607ef12806c699590b89d0f0e0d67baeec599d75947bf9c147330333 \
+    --hash=sha256:849b25b82a436bf830a054e74214074af59097171562ab10bfa999e6b78aae5d
 flask-migrate==4.0.5 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:613a2df703998e78716cace68cd83972960834424457f5b67f56e74fff950aef \
     --hash=sha256:d3f437a8b5f3849d1bb1b60e1b818efc564c66e3fefe90b62e5db08db295e1b1
