@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, render_template, session, url_for
+from flask_login import login_required
 
 from safely_report.models import db
 from safely_report.settings import XLSFORM_PATH
@@ -17,6 +18,12 @@ form_generator = SurveyFormGenerator(survey_processor)
 survey_blueprint = Blueprint(
     "survey", __name__, template_folder="templates/survey"
 )
+
+
+@survey_blueprint.before_request
+@login_required
+def require_login():
+    pass  # Actual implementation handled by @login_required decorator
 
 
 @survey_blueprint.route("/", methods=["GET", "POST"])
