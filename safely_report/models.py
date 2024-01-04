@@ -1,8 +1,11 @@
+import enum
 from csv import DictReader
-from typing import Callable, Type
+from typing import Callable, Type, Union
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Enum, Integer, String, delete, event, insert
+from sqlalchemy.engine import Connection
+from sqlalchemy.orm import Mapper
 
 from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
@@ -65,6 +68,50 @@ class Enumerator(DynamicTable):
     __tablename__ = "enumerators"
 
     uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+
+
+class Role(enum.Enum):
+    Enumerator = "Enumerator"
+    Respondent = "Respondent"
+
+
+class User(db.Model):  # type: ignore
+    __tablename__ = "users"
+
+    uuid = Column(String(36), primary_key=True)
+    role = Column(Enum(Role), nullable=False)  # type: ignore
+
+
+@event.listens_for(Respondent, "after_insert")
+@event.listens_for(Enumerator, "after_insert")
+def create_user(
+    mapper: Mapper,
+    connection: Connection,
+    target: Union[Respondent, Enumerator],
+):
+    """
+    Create a user record for every new respondent or enumerator.
+    """
+    if isinstance(target, Respondent):
+        role = Role.Respondent
+    elif isinstance(target, Enumerator):
+        role = Role.Enumerator
+    connection.execute(insert(User).values(uuid=target.uuid, role=role))
+
+
+@event.listens_for(Respondent, "after_delete")
+@event.listens_for(Enumerator, "after_delete")
+def delete_user(
+    mapper: Mapper,
+    connection: Connection,
+    target: Union[Respondent, Enumerator],
+):
+    """
+    Delete the user record of any removed respondent or enumerator.
+    """
+    user = User.query.get(target.uuid)
+    if user is not None:
+        connection.execute(delete(User).where(User.uuid == target.uuid))
 
 
 class SurveyResponse(db.Model):  # type: ignore
