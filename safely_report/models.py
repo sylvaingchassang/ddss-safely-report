@@ -72,8 +72,9 @@ class Enumerator(DynamicTable):
 
 
 class Role(enum.Enum):
-    Enumerator = "Enumerator"
     Respondent = "Respondent"
+    Enumerator = "Enumerator"
+    Admin = "Admin"
 
 
 class User(db.Model, UserMixin):  # type: ignore
