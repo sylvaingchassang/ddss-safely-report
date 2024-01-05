@@ -33,12 +33,8 @@ def test_iid_garbling_working(garbler: Garbler, test_db: SQLAlchemy):
     for _ in range(10):
         # Create a respondent record in database
         respondent = Respondent()
-        try:
-            test_db.session.add(respondent)
-            test_db.session.commit()
-        except Exception as e:
-            test_db.session.rollback()
-            raise e
+        test_db.session.add(respondent)
+        test_db.session.commit()
 
         # Submit survey response that goes against garbling answer
         survey_response = {garbling_params.question: "no"}
@@ -88,12 +84,8 @@ def test_block_garbling_consistency(
     for _ in range(n_report):
         # Create a respondent record in database
         respondent = Respondent()
-        try:
-            test_db.session.add(respondent)
-            test_db.session.commit()
-        except Exception as e:
-            test_db.session.rollback()
-            raise e
+        test_db.session.add(respondent)
+        test_db.session.commit()
 
         # Submit survey response that goes against garbling answer
         survey_response = {garbling_params.question: "no"}

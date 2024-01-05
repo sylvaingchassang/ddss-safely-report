@@ -121,23 +121,23 @@ class Garbler:
         if respondent is None:
             raise NoResultFound()
 
-        try:
-            # Apply garbling
-            for varname, response_value in survey_response.items():
-                garbling_params = self._params.get(varname)
-                if garbling_params is None:
-                    continue
-                garbling_shock = self._get_garbling_shock(
-                    garbling_params=garbling_params,
-                    respondent=respondent,
-                )
-                survey_response[varname] = Garbler._garble_response(
-                    response_value=response_value,
-                    garbling_shock=garbling_shock,
-                    garbling_answer=garbling_params.answer,
-                )
+        # Apply garbling
+        for varname, response_value in survey_response.items():
+            garbling_params = self._params.get(varname)
+            if garbling_params is None:
+                continue
+            garbling_shock = self._get_garbling_shock(
+                garbling_params=garbling_params,
+                respondent=respondent,
+            )
+            survey_response[varname] = Garbler._garble_response(
+                response_value=response_value,
+                garbling_shock=garbling_shock,
+                garbling_answer=garbling_params.answer,
+            )
 
-            # Serialize and store the garbled survey response
+        # Serialize and store the garbled survey response
+        try:
             response_serialized = serialize(survey_response)
             response_record = SurveyResponse(response=response_serialized)
             self._db.session.add(response_record)
