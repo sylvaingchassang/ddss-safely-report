@@ -378,10 +378,15 @@ class Garbler:
             raise Exception(f"{answer} not in choice options for {question}")
         if rate < 0 or rate > 1:
             raise ValueError("Garbling rate should be between 0 and 1")
-        if covariate and (rate not in Garbler._block_garbling_shocks):
-            raise ValueError(
-                "Block garbling supports the following rates only: "
-                f"{list(Garbler._block_garbling_shocks.keys())}"
-            )
+        if covariate:
+            if rate not in Garbler._block_garbling_shocks:
+                raise ValueError(
+                    "Block garbling supports the following rates only: "
+                    f"{list(Garbler._block_garbling_shocks.keys())}"
+                )
+            if covariate != "*" and (not hasattr(Respondent, covariate)):
+                raise AttributeError(
+                    f"Covariate missing in respondent roster: {covariate}"
+                )
 
         return GarblingParams(question, answer, rate, covariate)

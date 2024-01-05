@@ -65,6 +65,7 @@ def test_garbling_scheme(garbling_covariate, garbling_scheme_expected):
 )
 def test_extract_garbling_params(
     # Fixture(s)
+    mocker,
     survey_dict_record,
     # Parameter(s)
     garbling_dict,
@@ -73,6 +74,7 @@ def test_extract_garbling_params(
     garbling_covariate,
     garbling_scheme,
 ):
+    mocker.patch("safely_report.survey.garbling.Respondent")
     survey_dict_record["garbling"] = garbling_dict
     garbling_params = Garbler._extract_garbling_params(survey_dict_record)
     assert garbling_params.question == "ever.abroad"
