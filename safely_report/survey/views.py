@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 
-from safely_report.models import db
+from safely_report.models import Role, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
@@ -11,7 +11,7 @@ from safely_report.survey.survey_session import SurveySession
 # Instantiate classes for conducting the survey
 survey_session = SurveySession(session)
 survey_processor = SurveyProcessor(XLSFORM_PATH, survey_session)
-garbler = Garbler(XLSFORM_PATH, survey_session, db)
+garbler = Garbler(XLSFORM_PATH, db)
 form_generator = SurveyFormGenerator(survey_processor)
 
 
@@ -63,11 +63,17 @@ def submit():
     if not survey_processor.curr_survey_end:
         return redirect(url_for("survey.index"))
 
+    if current_user.role == Role.Respondent:
+        respondent_uuid = current_user.uuid
+    else:
+        # TODO: Flash message and redirect
+        return f"{current_user.role} cannot submit survey response"
+
     # Garble survey response and store it into database
     survey_response = survey_processor.gather_survey_response()
-    garbler.garble_and_store(survey_response)
+    garbler.garble_and_store(survey_response, respondent_uuid)
 
     # Clear session data if response has been successfully stored in database
     survey_processor.clear_session()
 
-    return "Survey response submitted"
+    return "Survey response submitted"  # TODO: Flash message and redirect

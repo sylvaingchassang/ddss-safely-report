@@ -35,7 +35,7 @@ def login_respondent():
         if user is not None and user.role == Role.Respondent:
             login_user(user)
             return redirect(url_for("survey.index"))
-        return "Respondent not found"  # TODO: Replace with flash message
+        return "Respondent not found"  # TODO: Flash message and redirect
 
     return render_template("authenticate.html", form=form)
 
