@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <div class="form-container">
+    <form method="post" action="{{ url_for('auth.login_respondent') }}">
+      {{ form.csrf_token }}
+      <div class="mb-3">
+        {{ form.field.label(class="form-label") }}
+        {{ form.field(class="form-control") }}
+      </div>
+      <div class="d-flex justify-content-between">
+        <a href="{{ url_for('auth.index') }}" class="btn btn-secondary">Back</a>
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </div>
+
+{% endblock %}

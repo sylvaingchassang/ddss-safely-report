@@ -1,8 +1,10 @@
 from flask import Flask
+from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_session import Session
 
-from safely_report.models import db
+from safely_report.auth.views import auth_blueprint
+from safely_report.models import User, db
 from safely_report.survey.views import survey_blueprint
 
 
@@ -18,7 +20,16 @@ def create_app() -> Flask:
     db.init_app(app)
     Migrate(app, db)
 
+    # Set up authentication
+    login_manager = LoginManager(app)
+    login_manager.login_view = "auth.index"
+
+    @login_manager.user_loader
+    def load_user(user_uuid):
+        return User.query.get(user_uuid)
+
     # Register routes (i.e., "views")
+    app.register_blueprint(auth_blueprint, url_prefix="/auth")
     app.register_blueprint(survey_blueprint, url_prefix="/survey")
 
     return app
