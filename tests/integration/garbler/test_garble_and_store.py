@@ -20,7 +20,23 @@ def garbler(mocker: MockerFixture, test_db: SQLAlchemy) -> Garbler:
     return garbler
 
 
-def test_iid_garbling_working(garbler: Garbler, test_db: SQLAlchemy):
+@pytest.fixture
+def respondent() -> Respondent:
+    return Respondent(
+        respondent_id="1",
+        first_name="John",
+        last_name="Doe",
+        gender="Male",
+        team="Marketing",
+    )
+
+
+def test_iid_garbling_working(
+    # Fixture(s)
+    garbler: Garbler,
+    test_db: SQLAlchemy,
+    respondent: Respondent,
+):
     # Set up IID garbling with a high rate
     garbling_params = GarblingParams(
         question="question",
@@ -32,7 +48,6 @@ def test_iid_garbling_working(garbler: Garbler, test_db: SQLAlchemy):
 
     for _ in range(10):
         # Create a respondent record in database
-        respondent = Respondent()
         test_db.session.add(respondent)
         test_db.session.commit()
 
@@ -67,6 +82,7 @@ def test_block_garbling_consistency(
     # Fixture(s)
     garbler: Garbler,
     test_db: SQLAlchemy,
+    respondent: Respondent,
     # Parameter(s)
     n_report: int,
     garbling_rate: float,
@@ -83,7 +99,6 @@ def test_block_garbling_consistency(
 
     for _ in range(n_report):
         # Create a respondent record in database
-        respondent = Respondent()
         test_db.session.add(respondent)
         test_db.session.commit()
 
