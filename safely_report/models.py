@@ -114,9 +114,7 @@ def delete_user(
     """
     Delete the user record of any removed respondent or enumerator.
     """
-    user = User.query.get(target.uuid)
-    if user is not None:
-        connection.execute(delete(User).where(User.uuid == target.uuid))
+    connection.execute(delete(User).where(User.uuid == target.uuid))
 
 
 class SurveyResponse(db.Model):  # type: ignore

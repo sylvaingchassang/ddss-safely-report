@@ -31,7 +31,7 @@ def login_respondent():
 
     if form.validate_on_submit():
         uuid = form.field.data
-        user = User.query.get(uuid)
+        user = User.query.filter_by(uuid=uuid).first()
         if user is not None and user.role == Role.Respondent:
             login_user(user)
             return redirect(url_for("survey.index"))

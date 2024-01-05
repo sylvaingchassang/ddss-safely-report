@@ -117,8 +117,8 @@ class Garbler:
         respondent_uuid: str
             UUID of the current survey respondent
         """
-        respondent_record = Respondent.query.get(respondent_uuid)
-        if respondent_record is None:
+        respondent = Respondent.query.filter_by(uuid=respondent_uuid).first()
+        if respondent is None:
             raise NoResultFound()
 
         try:
@@ -129,7 +129,7 @@ class Garbler:
                     continue
                 garbling_shock = self._get_garbling_shock(
                     garbling_params=garbling_params,
-                    respondent_record=respondent_record,
+                    respondent=respondent,
                 )
                 survey_response[varname] = Garbler._garble_response(
                     response_value=response_value,
@@ -147,7 +147,7 @@ class Garbler:
             raise e
 
     def _get_garbling_shock(
-        self, garbling_params: GarblingParams, respondent_record: Respondent
+        self, garbling_params: GarblingParams, respondent: Respondent
     ) -> bool:
         """
         Produce a random state for garbling a survey response according to
@@ -157,7 +157,7 @@ class Garbler:
         ----------
         garbling_params: GarblingParams
             Garbling parameters of a survey element
-        respondent_record: Respondent
+        respondent: Respondent
             Database record containing covariate information of the considered
             survey respondent (necessary for Covariate-Blocked Garbling)
 
@@ -177,7 +177,7 @@ class Garbler:
                 block_name = garbling_params.question
             elif scheme == GarblingScheme.CovBlock:
                 assert garbling_params.covariate  # For type check to work
-                trait = getattr(respondent_record, garbling_params.covariate)
+                trait = getattr(respondent, garbling_params.covariate)
                 block_name = f"{garbling_params.question}::{trait}"
             else:
                 raise Exception(f"Unsupported garbling scheme: {scheme}")
