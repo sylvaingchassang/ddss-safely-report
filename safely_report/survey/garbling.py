@@ -139,7 +139,10 @@ class Garbler:
         # Serialize and store the garbled survey response
         try:
             response_serialized = serialize(survey_response)
-            response_record = SurveyResponse(response=response_serialized)
+            response_record = SurveyResponse(
+                response=response_serialized,
+                respondent_uuid=respondent_uuid,
+            )
             self._db.session.add(response_record)
             self._db.session.commit()
         except Exception as e:
