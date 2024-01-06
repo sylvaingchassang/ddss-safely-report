@@ -153,3 +153,16 @@ def test_extract_garbling_params_with_answer_not_in_choices(
     with pytest.raises(Exception) as e:
         Garbler._extract_garbling_params(survey_dict_record)
         assert e.value == "male not in choice options for ever.abroad"
+
+
+def test_extract_garbling_params_with_covariate_not_in_roster(
+    survey_dict_record,
+):
+    survey_dict_record["garbling"] = {
+        "rate": "0.4",
+        "answer": "yes",
+        "covariate": "missing",
+    }
+    with pytest.raises(AttributeError) as e:
+        Garbler._extract_garbling_params(survey_dict_record)
+        assert e.value == "Covariate missing in respondent roster: missing"
