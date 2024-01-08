@@ -26,7 +26,7 @@ def create_app() -> Flask:
 
     @login_manager.user_loader
     def load_user(user_uuid):
-        return User.query.get(user_uuid)
+        return User.query.filter_by(uuid=user_uuid).first()
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")

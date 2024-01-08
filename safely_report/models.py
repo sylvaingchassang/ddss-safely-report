@@ -4,7 +4,16 @@ from typing import Callable, Type, Union
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Enum, Integer, String, delete, event, insert
+from sqlalchemy import (
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    delete,
+    event,
+    insert,
+)
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Mapper
 
@@ -34,7 +43,7 @@ class DynamicTable(db.Model):  # type: ignore
             with open(path_to_csv, "r") as file:
                 csv_reader = DictReader(file)
                 for name in csv_reader.fieldnames or []:
-                    setattr(table_cls, name, Column(String, nullable=True))
+                    setattr(table_cls, name, Column(String, nullable=False))
             return table_cls
 
         return decorator
@@ -114,9 +123,7 @@ def delete_user(
     """
     Delete the user record of any removed respondent or enumerator.
     """
-    user = User.query.get(target.uuid)
-    if user is not None:
-        connection.execute(delete(User).where(User.uuid == target.uuid))
+    connection.execute(delete(User).where(User.uuid == target.uuid))
 
 
 class SurveyResponse(db.Model):  # type: ignore
@@ -124,9 +131,16 @@ class SurveyResponse(db.Model):  # type: ignore
 
     id = Column(Integer, primary_key=True)
     response = Column(String, nullable=False)  # Stringified JSON
+    respondent_uuid = Column(
+        String(36),
+        ForeignKey("respondents.uuid"),
+        nullable=False,
+        unique=True,  # Restrict respondents to a single response
+    )
 
-    def __init__(self, response):
+    def __init__(self, response, respondent_uuid):
         self.response = response
+        self.respondent_uuid = respondent_uuid
 
     def __repr__(self):
         return f"<SurveyResponse ID: {self.id}>"

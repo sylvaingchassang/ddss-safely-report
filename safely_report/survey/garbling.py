@@ -6,9 +6,9 @@ from typing import Any, Mapping, Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from pyxform.xls2json import parse_file_to_json
+from sqlalchemy.orm.exc import NoResultFound
 
-from safely_report.models import GarblingBlock, SurveyResponse
-from safely_report.survey.survey_session import SurveySession
+from safely_report.models import GarblingBlock, Respondent, SurveyResponse
 from safely_report.utils import (
     check_dict_required_fields,
     deserialize,
@@ -56,8 +56,6 @@ class Garbler:
     ----------
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
-    survey_session: SurveySession
-        Session object for caching data specific to current survey respondent
     db: SQLAlchemy
         An instance of database connection
     """
@@ -79,19 +77,9 @@ class Garbler:
         0.8: [True] * 4 + [False] * 1,
     }
 
-    def __init__(
-        self,
-        path_to_xlsform: str,
-        survey_session: SurveySession,
-        db: SQLAlchemy,
-    ):
+    def __init__(self, path_to_xlsform: str, db: SQLAlchemy):
         self._params = Garbler._parse_xlsform(path_to_xlsform)
-        self._session = survey_session
         self._db = db
-
-        # TODO: Cache covariate info of current survey respondent
-        # (create and use related methods in SurveySession)
-        pass
 
     @property
     def params(self) -> Mapping[str, GarblingParams]:
@@ -110,7 +98,9 @@ class Garbler:
         """
         return MappingProxyType(self._params)
 
-    def garble_and_store(self, survey_response: dict[str, Any]):
+    def garble_and_store(
+        self, survey_response: dict[str, Any], respondent_uuid: str
+    ):
         """
         Garble and store survey response gathered by survey processor.
 
@@ -124,30 +114,44 @@ class Garbler:
         survey_response: dict[str, Any]
             A survey response record that maps each question name to the
             corresponding response value
+        respondent_uuid: str
+            UUID of the current survey respondent
         """
-        try:
-            # Apply garbling
-            for varname, response_value in survey_response.items():
-                garbling_params = self._params.get(varname)
-                if garbling_params is None:
-                    continue
-                garbling_shock = self._get_garbling_shock(garbling_params)
-                survey_response[varname] = Garbler._garble_response(
-                    response_value=response_value,
-                    garbling_shock=garbling_shock,
-                    garbling_answer=garbling_params.answer,
-                )
+        respondent = Respondent.query.filter_by(uuid=respondent_uuid).first()
+        if respondent is None:
+            raise NoResultFound()
 
-            # Serialize and store the garbled survey response
+        # Apply garbling
+        for varname, response_value in survey_response.items():
+            garbling_params = self._params.get(varname)
+            if garbling_params is None:
+                continue
+            garbling_shock = self._get_garbling_shock(
+                garbling_params=garbling_params,
+                respondent=respondent,
+            )
+            survey_response[varname] = Garbler._garble_response(
+                response_value=response_value,
+                garbling_shock=garbling_shock,
+                garbling_answer=garbling_params.answer,
+            )
+
+        # Serialize and store the garbled survey response
+        try:
             response_serialized = serialize(survey_response)
-            response_record = SurveyResponse(response=response_serialized)
+            response_record = SurveyResponse(
+                response=response_serialized,
+                respondent_uuid=respondent_uuid,
+            )
             self._db.session.add(response_record)
             self._db.session.commit()
         except Exception as e:
             self._db.session.rollback()
             raise e
 
-    def _get_garbling_shock(self, garbling_params: GarblingParams) -> bool:
+    def _get_garbling_shock(
+        self, garbling_params: GarblingParams, respondent: Respondent
+    ) -> bool:
         """
         Produce a random state for garbling a survey response according to
         the given parameters.
@@ -156,6 +160,9 @@ class Garbler:
         ----------
         garbling_params: GarblingParams
             Garbling parameters of a survey element
+        respondent: Respondent
+            Database record containing covariate information of the considered
+            survey respondent (necessary for Covariate-Blocked Garbling)
 
         Returns
         -------
@@ -168,12 +175,15 @@ class Garbler:
         if scheme == GarblingScheme.IID:
             # Randomize garbling shock at the individual level
             garbling_shock = True if random() < garbling_params.rate else False
-        elif scheme in [GarblingScheme.PopBlock, GarblingScheme.CovBlock]:
-            block_name = garbling_params.question
-            if garbling_params.covariate:
-                # TODO: Update block_name to be a combination of the question
-                # name and the respondent's covariate value (e.g., married)
-                pass
+        else:
+            if scheme == GarblingScheme.PopBlock:
+                block_name = garbling_params.question
+            elif scheme == GarblingScheme.CovBlock:
+                assert garbling_params.covariate  # For type check to work
+                trait = getattr(respondent, garbling_params.covariate)
+                block_name = f"{garbling_params.question}::{trait}"
+            else:
+                raise Exception(f"Unsupported garbling scheme: {scheme}")
 
             # Get the garbling block info
             block = GarblingBlock.query.filter_by(name=block_name).first()
@@ -193,8 +203,6 @@ class Garbler:
 
             # Register changes in the garbling block info
             self._db.session.add(block)  # To be committed later
-        else:
-            raise Exception(f"Unsupported garbling scheme: {scheme}")
 
         return garbling_shock
 
@@ -373,10 +381,15 @@ class Garbler:
             raise Exception(f"{answer} not in choice options for {question}")
         if rate < 0 or rate > 1:
             raise ValueError("Garbling rate should be between 0 and 1")
-        if covariate and (rate not in Garbler._block_garbling_shocks):
-            raise ValueError(
-                "Block garbling supports the following rates only: "
-                f"{list(Garbler._block_garbling_shocks.keys())}"
-            )
+        if covariate:
+            if rate not in Garbler._block_garbling_shocks:
+                raise ValueError(
+                    "Block garbling supports the following rates only: "
+                    f"{list(Garbler._block_garbling_shocks.keys())}"
+                )
+            if covariate != "*" and (not hasattr(Respondent, covariate)):
+                raise AttributeError(
+                    f"Covariate missing in respondent roster: {covariate}"
+                )
 
         return GarblingParams(question, answer, rate, covariate)

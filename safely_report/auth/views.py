@@ -31,11 +31,11 @@ def login_respondent():
 
     if form.validate_on_submit():
         uuid = form.field.data
-        user = User.query.get(uuid)
+        user = User.query.filter_by(uuid=uuid).first()
         if user is not None and user.role == Role.Respondent:
             login_user(user)
             return redirect(url_for("survey.index"))
-        return "Respondent not found"  # TODO: Replace with flash message
+        return "Respondent not found"  # TODO: Flash message and redirect
 
     return render_template("authenticate.html", form=form)
 
