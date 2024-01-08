@@ -43,7 +43,7 @@ class DynamicTable(db.Model):  # type: ignore
             with open(path_to_csv, "r") as file:
                 csv_reader = DictReader(file)
                 for name in csv_reader.fieldnames or []:
-                    setattr(table_cls, name, Column(String, nullable=False))
+                    setattr(table_cls, name, Column(String, nullable=True))
             return table_cls
 
         return decorator
