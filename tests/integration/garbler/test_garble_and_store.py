@@ -33,7 +33,7 @@ def respondent_data() -> dict:
     }
 
 
-def test_iid_garbling_working(
+def test_iid_garbling(
     # Fixture(s)
     garbler: Garbler,
     test_db: SQLAlchemy,
@@ -81,7 +81,7 @@ def test_iid_garbling_working(
         (10, 0.8, 8),
     ],
 )
-def test_block_garbling_consistency(
+def test_population_blocked_garbling(
     # Fixture(s)
     garbler: Garbler,
     test_db: SQLAlchemy,
