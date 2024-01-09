@@ -27,7 +27,7 @@ def require_login():
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
     if survey_processor.curr_survey_end:
-        return render_template("survey/submit_survey.html")
+        return render_template("survey/submit.html")
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element
@@ -39,7 +39,7 @@ def index():
         return redirect(url_for("survey.index"))
 
     return render_template(
-        "survey/run_survey.html",
+        "survey/index.html",
         form=form,
         survey_processor=survey_processor,
     )
