@@ -15,9 +15,7 @@ garbler = Garbler(XLSFORM_PATH, db)
 form_generator = SurveyFormGenerator(survey_processor)
 
 
-survey_blueprint = Blueprint(
-    "survey", __name__, template_folder="templates/survey"
-)
+survey_blueprint = Blueprint("survey", __name__)
 
 
 @survey_blueprint.before_request
@@ -29,7 +27,7 @@ def require_login():
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
     if survey_processor.curr_survey_end:
-        return render_template("submit_survey.html")
+        return render_template("survey/submit_survey.html")
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element
@@ -41,7 +39,7 @@ def index():
         return redirect(url_for("survey.index"))
 
     return render_template(
-        "run_survey.html",
+        "survey/run_survey.html",
         form=form,
         survey_processor=survey_processor,
     )
