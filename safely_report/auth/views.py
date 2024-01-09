@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired
 
 from safely_report.models import Role, User
 
-auth_blueprint = Blueprint("auth", __name__, template_folder="templates/auth")
+auth_blueprint = Blueprint("auth", __name__)
 
 
 def make_auth_form(label: str) -> FlaskForm:
@@ -22,7 +22,7 @@ def index():
     if current_user.is_authenticated:
         if current_user.role == Role.Respondent:
             return redirect(url_for("survey.index"))
-    return render_template("select_role.html")
+    return render_template("auth/index.html")
 
 
 @auth_blueprint.route("/login/respondent", methods=["GET", "POST"])
@@ -37,7 +37,7 @@ def login_respondent():
             return redirect(url_for("survey.index"))
         return "Respondent not found"  # TODO: Flash message and redirect
 
-    return render_template("authenticate.html", form=form)
+    return render_template("auth/submit.html", form=form)
 
 
 @auth_blueprint.route("/logout")
