@@ -5,8 +5,9 @@ from flask_migrate import Migrate
 from flask_session import Session
 
 from safely_report.admin.views import (
+    EnumeratorModelView,
+    RespondentModelView,
     SurveyAdminIndexView,
-    SurveyAdminModelView,
 )
 from safely_report.auth.views import auth_blueprint
 from safely_report.models import Enumerator, Respondent, User, db
@@ -35,8 +36,8 @@ def create_app() -> Flask:
 
     # Set up admin interface
     admin = Admin(app, name="Safely Report", index_view=SurveyAdminIndexView())
-    admin.add_view(SurveyAdminModelView(Respondent, db.session))
-    admin.add_view(SurveyAdminModelView(Enumerator, db.session))
+    admin.add_view(RespondentModelView(Respondent, db.session))
+    admin.add_view(EnumeratorModelView(Enumerator, db.session))
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")

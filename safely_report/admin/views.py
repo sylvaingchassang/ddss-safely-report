@@ -9,7 +9,7 @@ class SurveyAdminIndexView(AdminIndexView):
         return self.render("admin/index.html")
 
 
-class SurveyAdminModelView(ModelView):
+class SurveyModelView(ModelView):
     form_base_class = SecureForm
 
     # Display UUID
@@ -18,13 +18,28 @@ class SurveyAdminModelView(ModelView):
 
     # Show UUID in the final column
     def scaffold_list_columns(self):
-        columns: list = super().scaffold_list_columns()
+        columns = super().scaffold_list_columns()
         columns.remove("uuid")
         columns.append("uuid")
         return columns
 
     # Disable sorting for UUID
     def scaffold_sortable_columns(self):
-        columns: dict = super().scaffold_sortable_columns()
+        columns = super().scaffold_sortable_columns()
         columns.pop("uuid")
         return columns
+
+
+class RespondentModelView(SurveyModelView):
+    column_display_all_relations = True
+    column_editable_list = ["enumerator"]
+
+    # Show assigned enumerator in the final column
+    def scaffold_list_columns(self):
+        columns = super().scaffold_list_columns()
+        columns.append("enumerator")
+        return columns
+
+
+class EnumeratorModelView(SurveyModelView):
+    pass

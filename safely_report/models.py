@@ -15,7 +15,7 @@ from sqlalchemy import (
     insert,
 )
 from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Mapper
+from sqlalchemy.orm import Mapper, relationship
 
 from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
@@ -71,6 +71,10 @@ class Respondent(DynamicTable):
     __tablename__ = "respondents"
 
     uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+
+    # Respondent may complete the survey with an enumerator
+    enumerator_uuid = Column(String(36), ForeignKey("enumerators.uuid"))
+    enumerator = relationship("Enumerator")
 
 
 @DynamicTable.add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
