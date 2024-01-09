@@ -22,23 +22,7 @@ def garbler(mocker: MockerFixture, test_db: SQLAlchemy) -> Garbler:
     return garbler
 
 
-@pytest.fixture
-def respondent_data() -> dict:
-    return {
-        "respondent_id": "1",
-        "first_name": "John",
-        "last_name": "Doe",
-        "gender": "Male",
-        "team": "Marketing",
-    }
-
-
-def test_iid_garbling_working(
-    # Fixture(s)
-    garbler: Garbler,
-    test_db: SQLAlchemy,
-    respondent_data: dict,
-):
+def test_iid_garbling(garbler: Garbler, test_db: SQLAlchemy):
     # Set up IID garbling with a high rate
     garbling_params = GarblingParams(
         question="question",
@@ -50,7 +34,7 @@ def test_iid_garbling_working(
 
     for _ in range(10):
         # Create a respondent record in database
-        respondent = Respondent(**respondent_data)
+        respondent = Respondent()
         test_db.session.add(respondent)
         test_db.session.commit()
 
@@ -81,11 +65,10 @@ def test_iid_garbling_working(
         (10, 0.8, 8),
     ],
 )
-def test_block_garbling_consistency(
+def test_population_blocked_garbling(
     # Fixture(s)
     garbler: Garbler,
     test_db: SQLAlchemy,
-    respondent_data: dict,
     # Parameter(s)
     n_report: int,
     garbling_rate: float,
@@ -103,7 +86,7 @@ def test_block_garbling_consistency(
     # Create and submit survey responses
     for _ in range(n_report):
         # Create a respondent record in database
-        respondent = Respondent(**respondent_data)
+        respondent = Respondent()
         test_db.session.add(respondent)
         test_db.session.commit()
 
@@ -138,7 +121,6 @@ def test_covariate_blocked_garbling(
     # Fixture(s)
     garbler: Garbler,
     test_db: SQLAlchemy,
-    respondent_data: dict,
     # Parameter(s)
     n_report: int,
     garbling_rate: float,
@@ -160,8 +142,7 @@ def test_covariate_blocked_garbling(
         # Create and submit survey responses
         for team in team_lst:
             # Create a respondent record in database
-            respondent_data["team"] = team
-            respondent = Respondent(**respondent_data)
+            respondent = Respondent(team=team)
             test_db.session.add(respondent)
             test_db.session.commit()
 
@@ -185,3 +166,33 @@ def test_covariate_blocked_garbling(
     # Compare against expected number of garbling
     assert len(survey_responses) == n_report
     assert n_garbled == n_garbled_expected
+
+
+def test_covariate_blocked_garbling_with_missing_covariate_value(
+    garbler: Garbler, test_db: SQLAlchemy
+):
+    # Set up covariate-blocked garbling
+    garbling_params = GarblingParams(
+        question="question",
+        answer="yes",
+        rate=0.4,
+        covariate="team",
+    )
+    garbler._params[garbling_params.question] = garbling_params
+
+    # Create a respondent record in database
+    respondent = Respondent()  # Missing covariate value
+    test_db.session.add(respondent)
+    test_db.session.commit()
+
+    # Submit survey response that goes against garbling answer
+    survey_response = {garbling_params.question: "no"}
+    respondent_uuid = str(respondent.uuid)
+    garbler.garble_and_store(survey_response, respondent_uuid)
+
+    # Confirm stored survey response has no data for the considered question
+    assert SurveyResponse.query.count() == 1
+    response_record = SurveyResponse.query.first()
+    assert response_record.respondent_uuid == respondent_uuid
+    stored_response = deserialize(response_record.response)
+    assert stored_response.get(garbling_params.question, None) is None

@@ -44,4 +44,4 @@ def test_optimistic_locking(test_db):
     block_updated = GarblingBlock.query.filter_by(name="test_block").first()
     assert block_updated.version == 2
     assert SurveyResponse.query.count() == 1
-    assert SurveyResponse.query.first().response == "response1"
+    assert SurveyResponse.query.first().respondent_uuid == uuid1

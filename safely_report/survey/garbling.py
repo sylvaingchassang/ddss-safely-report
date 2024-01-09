@@ -121,11 +121,22 @@ class Garbler:
         if respondent is None:
             raise NoResultFound()
 
-        # Apply garbling
         for varname, response_value in survey_response.items():
             garbling_params = self._params.get(varname)
+
+            # Skip if not subject to garbling
             if garbling_params is None:
                 continue
+
+            # Nullify if subject to covariate-blocked garbling but
+            # missing respondent covariate value
+            if garbling_params.scheme == GarblingScheme.CovBlock:
+                assert garbling_params.covariate  # For type check to work
+                if not getattr(respondent, garbling_params.covariate):
+                    survey_response[varname] = None
+                    continue
+
+            # Apply garbling
             garbling_shock = self._get_garbling_shock(
                 garbling_params=garbling_params,
                 respondent=respondent,
@@ -136,8 +147,15 @@ class Garbler:
                 garbling_answer=garbling_params.answer,
             )
 
-        # Serialize and store the garbled survey response
+        # Remove nullified data
+        survey_response = {
+            varname: response_value
+            for varname, response_value in survey_response.items()
+            if response_value is not None
+        }
+
         try:
+            # Serialize and store the garbled survey response
             response_serialized = serialize(survey_response)
             response_record = SurveyResponse(
                 response=response_serialized,
