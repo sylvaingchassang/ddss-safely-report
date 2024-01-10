@@ -1,6 +1,6 @@
 import enum
 from csv import DictReader
-from typing import Callable, Type, Union
+from typing import Callable, Optional, Type, Union
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -121,14 +121,31 @@ class User(db.Model, UserMixin):  # type: ignore
 
     @classmethod
     def init_admin(cls):
-        if cls.query.filter_by(role=Role.Admin).first() is None:
-            try:
-                user = cls(uuid=generate_uuid4(), role=Role.Admin)
-                db.session.add(user)
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                raise e
+        if cls._get_admin() is None:
+            cls._init_admin()
+
+    @classmethod
+    def get_admin(cls) -> "User":
+        user = cls._get_admin()
+        if user is None:
+            cls._init_admin()
+            user = cls._get_admin()
+        assert isinstance(user, User)  # For type check to work
+        return user
+
+    @classmethod
+    def _init_admin(cls):
+        try:
+            user = cls(uuid=generate_uuid4(), role=Role.Admin)
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @classmethod
+    def _get_admin(cls) -> Optional["User"]:
+        return cls.query.filter_by(role=Role.Admin).first()
 
 
 @event.listens_for(Respondent, "after_insert")

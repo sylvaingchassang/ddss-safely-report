@@ -5,6 +5,7 @@ from wtforms import PasswordField, SubmitField
 from wtforms.validators import DataRequired
 
 from safely_report.models import Role, User
+from safely_report.settings import ADMIN_PASSWORD
 
 auth_blueprint = Blueprint("auth", __name__)
 
@@ -22,6 +23,8 @@ def index():
     if current_user.is_authenticated:
         if current_user.role == Role.Respondent:
             return redirect(url_for("survey.index"))
+        if current_user.role == Role.Admin:
+            return redirect(url_for("admin.index"))
     return render_template("auth/index.html")
 
 
@@ -37,7 +40,30 @@ def login_respondent():
             return redirect(url_for("survey.index"))
         return "Respondent not found"  # TODO: Flash message and redirect
 
-    return render_template("auth/submit.html", form=form)
+    return render_template(
+        "auth/submit.html",
+        form=form,
+        endpoint="auth.login_respondent",
+    )
+
+
+@auth_blueprint.route("/login/admin", methods=["GET", "POST"])
+def login_admin():
+    form = make_auth_form("Please enter admin password:")
+
+    if form.validate_on_submit():
+        password = form.field.data
+        if password == ADMIN_PASSWORD:
+            user = User.get_admin()
+            login_user(user)
+            return redirect(url_for("admin.index"))
+        return "Invalid password"  # TODO: Flash message and redirect
+
+    return render_template(
+        "auth/submit.html",
+        form=form,
+        endpoint="auth.login_admin",
+    )
 
 
 @auth_blueprint.route("/logout")
