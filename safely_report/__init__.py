@@ -31,8 +31,8 @@ def create_app() -> Flask:
     login_manager.login_view = "auth.index"
 
     @login_manager.user_loader
-    def load_user(user_uuid):
-        return User.query.filter_by(uuid=user_uuid).first()
+    def load_user(user_id):
+        return User.query.filter_by(id=user_id).first()
 
     # Set up admin interface
     admin = Admin(app, name="Safely Report", index_view=SurveyAdminIndexView())

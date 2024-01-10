@@ -109,9 +109,6 @@ class User(db.Model, UserMixin):  # type: ignore
     uuid = Column(String(36), nullable=False, unique=True)
     role = Column(Enum(Role), nullable=False)  # type: ignore
 
-    def get_id(self):
-        return str(self.uuid)
-
 
 @event.listens_for(Respondent, "after_insert")
 @event.listens_for(Enumerator, "after_insert")
