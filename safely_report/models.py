@@ -82,6 +82,11 @@ class Respondent(DynamicTable):
     enumerator_uuid = Column(String(36), ForeignKey("enumerators.uuid"))
     enumerator = relationship("Enumerator")
 
+    @classmethod
+    def pre_populate(cls):
+        if cls.query.first() is None:
+            cls.add_data_from_csv(RESPONDENT_ROSTER_PATH)
+
 
 @DynamicTable.add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
 class Enumerator(DynamicTable):
@@ -94,6 +99,11 @@ class Enumerator(DynamicTable):
         unique=True,
         default=generate_uuid4,
     )
+
+    @classmethod
+    def pre_populate(cls):
+        if cls.query.first() is None:
+            cls.add_data_from_csv(ENUMERATOR_ROSTER_PATH)
 
 
 class Role(enum.Enum):
