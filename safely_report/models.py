@@ -70,7 +70,13 @@ class DynamicTable(db.Model):  # type: ignore
 class Respondent(DynamicTable):
     __tablename__ = "respondents"
 
-    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(
+        String(36),
+        nullable=False,
+        unique=True,
+        default=generate_uuid4,
+    )
 
     # Respondent may complete the survey with an enumerator
     enumerator_uuid = Column(String(36), ForeignKey("enumerators.uuid"))
@@ -81,7 +87,13 @@ class Respondent(DynamicTable):
 class Enumerator(DynamicTable):
     __tablename__ = "enumerators"
 
-    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(
+        String(36),
+        nullable=False,
+        unique=True,
+        default=generate_uuid4,
+    )
 
 
 class Role(enum.Enum):
@@ -93,7 +105,8 @@ class Role(enum.Enum):
 class User(db.Model, UserMixin):  # type: ignore
     __tablename__ = "users"
 
-    uuid = Column(String(36), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36), nullable=False, unique=True)
     role = Column(Enum(Role), nullable=False)  # type: ignore
 
     def get_id(self):

@@ -1,4 +1,4 @@
-"enumerator_id","first_name","last_name","gender"
-1,"Alice","Johnson","Female"
-2,"Bob","Miller","Male"
-3,"Eva","Taylor","Female"
+"first_name","last_name","gender"
+"Alice","Johnson","Female"
+"Bob","Miller","Male"
+"Eva","Taylor","Female"

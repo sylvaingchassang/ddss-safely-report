@@ -11,8 +11,6 @@ class SurveyAdminIndexView(AdminIndexView):
 
 class SurveyModelView(ModelView):
     form_base_class = SecureForm
-
-    # Display UUID
     column_display_pk = True
     column_labels = {"uuid": "UUID"}
 
