@@ -63,6 +63,9 @@ def submit():
 
     if current_user.role == Role.Respondent:
         respondent_uuid = current_user.uuid
+    elif current_user.role == Role.Admin:
+        # TODO: Flash message
+        return redirect(url_for("admin.index"))
     else:
         # TODO: Flash message and redirect
         return f"{current_user.role} cannot submit survey response"
