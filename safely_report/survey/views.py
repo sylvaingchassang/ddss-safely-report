@@ -18,6 +18,12 @@ form_generator = SurveyFormGenerator(survey_processor)
 survey_blueprint = Blueprint("survey", __name__)
 
 
+def curr_testing_mode() -> bool:
+    if current_user.role == Role.Respondent:
+        return False
+    return True
+
+
 @survey_blueprint.before_request
 @login_required
 def require_login():
@@ -27,7 +33,10 @@ def require_login():
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
     if survey_processor.curr_survey_end:
-        return render_template("survey/submit.html")
+        return render_template(
+            "survey/submit.html",
+            curr_testing_mode=curr_testing_mode(),
+        )
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element
@@ -42,6 +51,7 @@ def index():
         "survey/index.html",
         form=form,
         survey_processor=survey_processor,
+        curr_testing_mode=curr_testing_mode(),
     )
 
 
@@ -61,14 +71,15 @@ def submit():
     if not survey_processor.curr_survey_end:
         return redirect(url_for("survey.index"))
 
+    if curr_testing_mode():
+        return redirect(url_for("index"))  # TODO: Flash message
+
+    # Identify current respondent
     if current_user.role == Role.Respondent:
         respondent_uuid = current_user.uuid
-    elif current_user.role == Role.Admin:
-        # TODO: Flash message
-        return redirect(url_for("admin.index"))
     else:
         # TODO: Flash message and redirect
-        return f"{current_user.role} cannot submit survey response"
+        return f"Unknown role: {current_user.role}"
 
     # Garble survey response and store it into database
     survey_response = survey_processor.gather_survey_response()

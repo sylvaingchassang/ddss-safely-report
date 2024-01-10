@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, SubmitField
 from wtforms.validators import DataRequired
@@ -20,11 +20,6 @@ def make_auth_form(label: str) -> FlaskForm:
 
 @auth_blueprint.route("/")
 def index():
-    if current_user.is_authenticated:
-        if current_user.role == Role.Respondent:
-            return redirect(url_for("survey.index"))
-        if current_user.role == Role.Admin:
-            return redirect(url_for("admin.index"))
     return render_template("auth/index.html")
 
 
