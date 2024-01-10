@@ -119,6 +119,17 @@ class User(db.Model, UserMixin):  # type: ignore
     uuid = Column(String(36), nullable=False, unique=True)
     role = Column(Enum(Role), nullable=False)  # type: ignore
 
+    @classmethod
+    def init_admin(cls):
+        if cls.query.filter_by(role=Role.Admin).first() is None:
+            try:
+                user = cls(uuid=generate_uuid4(), role=Role.Admin)
+                db.session.add(user)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                raise e
+
 
 @event.listens_for(Respondent, "after_insert")
 @event.listens_for(Enumerator, "after_insert")
