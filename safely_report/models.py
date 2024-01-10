@@ -146,9 +146,6 @@ class SurveyResponse(db.Model):  # type: ignore
         self.response = response
         self.respondent_uuid = respondent_uuid
 
-    def __repr__(self):
-        return f"<SurveyResponse ID: {self.id}>"
-
 
 class GarblingBlock(db.Model):  # type: ignore
     __tablename__ = "garbling_blocks"
@@ -161,9 +158,6 @@ class GarblingBlock(db.Model):  # type: ignore
     def __init__(self, name, shocks):
         self.name = name
         self.shocks = shocks
-
-    def __repr__(self):
-        return f"<GarblingBlock Name: {self.name}>"
 
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
