@@ -51,7 +51,7 @@ def login_enumerator():
         user = User.query.filter_by(uuid=uuid).first()
         if user is not None and user.role == Role.Enumerator:
             login_user(user)
-            return redirect(url_for("enum.index"))
+            return redirect(url_for("enumerator.index"))
         return "Enumerator not found"  # TODO: Flash message and redirect
 
     return render_template(

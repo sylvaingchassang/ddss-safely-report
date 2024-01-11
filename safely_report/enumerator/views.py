@@ -3,10 +3,10 @@ from flask_login import current_user
 
 from safely_report.models import Respondent
 
-enum_blueprint = Blueprint("enum", __name__)
+enumerator_blueprint = Blueprint("enumerator", __name__)
 
 
-@enum_blueprint.route("/")
+@enumerator_blueprint.route("/")
 def index():
     # List respondent attributes to display
     attributes = Respondent.__table__.columns.keys()
