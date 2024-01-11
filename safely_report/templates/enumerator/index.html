@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+  <h1 class="text-center mb-4">Assigned Respondents</h1>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        {% for attr in attributes %}
+            <th>{{ attr|replace("_", " ")|title }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for resp in respondents %}
+        <tr>
+          {% for attr in attributes %}
+            <td>{{ resp[attr] }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
