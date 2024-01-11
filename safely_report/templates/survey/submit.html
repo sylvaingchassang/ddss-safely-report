@@ -2,6 +2,12 @@
 
 {% block content %}
 
+{% if curr_testing_mode %}
+  <div class="alert alert-info text-center" role="alert">
+    TESTING MODE: Response will not be stored
+  </div>
+{% endif %}
+
 <div class="form-container">
   <div class="bg-light p-4 rounded">
     <h2 class="mb-4">Congratulations!</h2>

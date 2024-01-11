@@ -7,6 +7,7 @@ load_dotenv()
 
 # Configure security
 SECRET_KEY = get_env_var("SECRET_KEY")
+ADMIN_PASSWORD = get_env_var("ADMIN_PASSWORD")
 
 # Configure server-side session
 SESSION_TYPE = "filesystem"

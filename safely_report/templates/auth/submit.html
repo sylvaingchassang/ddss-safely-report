@@ -3,7 +3,7 @@
 {% block content %}
 
   <div class="form-container">
-    <form method="post" action="{{ url_for('auth.login_respondent') }}">
+    <form method="post" action="{{ url_for(endpoint) }}">
       {{ form.csrf_token }}
       <div class="mb-3">
         {{ form.field.label(class="form-label") }}

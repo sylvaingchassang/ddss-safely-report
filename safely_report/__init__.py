@@ -1,10 +1,16 @@
 from flask import Flask
+from flask_admin import Admin
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_session import Session
 
+from safely_report.admin.views import (
+    EnumeratorModelView,
+    RespondentModelView,
+    SurveyAdminIndexView,
+)
 from safely_report.auth.views import auth_blueprint
-from safely_report.models import User, db
+from safely_report.models import Enumerator, Respondent, User, db
 from safely_report.survey.views import survey_blueprint
 
 
@@ -25,8 +31,13 @@ def create_app() -> Flask:
     login_manager.login_view = "auth.index"
 
     @login_manager.user_loader
-    def load_user(user_uuid):
-        return User.query.filter_by(uuid=user_uuid).first()
+    def load_user(user_id):
+        return User.query.filter_by(id=user_id).first()
+
+    # Set up admin interface
+    admin = Admin(app, name="Safely Report", index_view=SurveyAdminIndexView())
+    admin.add_view(RespondentModelView(Respondent, db.session))
+    admin.add_view(EnumeratorModelView(Enumerator, db.session))
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")

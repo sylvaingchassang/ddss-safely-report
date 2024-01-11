@@ -1,6 +1,6 @@
 import enum
 from csv import DictReader
-from typing import Callable, Type, Union
+from typing import Callable, Optional, Type, Union
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -15,7 +15,7 @@ from sqlalchemy import (
     insert,
 )
 from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Mapper
+from sqlalchemy.orm import Mapper, relationship
 
 from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
@@ -70,14 +70,40 @@ class DynamicTable(db.Model):  # type: ignore
 class Respondent(DynamicTable):
     __tablename__ = "respondents"
 
-    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(
+        String(36),
+        nullable=False,
+        unique=True,
+        default=generate_uuid4,
+    )
+
+    # Respondent may complete the survey with an enumerator
+    enumerator_uuid = Column(String(36), ForeignKey("enumerators.uuid"))
+    enumerator = relationship("Enumerator")
+
+    @classmethod
+    def pre_populate(cls):
+        if cls.query.first() is None:
+            cls.add_data_from_csv(RESPONDENT_ROSTER_PATH)
 
 
 @DynamicTable.add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
 class Enumerator(DynamicTable):
     __tablename__ = "enumerators"
 
-    uuid = Column(String(36), primary_key=True, default=generate_uuid4)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(
+        String(36),
+        nullable=False,
+        unique=True,
+        default=generate_uuid4,
+    )
+
+    @classmethod
+    def pre_populate(cls):
+        if cls.query.first() is None:
+            cls.add_data_from_csv(ENUMERATOR_ROSTER_PATH)
 
 
 class Role(enum.Enum):
@@ -89,11 +115,37 @@ class Role(enum.Enum):
 class User(db.Model, UserMixin):  # type: ignore
     __tablename__ = "users"
 
-    uuid = Column(String(36), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36), nullable=False, unique=True)
     role = Column(Enum(Role), nullable=False)  # type: ignore
 
-    def get_id(self):
-        return str(self.uuid)
+    @classmethod
+    def init_admin(cls):
+        if cls._get_admin() is None:
+            cls._init_admin()
+
+    @classmethod
+    def get_admin(cls) -> "User":
+        user = cls._get_admin()
+        if user is None:
+            cls._init_admin()
+            user = cls._get_admin()
+        assert isinstance(user, User)  # For type check to work
+        return user
+
+    @classmethod
+    def _init_admin(cls):
+        try:
+            user = cls(uuid=generate_uuid4(), role=Role.Admin)
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @classmethod
+    def _get_admin(cls) -> Optional["User"]:
+        return cls.query.filter_by(role=Role.Admin).first()
 
 
 @event.listens_for(Respondent, "after_insert")
@@ -142,9 +194,6 @@ class SurveyResponse(db.Model):  # type: ignore
         self.response = response
         self.respondent_uuid = respondent_uuid
 
-    def __repr__(self):
-        return f"<SurveyResponse ID: {self.id}>"
-
 
 class GarblingBlock(db.Model):  # type: ignore
     __tablename__ = "garbling_blocks"
@@ -157,9 +206,6 @@ class GarblingBlock(db.Model):  # type: ignore
     def __init__(self, name, shocks):
         self.name = name
         self.shocks = shocks
-
-    def __repr__(self):
-        return f"<GarblingBlock Name: {self.name}>"
 
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
