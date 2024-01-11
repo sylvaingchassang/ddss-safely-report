@@ -42,6 +42,25 @@ def login_respondent():
     )
 
 
+@auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
+def login_enumerator():
+    form = make_auth_form("Please enter your UUID:")
+
+    if form.validate_on_submit():
+        uuid = form.field.data
+        user = User.query.filter_by(uuid=uuid).first()
+        if user is not None and user.role == Role.Enumerator:
+            login_user(user)
+            return redirect(url_for("enum.index"))
+        return "Enumerator not found"  # TODO: Flash message and redirect
+
+    return render_template(
+        "auth/submit.html",
+        form=form,
+        endpoint="auth.login_enumerator",
+    )
+
+
 @auth_blueprint.route("/login/admin", methods=["GET", "POST"])
 def login_admin():
     form = make_auth_form("Please enter admin password:")

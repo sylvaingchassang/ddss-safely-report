@@ -10,6 +10,7 @@ from safely_report.admin.views import (
     SurveyAdminIndexView,
 )
 from safely_report.auth.views import auth_blueprint
+from safely_report.enumerator.views import enum_blueprint
 from safely_report.models import Enumerator, Respondent, User, db
 from safely_report.survey.views import survey_blueprint
 
@@ -41,6 +42,7 @@ def create_app() -> Flask:
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    app.register_blueprint(enum_blueprint, url_prefix="/enum")
     app.register_blueprint(survey_blueprint, url_prefix="/survey")
 
     return app
