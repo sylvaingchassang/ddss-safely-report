@@ -1,9 +1,16 @@
 from flask import Blueprint, render_template
-from flask_login import current_user
+from flask_login import current_user, login_required
 
-from safely_report.models import Respondent
+from safely_report.models import Respondent, Role
 
 enumerator_blueprint = Blueprint("enumerator", __name__)
+
+
+@enumerator_blueprint.before_request
+@login_required
+def require_enumerator():
+    if current_user.role != Role.Enumerator:
+        return "Unauthorized"  # TODO: Flash message and redirect
 
 
 @enumerator_blueprint.route("/")
