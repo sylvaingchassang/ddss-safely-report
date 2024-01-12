@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_admin import AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -15,7 +16,7 @@ class SurveyAdminIndexView(AdminIndexView):
         return getattr(current_user, "role", None) == Role.Admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return "Unauthorized"  # TODO: Flash message and redirect
+        return current_app.login_manager.unauthorized()
 
 
 class SurveyModelView(ModelView):
@@ -26,7 +27,7 @@ class SurveyModelView(ModelView):
         return getattr(current_user, "role", None) == Role.Admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return "Unauthorized"  # TODO: Flash message and redirect
+        return current_app.login_manager.unauthorized()
 
 
 class RespondentModelView(SurveyModelView):
