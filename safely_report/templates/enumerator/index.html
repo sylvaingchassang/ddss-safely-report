@@ -9,8 +9,9 @@
     <thead>
       <tr>
         {% for attr in attributes %}
-            <th>{{ attr|replace("_", " ")|title }}</th>
+          <th>{{ attr|replace("_", " ")|title }}</th>
         {% endfor %}
+        <th>Survey</th>
       </tr>
     </thead>
     <tbody>
@@ -19,6 +20,11 @@
           {% for attr in attributes %}
             <td>{{ resp[attr] }}</td>
           {% endfor %}
+          <td>
+            <a href="{{ url_for('survey.on_behalf_of', respondent_uuid=resp.uuid) }}">
+              Run
+            </a>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

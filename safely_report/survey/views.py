@@ -1,6 +1,7 @@
 from flask import Blueprint, redirect, render_template, session, url_for
 from flask_login import current_user, login_required
 
+from safely_report.auth.utils import role_required
 from safely_report.models import Role, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
@@ -21,13 +22,15 @@ survey_blueprint = Blueprint("survey", __name__)
 def curr_testing_mode() -> bool:
     if current_user.role == Role.Respondent:
         return False
+    if current_user.role == Role.Enumerator and survey_session.respondent_uuid:
+        return False
     return True
 
 
 @survey_blueprint.before_request
 @login_required
-def require_login():
-    pass  # Actual implementation handled by @login_required decorator
+def require_auth():
+    pass  # Actual implementation handled by decorator
 
 
 @survey_blueprint.route("/", methods=["GET", "POST"])
@@ -55,6 +58,19 @@ def index():
     )
 
 
+@role_required(Role.Enumerator)
+@survey_blueprint.route("/on-behalf-of/<respondent_uuid>")
+def on_behalf_of(respondent_uuid: str):
+    """
+    Cache respondent UUID if enumerator conducts survey on their behalf.
+    """
+    if survey_session.respondent_uuid:
+        # TODO: Flash message ("Survey in progress for another respondent")
+        return
+    survey_session.set_respondent_uuid(respondent_uuid)
+    return redirect(url_for("survey.index"))
+
+
 @survey_blueprint.route("/back")
 def back():
     # Ensure full "refresh" by moving back twice and forward once
@@ -77,6 +93,8 @@ def submit():
     # Identify current respondent
     if current_user.role == Role.Respondent:
         respondent_uuid = current_user.uuid
+    elif current_user.role == Role.Enumerator:
+        respondent_uuid = survey_session.respondent_uuid
     else:
         # TODO: Flash message and redirect
         return f"Unknown role: {current_user.role}"
