@@ -64,11 +64,14 @@ def on_behalf_of(respondent_uuid: str):
     """
     Cache respondent UUID if enumerator conducts survey on their behalf.
     """
-    if survey_session.respondent_uuid:
+    if survey_session.respondent_uuid is None:
+        survey_session.set_respondent_uuid(respondent_uuid)
+        return redirect(url_for("survey.index"))
+    elif survey_session.respondent_uuid == respondent_uuid:
+        return redirect(url_for("survey.index"))
+    else:
         # TODO: Flash message ("Survey in progress for another respondent")
-        return
-    survey_session.set_respondent_uuid(respondent_uuid)
-    return redirect(url_for("survey.index"))
+        return redirect(url_for("enumerator.index"))
 
 
 @survey_blueprint.route("/back")
