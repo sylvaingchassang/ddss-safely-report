@@ -4,7 +4,7 @@
 
   <div class="form-container">
     <form method="post" action="{{ url_for(endpoint) }}">
-      {{ form.csrf_token }}
+      {{ form.hidden_tag() }}
       <div class="mb-3">
         {{ form.field.label(class="form-label") }}
         {{ form.field(class="form-control") }}
