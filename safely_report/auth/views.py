@@ -1,21 +1,11 @@
 from flask import Blueprint, redirect, render_template, url_for
 from flask_login import login_required, login_user, logout_user
-from flask_wtf import FlaskForm
-from wtforms import PasswordField, SubmitField
-from wtforms.validators import DataRequired
 
+from safely_report.auth.utils import make_auth_form
 from safely_report.models import Role, User
 from safely_report.settings import ADMIN_PASSWORD
 
 auth_blueprint = Blueprint("auth", __name__)
-
-
-def make_auth_form(label: str) -> FlaskForm:
-    class AuthForm(FlaskForm):
-        field = PasswordField(label, validators=[DataRequired()])
-        submit = SubmitField("Submit")
-
-    return AuthForm()
 
 
 @auth_blueprint.route("/")

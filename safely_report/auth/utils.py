@@ -2,8 +2,19 @@ from functools import wraps
 
 from flask import current_app
 from flask_login import current_user
+from flask_wtf import FlaskForm
+from wtforms import PasswordField, SubmitField
+from wtforms.validators import DataRequired
 
 from safely_report.models import Role
+
+
+def make_auth_form(label: str) -> FlaskForm:
+    class AuthForm(FlaskForm):
+        field = PasswordField(label, validators=[DataRequired()])
+        submit = SubmitField("Submit")
+
+    return AuthForm()
 
 
 def role_required(role: Role):
