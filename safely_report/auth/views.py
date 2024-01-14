@@ -35,11 +35,7 @@ def login_respondent():
             return redirect(url_for("survey.index"))
         return "Respondent not found"  # TODO: Flash message and redirect
 
-    return render_template(
-        "auth/submit.html",
-        form=form,
-        endpoint="auth.login_respondent",
-    )
+    return render_template("auth/submit.html", form=form)
 
 
 @auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
@@ -54,11 +50,7 @@ def login_enumerator():
             return redirect(url_for("enumerator.index"))
         return "Enumerator not found"  # TODO: Flash message and redirect
 
-    return render_template(
-        "auth/submit.html",
-        form=form,
-        endpoint="auth.login_enumerator",
-    )
+    return render_template("auth/submit.html", form=form)
 
 
 @auth_blueprint.route("/login/admin", methods=["GET", "POST"])
@@ -73,11 +65,7 @@ def login_admin():
             return redirect(url_for("admin.index"))
         return "Invalid password"  # TODO: Flash message and redirect
 
-    return render_template(
-        "auth/submit.html",
-        form=form,
-        endpoint="auth.login_admin",
-    )
+    return render_template("auth/submit.html", form=form)
 
 
 @auth_blueprint.route("/logout")
