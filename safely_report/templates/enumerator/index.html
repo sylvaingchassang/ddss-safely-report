@@ -23,7 +23,6 @@
           <td>
             {% set message = "Sure to start survey for the selected respondent?" %}
             <form method="post" onsubmit="return confirm('{{ message }}')">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <input type="hidden" name="respondent_uuid" value="{{ resp.uuid }}">
               <button type="submit" class="btn btn-outline-primary">Start</button>
             </form>
