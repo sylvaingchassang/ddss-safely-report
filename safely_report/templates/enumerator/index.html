@@ -21,12 +21,11 @@
             <td>{{ resp[attr] }}</td>
           {% endfor %}
           <td>
-            <a
-              href="{{ url_for('survey.on_behalf_of', respondent_uuid=resp.uuid) }}"
-              class="btn btn-outline-primary"
-            >
-              Run
-            </a>
+            {% set message = "Sure to start survey for the selected respondent?" %}
+            <form method="post" onsubmit="return confirm('{{ message }}')">
+              <input type="hidden" name="respondent_uuid" value="{{ resp.uuid }}">
+              <button type="submit" class="btn btn-outline-primary">Start</button>
+            </form>
           </td>
         </tr>
       {% endfor %}
