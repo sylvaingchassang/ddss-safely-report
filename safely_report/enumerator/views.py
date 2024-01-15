@@ -9,7 +9,7 @@ from flask import (
 from flask_login import current_user, login_required, login_user
 
 from safely_report.auth.utils import role_required
-from safely_report.models import Respondent, Role, User
+from safely_report.models import Respondent, Role, SurveyStatus, User
 
 enumerator_blueprint = Blueprint("enumerator", __name__)
 
@@ -38,14 +38,19 @@ def index():
 
     # List respondent attributes to display
     attributes = Respondent.__table__.columns.keys()
-    attributes_to_hide = ["uuid", "enumerator_uuid", "id"]
+    attributes_to_hide = ["uuid", "enumerator_uuid", "id", "survey_status"]
     attributes_to_show = [a for a in attributes if a not in attributes_to_hide]
 
     # Retrieve assigned respondent records
-    respondents = Respondent.query.filter_by(enumerator=current_user).all()
+    respondents = (
+        Respondent.query.filter_by(enumerator=current_user)
+        .order_by(Respondent.survey_status.desc())  # Incomplete first
+        .all()
+    )
 
     return render_template(
         "enumerator/index.html",
         attributes=attributes_to_show,
         respondents=respondents,
+        incomplete_status=SurveyStatus.Incomplete,
     )
