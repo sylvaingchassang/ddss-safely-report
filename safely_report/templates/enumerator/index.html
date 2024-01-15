@@ -3,6 +3,12 @@
 {% block content %}
 
 <div class="container mt-5">
+  <div class="text-center mb-4">
+    <a href="{{ url_for('survey.index') }}" class="btn btn-lg btn-outline-primary">
+      Test the survey
+    </a>
+  </div>
+
   <h1 class="text-center mb-4">Assigned Respondents</h1>
 
   <table class="table table-bordered table-hover">
@@ -25,7 +31,7 @@
               {% set message = "Sure to start survey for the selected respondent?" %}
               <form method="post" onsubmit="return confirm('{{ message }}')">
                 <input type="hidden" name="respondent_uuid" value="{{ resp.uuid }}">
-                <button type="submit" class="btn btn-outline-primary">Start</button>
+                <button type="submit" class="btn btn-sm btn-outline-success">Start</button>
               </form>
             {% else %}
               Done
