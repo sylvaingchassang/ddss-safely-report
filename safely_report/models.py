@@ -13,6 +13,7 @@ from sqlalchemy import (
     delete,
     event,
     insert,
+    update,
 )
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Mapper, relationship
@@ -66,6 +67,11 @@ class DynamicTable(db.Model):  # type: ignore
             raise e
 
 
+class SurveyStatus(enum.Enum):
+    Complete = "Complete"
+    Incomplete = "Incomplete"
+
+
 @DynamicTable.add_columns_from_csv(RESPONDENT_ROSTER_PATH)
 class Respondent(DynamicTable):
     __tablename__ = "respondents"
@@ -76,6 +82,11 @@ class Respondent(DynamicTable):
         nullable=False,
         unique=True,
         default=generate_uuid4,
+    )
+    survey_status = Column(
+        Enum(SurveyStatus),  # type: ignore
+        nullable=False,
+        default=SurveyStatus.Incomplete,
     )
 
     # Respondent may complete the survey with an enumerator
@@ -200,6 +211,22 @@ class SurveyResponse(db.Model):  # type: ignore
         self.response = response
         self.respondent_uuid = respondent_uuid
         self.enumerator_uuid = enumerator_uuid
+
+
+@event.listens_for(SurveyResponse, "after_insert")
+def update_respondent_status(
+    mapper: Mapper,
+    connection: Connection,
+    target: SurveyResponse,
+):
+    """
+    Mark respondent status as complete when their response is submitted.
+    """
+    connection.execute(
+        update(Respondent)
+        .where(Respondent.uuid == target.respondent_uuid)
+        .values(survey_status=SurveyStatus.Complete)
+    )
 
 
 class GarblingBlock(db.Model):  # type: ignore
