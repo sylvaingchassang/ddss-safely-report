@@ -99,7 +99,10 @@ class Garbler:
         return MappingProxyType(self._params)
 
     def garble_and_store(
-        self, survey_response: dict[str, Any], respondent_uuid: str
+        self,
+        survey_response: dict[str, Any],
+        respondent_uuid: str,
+        enumerator_uuid: Optional[str] = None,
     ):
         """
         Garble and store survey response gathered by survey processor.
@@ -116,6 +119,8 @@ class Garbler:
             corresponding response value
         respondent_uuid: str
             UUID of the current survey respondent
+        enumerator_uuid: str, optional
+            UUID of the current survey enumerator if applicable
         """
         respondent = Respondent.query.filter_by(uuid=respondent_uuid).first()
         if respondent is None:
@@ -160,6 +165,7 @@ class Garbler:
             response_record = SurveyResponse(
                 response=response_serialized,
                 respondent_uuid=respondent_uuid,
+                enumerator_uuid=enumerator_uuid,
             )
             self._db.session.add(response_record)
             self._db.session.commit()

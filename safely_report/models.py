@@ -189,10 +189,17 @@ class SurveyResponse(db.Model):  # type: ignore
         nullable=False,
         unique=True,  # Restrict respondents to a single response
     )
+    enumerator_uuid = Column(
+        String(36),
+        ForeignKey("enumerators.uuid"),
+        nullable=True,
+        unique=False,  # Same enumerator can help multiple respondents
+    )
 
-    def __init__(self, response, respondent_uuid):
+    def __init__(self, response, respondent_uuid, enumerator_uuid=None):
         self.response = response
         self.respondent_uuid = respondent_uuid
+        self.enumerator_uuid = enumerator_uuid
 
 
 class GarblingBlock(db.Model):  # type: ignore
