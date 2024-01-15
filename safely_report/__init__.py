@@ -3,6 +3,7 @@ from flask_admin import Admin
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_session import Session
+from flask_wtf.csrf import CSRFProtect
 
 from safely_report.admin.views import (
     EnumeratorModelView,
@@ -26,6 +27,9 @@ def create_app() -> Flask:
     # Set up database
     db.init_app(app)
     Migrate(app, db)
+
+    # Enable CSRF protection globally
+    CSRFProtect(app)
 
     # Set up authentication
     login_manager = LoginManager(app)
