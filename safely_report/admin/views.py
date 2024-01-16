@@ -34,14 +34,16 @@ class RespondentModelView(SurveyModelView):
     column_display_all_relations = True
     column_editable_list = ["enumerator"]
     column_labels = {"uuid": "UUID", "enumerator": "Assigned Enumerator"}
-    form_widget_args = {"uuid": {"readonly": True}}
+    form_excluded_columns = ["uuid", "survey_status"]
 
     # Show UUID and assigned enumerator in the final columns
     def scaffold_list_columns(self):
         columns = super().scaffold_list_columns()
         columns.remove("uuid")
+        columns.remove("survey_status")
         columns.append("uuid")
         columns.append("enumerator")
+        columns.append("survey_status")
         return columns
 
     # Disable sorting for UUID; enable sorting for assigned enumerator
@@ -55,7 +57,7 @@ class RespondentModelView(SurveyModelView):
 
 class EnumeratorModelView(SurveyModelView):
     column_labels = {"uuid": "UUID"}
-    form_widget_args = {"uuid": {"readonly": True}}
+    form_excluded_columns = ["uuid"]
 
     # Show UUID in the final column
     def scaffold_list_columns(self):
