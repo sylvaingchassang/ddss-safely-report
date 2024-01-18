@@ -21,50 +21,23 @@ class SurveyAdminIndexView(AdminIndexView):
 
 
 class SurveyModelView(ModelView):
+    list_template = "admin/model/custom_list.html"
     form_base_class = SecureForm
     column_display_pk = True
 
-    def is_accessible(self):
-        return getattr(current_user, "role", None) == Role.Admin
-
-    def inaccessible_callback(self, name, **kwargs):
-        return current_app.login_manager.unauthorized()
-
-
-class RespondentModelView(SurveyModelView):
-    column_display_all_relations = True
-    column_editable_list = ["enumerator"]
-    column_labels = {"uuid": "UUID", "enumerator": "Assigned Enumerator"}
-    form_excluded_columns = ["uuid", "survey_status"]
-    list_template = "admin/model/custom_list.html"
+    form_excluded_columns = ["uuid"]
+    column_labels = {"id": "ID", "uuid": "UUID"}
     column_formatters = {
         "uuid": lambda v, c, m, p: Markup(
             f'<button class="click-to-copy" title="Copy">{m.uuid}</button>'
         )
     }
 
-    # Show UUID and assigned enumerator in the final columns
-    def scaffold_list_columns(self):
-        columns = super().scaffold_list_columns()
-        columns.remove("uuid")
-        columns.remove("survey_status")
-        columns.append("uuid")
-        columns.append("enumerator")
-        columns.append("survey_status")
-        return columns
+    def is_accessible(self):
+        return getattr(current_user, "role", None) == Role.Admin
 
-    # Disable sorting for UUID; enable sorting for assigned enumerator
-    def get_sortable_columns(self):
-        columns = super().scaffold_list_columns()
-        columns.remove("uuid")
-        columns.append(("enumerator", "enumerator.id"))
-        self.column_sortable_list = columns
-        return super().get_sortable_columns()
-
-
-class EnumeratorModelView(SurveyModelView):
-    column_labels = {"uuid": "UUID"}
-    form_excluded_columns = ["uuid"]
+    def inaccessible_callback(self, name, **kwargs):
+        return current_app.login_manager.unauthorized()
 
     # Show UUID in the final column
     def scaffold_list_columns(self):
@@ -74,8 +47,39 @@ class EnumeratorModelView(SurveyModelView):
         return columns
 
     # Disable sorting for UUID
-    def get_sortable_columns(self):
+    def scaffold_sortable_columns(self):
+        columns = super().scaffold_sortable_columns()
+        columns.pop("uuid")
+        return columns
+
+
+class RespondentModelView(SurveyModelView):
+    form_excluded_columns = [
+        *SurveyModelView.form_excluded_columns,
+        *["survey_status"],
+    ]
+    column_display_all_relations = True
+    column_editable_list = ["enumerator"]
+    column_labels = {
+        **SurveyModelView.column_labels,
+        **{"enumerator": "Assigned Enumerator"},
+    }
+
+    # Show assigned enumerator and survey status in the final columns
+    def scaffold_list_columns(self):
         columns = super().scaffold_list_columns()
-        columns.remove("uuid")
+        columns.remove("survey_status")
+        columns.append("enumerator")
+        columns.append("survey_status")
+        return columns
+
+    # Enable sorting for assigned enumerator
+    def get_sortable_columns(self):
+        columns = list(super().scaffold_sortable_columns().keys())
+        columns.append(("enumerator", "enumerator.id"))
         self.column_sortable_list = columns
         return super().get_sortable_columns()
+
+
+class EnumeratorModelView(SurveyModelView):
+    pass
