@@ -39,12 +39,7 @@ class RespondentModelView(SurveyModelView):
     list_template = "admin/model/custom_list.html"
     column_formatters = {
         "uuid": lambda v, c, m, p: Markup(
-            f"""
-            <div class="click-to-copy">
-                <span>{m.uuid}</span>
-                <button title="Copy"><i class="icon-share"></i></button>
-            </div>
-            """
+            f'<button class="click-to-copy" title="Copy">{m.uuid}</button>'
         )
     }
 
