@@ -3,6 +3,7 @@ from flask_admin import AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_login import current_user
+from markupsafe import Markup
 
 from safely_report.models import Role
 
@@ -35,6 +36,17 @@ class RespondentModelView(SurveyModelView):
     column_editable_list = ["enumerator"]
     column_labels = {"uuid": "UUID", "enumerator": "Assigned Enumerator"}
     form_excluded_columns = ["uuid", "survey_status"]
+    list_template = "admin/model/custom_list.html"
+    column_formatters = {
+        "uuid": lambda v, c, m, p: Markup(
+            f"""
+            <div class="click-to-copy">
+                <span>{m.uuid}</span>
+                <button title="Copy"><i class="icon-share"></i></button>
+            </div>
+            """
+        )
+    }
 
     # Show UUID and assigned enumerator in the final columns
     def scaffold_list_columns(self):

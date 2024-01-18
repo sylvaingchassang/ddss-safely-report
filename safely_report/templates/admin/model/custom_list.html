@@ -1,0 +1,14 @@
+{% extends 'admin/model/list.html' %}
+
+{% block body %}
+  {{ super() }}
+  <script>
+    document.querySelectorAll(".click-to-copy").forEach(item => {
+      const span = item.querySelector("span")
+      const icon = item.querySelector("i")
+      icon.addEventListener("click", () => {
+        navigator.clipboard.writeText(span.textContent)
+      });
+    });
+  </script>
+{% endblock %}
