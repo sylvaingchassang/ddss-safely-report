@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_admin import AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -15,7 +16,7 @@ class SurveyAdminIndexView(AdminIndexView):
         return getattr(current_user, "role", None) == Role.Admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return "Unauthorized"  # TODO: Flash message and redirect
+        return current_app.login_manager.unauthorized()
 
 
 class SurveyModelView(ModelView):
@@ -26,21 +27,23 @@ class SurveyModelView(ModelView):
         return getattr(current_user, "role", None) == Role.Admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return "Unauthorized"  # TODO: Flash message and redirect
+        return current_app.login_manager.unauthorized()
 
 
 class RespondentModelView(SurveyModelView):
     column_display_all_relations = True
     column_editable_list = ["enumerator"]
     column_labels = {"uuid": "UUID", "enumerator": "Assigned Enumerator"}
-    form_widget_args = {"uuid": {"readonly": True}}
+    form_excluded_columns = ["uuid", "survey_status"]
 
     # Show UUID and assigned enumerator in the final columns
     def scaffold_list_columns(self):
         columns = super().scaffold_list_columns()
         columns.remove("uuid")
+        columns.remove("survey_status")
         columns.append("uuid")
         columns.append("enumerator")
+        columns.append("survey_status")
         return columns
 
     # Disable sorting for UUID; enable sorting for assigned enumerator
@@ -54,7 +57,7 @@ class RespondentModelView(SurveyModelView):
 
 class EnumeratorModelView(SurveyModelView):
     column_labels = {"uuid": "UUID"}
-    form_widget_args = {"uuid": {"readonly": True}}
+    form_excluded_columns = ["uuid"]
 
     # Show UUID in the final column
     def scaffold_list_columns(self):

@@ -21,7 +21,9 @@ def index():
     if current_user.is_authenticated:
         if current_user.role == Role.Respondent:
             return redirect(url_for("survey.index"))
-        if current_user.role == Role.Admin:
+        elif current_user.role == Role.Enumerator:
+            return redirect(url_for("enumerator.index"))
+        elif current_user.role == Role.Admin:
             return redirect(url_for("admin.index"))
 
     return redirect(url_for("auth.index"))

@@ -21,12 +21,17 @@ class SurveySession:
     """
 
     # Define field names for storing user state info
+    RESPONDENT_UUID = "respondent_uuid"
     LANGUAGE = "survey_language"
     ELEMENT_VISITS = "survey_elements_visited"
     ELEMENT_VALUES = "survey_response_values"
 
     def __init__(self, session: SessionMixin):
         self._session = session
+
+    @property
+    def respondent_uuid(self) -> Optional[str]:
+        return self._session.get(SurveySession.RESPONDENT_UUID)
 
     @property
     def language(self) -> str:
@@ -40,6 +45,9 @@ class SurveySession:
         if len(self._visit_history) > 0:
             return self._visit_history[-1]
         return None
+
+    def set_respondent_uuid(self, respondent_uuid: str):
+        self._session[SurveySession.RESPONDENT_UUID] = respondent_uuid
 
     def set_language(self, language_name: str):
         self._session[SurveySession.LANGUAGE] = language_name
