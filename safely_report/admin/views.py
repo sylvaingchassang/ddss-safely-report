@@ -27,6 +27,10 @@ class SurveyAdminIndexView(AdminIndexView):
 
 
 class SurveyModelView(ModelView):
+    """
+    Define common setup for respondent and enumerator views.
+    """
+
     # Use custom list view template to enable UUID click-to-copy
     list_template = "admin/model/custom_list.html"
 
@@ -78,6 +82,10 @@ class SurveyModelView(ModelView):
 
 
 class EnumeratorAssignmentForm(FlaskForm):
+    """
+    Form to be used for bulk-assigning respondents to an enumerator.
+    """
+
     field = SelectField("Select enumerator:", coerce=int)
     submit = SubmitField("Assign")
 
