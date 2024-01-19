@@ -1,11 +1,14 @@
-from flask import current_app
+from flask import current_app, flash, redirect, session, url_for
 from flask_admin import AdminIndexView, expose
+from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_login import current_user
+from flask_wtf import FlaskForm
 from markupsafe import Markup
+from wtforms import SelectField, SubmitField
 
-from safely_report.models import Role
+from safely_report.models import Enumerator, Respondent, Role
 
 
 class SurveyAdminIndexView(AdminIndexView):
@@ -68,6 +71,11 @@ class SurveyModelView(ModelView):
         return columns
 
 
+class EnumeratorAssignmentForm(FlaskForm):
+    field = SelectField("Select enumerator:", coerce=int)
+    submit = SubmitField("Assign")
+
+
 class RespondentModelView(SurveyModelView):
     # Exclude survey status from create/edit view at all
     form_excluded_columns = [
@@ -98,6 +106,53 @@ class RespondentModelView(SurveyModelView):
         columns.append(("enumerator", "enumerator.id"))
         self.column_sortable_list = columns
         return super().get_sortable_columns()
+
+    @action("assign_enumerator", "Assign Enumerator")
+    def action_assign_enumerator(self, ids):
+        """
+        Custom action to enable bulk-assigning respondents to an enumerator.
+
+        Functioning more as an entry point, it delegates actual logic to
+        a route for proper form handling.
+        """
+        session["respondent_ids_selected"] = ids
+        return redirect(url_for("respondents.assign_enumerator"))
+
+    @expose("/assign-enumerator", methods=["GET", "POST"])
+    def assign_enumerator(self):
+        """
+        Route implementing logic to bulk-assign respondents to an enumerator.
+        """
+        # Construct form and choices for enumerator assignment
+        form = EnumeratorAssignmentForm()
+        form.field.choices = [(-99999, "")] + [
+            (enumerator.id, str(enumerator))
+            for enumerator in Enumerator.query.all()
+        ]
+
+        if form.validate_on_submit():
+            # Identify the submitted enumerator
+            enumerator_id = form.field.data
+            enumerator = Enumerator.query.filter_by(id=enumerator_id).first()
+
+            # Assign the enumerator to the selected respondents
+            ids = session.get("respondent_ids_selected", [])
+            respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
+            for respondent in respondents:
+                respondent.enumerator = enumerator
+
+            # Commit changes to database
+            try:
+                self.session.commit()
+                flash("Enumerator assigned successfully.", "success")
+            except Exception as e:
+                self.session.rollback()
+                flash(f"Failed to assign enumerator. {str(e)}", "error")
+            finally:
+                session["respondent_ids_selected"] = None
+                return redirect(url_for("respondents.index_view"))
+
+        return self.render("admin/respondents/assign.html", form=form)
 
 
 class EnumeratorModelView(SurveyModelView):
