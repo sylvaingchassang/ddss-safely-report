@@ -70,6 +70,12 @@ class SurveyModelView(ModelView):
         columns.pop("uuid")
         return columns
 
+    # Enable column filters
+    def get_filters(self):
+        columns = super().scaffold_list_columns()
+        self.column_filters = columns
+        return super().get_filters()
+
 
 class EnumeratorAssignmentForm(FlaskForm):
     field = SelectField("Select enumerator:", coerce=int)
