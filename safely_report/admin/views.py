@@ -91,6 +91,9 @@ class EnumeratorAssignmentForm(FlaskForm):
 
 
 class RespondentModelView(SurveyModelView):
+    # Define a constant for internal use
+    _RESPONDENT_IDS_SELECTED = "_respondent_ids_selected"
+
     # Exclude survey status from create/edit view at all
     form_excluded_columns = [
         *SurveyModelView.form_excluded_columns,
@@ -143,7 +146,7 @@ class RespondentModelView(SurveyModelView):
         Functioning more as an entry point, it delegates actual logic to
         a route for proper form handling.
         """
-        session["respondent_ids_selected"] = ids
+        session[self._RESPONDENT_IDS_SELECTED] = ids
         return redirect(url_for("respondents.assign_enumerator"))
 
     @expose("/assign-enumerator", methods=["GET", "POST"])
@@ -164,7 +167,7 @@ class RespondentModelView(SurveyModelView):
             enumerator = Enumerator.query.filter_by(id=enumerator_id).first()
 
             # Assign the enumerator to the selected respondents
-            ids = session.get("respondent_ids_selected", [])
+            ids = session.pop(self._RESPONDENT_IDS_SELECTED, [])
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
             count = 0
             for respondent in respondents:
@@ -182,7 +185,6 @@ class RespondentModelView(SurveyModelView):
                 self.session.rollback()
                 flash(f"Failed to update records. {str(e)}", "error")
             finally:
-                session["respondent_ids_selected"] = None
                 return redirect(url_for("respondents.index_view"))
 
         return self.render("admin/respondents/assign.html", form=form)
