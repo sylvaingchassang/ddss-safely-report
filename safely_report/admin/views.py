@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import SelectField, SubmitField
 
-from safely_report.models import Enumerator, Respondent, Role
+from safely_report.models import Enumerator, Respondent, Role, SurveyStatus
 
 
 class SurveyAdminIndexView(AdminIndexView):
@@ -113,6 +113,20 @@ class RespondentModelView(SurveyModelView):
         self.column_sortable_list = columns
         return super().get_sortable_columns()
 
+    # Prevent changes to respondent info once their response is submitted
+    def update_model(self, form, model):
+        if model.survey_status == SurveyStatus.Complete:
+            flash("Completed respondent cannot be edited.", "error")
+            return False
+        return super().update_model(form, model)
+
+    # Prevent removal of respondent info once their response is submitted
+    def delete_model(self, model):
+        if model.survey_status == SurveyStatus.Complete:
+            flash("Completed respondent cannot be deleted.", "error")
+            return False
+        return super().delete_model(model)
+
     @action("assign_enumerator", "Assign Enumerator")
     def action_assign_enumerator(self, ids):
         """
@@ -144,16 +158,21 @@ class RespondentModelView(SurveyModelView):
             # Assign the enumerator to the selected respondents
             ids = session.get("respondent_ids_selected", [])
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
+            count = 0
             for respondent in respondents:
+                if respondent.survey_status == SurveyStatus.Complete:
+                    flash("Completed respondent cannot be edited.", "error")
+                    continue
                 respondent.enumerator = enumerator
+                count += 1
 
             # Commit changes to database
             try:
                 self.session.commit()
-                flash("Enumerator assigned successfully.", "success")
+                flash(f"{count} records were successfully updated.", "success")
             except Exception as e:
                 self.session.rollback()
-                flash(f"Failed to assign enumerator. {str(e)}", "error")
+                flash(f"Failed to update records. {str(e)}", "error")
             finally:
                 session["respondent_ids_selected"] = None
                 return redirect(url_for("respondents.index_view"))
