@@ -3,13 +3,25 @@
 {% block body %}
   {{ super() }}
   <script>
+    /**
+     * Make select elements clickable to copy text to clipboard.
+     */
     document.querySelectorAll(".click-to-copy").forEach(button => {
       button.addEventListener("click", () => {
+        const COPY_STATE_ON = "COPY_STATE_ON";
+
+        // Do nothing if the copy state is active
+        if (button.classList.contains(COPY_STATE_ON)) return;
+
+        // Show message and revert to the original text after 2 seconds
         const originalText = button.textContent;
         navigator.clipboard.writeText(originalText).then(() => {
-          // Show message and revert to the original text after 2 seconds
+          button.classList.add(COPY_STATE_ON);
           button.textContent = "Copied!";
-          setTimeout(() => button.textContent = originalText, 2000);
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove(COPY_STATE_ON);
+          }, 2000);
         });
       });
     });
