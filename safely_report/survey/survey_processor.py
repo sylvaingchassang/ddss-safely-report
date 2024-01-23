@@ -296,7 +296,7 @@ class SurveyProcessor(SurveyProcessorBase):
 
         return survey_response
 
-    def clear_session(self):
+    def clear_data(self):
         """
         Clear all data in the current survey session.
         """

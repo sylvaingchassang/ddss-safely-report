@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, logout_user
 
 from safely_report.models import Role, db
 from safely_report.settings import XLSFORM_PATH
@@ -60,6 +60,17 @@ def back():
     survey_processor.next()
 
     return redirect(url_for("survey.index"))
+
+
+@survey_blueprint.route("/exit")
+def exit():
+    survey_processor.clear_data()
+
+    # If real survey session, log out too
+    if current_user.role == Role.Respondent:
+        logout_user()
+
+    return redirect(url_for("index"))
 
 
 @survey_blueprint.route("/submit")
