@@ -13,6 +13,14 @@ from safely_report.models import Enumerator, Respondent, Role, SurveyStatus
 
 
 class SurveyAdminIndexView(AdminIndexView):
+    # Restrict access to admin only
+    def is_accessible(self):
+        return getattr(current_user, "role", None) == Role.Admin
+
+    # Handle unauthorized access
+    def inaccessible_callback(self, name, **kwargs):
+        return current_app.login_manager.unauthorized()
+
     # Use custom template
     @expose("/")
     def index(self):
@@ -33,14 +41,6 @@ class SurveyAdminIndexView(AdminIndexView):
         )
 
         return response
-
-    # Restrict access to admin only
-    def is_accessible(self):
-        return getattr(current_user, "role", None) == Role.Admin
-
-    # Handle unauthorized access
-    def inaccessible_callback(self, name, **kwargs):
-        return current_app.login_manager.unauthorized()
 
 
 class SurveyModelView(ModelView):
