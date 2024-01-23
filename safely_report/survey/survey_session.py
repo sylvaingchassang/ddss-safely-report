@@ -82,7 +82,14 @@ class SurveySession:
         return deepcopy(self._response_values)
 
     def clear(self):
-        self._session.clear()
+        """
+        Remove all session data managed by the current interface.
+        """
+        for attr in dir(SurveySession):
+            if not attr.startswith("__"):
+                val = getattr(SurveySession, attr)
+                if isinstance(val, str):
+                    self._session.pop(val, None)
 
     @property
     def _visit_history(self) -> list[str]:
