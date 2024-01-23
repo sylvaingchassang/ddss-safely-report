@@ -79,6 +79,7 @@ def submit():
         return redirect(url_for("survey.index"))
 
     if current_user.role != Role.Respondent:
+        survey_processor.clear_data()
         return redirect(url_for("index"))  # TODO: Flash message
 
     # Garble survey response and store it into database
