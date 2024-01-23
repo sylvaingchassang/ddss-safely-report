@@ -18,6 +18,17 @@
   </div>
 {% endif %}
 
+<div class="d-flex justify-content-center">
+  {% set message = "Sure to exit? Progress will not be saved." %}
+  <a
+    href="{{ url_for('survey.exit') }}"
+    class="btn btn-link btn-sm"
+    onclick="return confirm('{{ message }}')"
+  >
+    Exit
+  </a>
+</div>
+
 <div class="form-container">
   <form method="POST" class="bg-light p-4 rounded">
     {{ form.hidden_tag() }}
