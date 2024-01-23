@@ -1,4 +1,4 @@
-from flask import current_app, flash, redirect, session, url_for
+from flask import current_app, flash, make_response, redirect, session, url_for
 from flask_admin import AdminIndexView, expose
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import SelectField, SubmitField
 
+from safely_report.admin.utils import gather_all_responses_to_csv
 from safely_report.models import Enumerator, Respondent, Role, SurveyStatus
 
 
@@ -16,6 +17,22 @@ class SurveyAdminIndexView(AdminIndexView):
     @expose("/")
     def index(self):
         return self.render("admin/index.html")
+
+    # Route for exporting the (garbled) survey responses
+    @expose("/export-responses")
+    def export_responses(self):
+        csv_string = gather_all_responses_to_csv()
+        if csv_string == "":
+            flash("No response exists yet", "error")
+            return redirect(url_for("admin.index"))
+
+        response = make_response(csv_string)
+        response.headers["Content-Type"] = "text/csv"
+        response.headers["Content-Disposition"] = (
+            "attachment; " "filename=responses.csv"
+        )
+
+        return response
 
     # Restrict access to admin only
     def is_accessible(self):
