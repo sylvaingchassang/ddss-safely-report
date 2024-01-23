@@ -81,7 +81,7 @@ class SurveySession:
     def retrieve_all_responses(self) -> dict[str, Any]:
         return deepcopy(self._response_values)
 
-    def clear(self):
+    def clear_data(self):
         """
         Remove all session data managed by the current interface.
         """
