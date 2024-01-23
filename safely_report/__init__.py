@@ -40,7 +40,12 @@ def create_app() -> Flask:
         return User.query.filter_by(id=user_id).first()
 
     # Set up admin interface
-    admin = Admin(app, name="Safely Report", index_view=SurveyAdminIndexView())
+    admin = Admin(
+        app,
+        name="Safely Report",
+        index_view=SurveyAdminIndexView(),
+        base_template="admin/custom_base.html",
+    )
     admin.add_view(
         RespondentModelView(
             Respondent, db.session, name="Respondents", endpoint="respondents"
