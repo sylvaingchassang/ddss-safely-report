@@ -5,7 +5,13 @@
 <div class="container mt-5">
   <div class="d-flex justify-content-between mb-4">
     <a href="{{ url_for('survey.index') }}" class="btn btn-outline-primary">Test the survey</a>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-link">Logout</a>
+    <a
+      href="{{ url_for('auth.logout') }}"
+      class="btn btn-link"
+      onclick="return confirm('Sure to log out?')"
+    >
+      Logout
+    </a>
   </div>
 
   <h1 class="text-center mb-4">Assigned Respondents</h1>
