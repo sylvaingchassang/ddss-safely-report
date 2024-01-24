@@ -1,32 +1,27 @@
-from time import time
-
 from flask import redirect, url_for
 from flask_login import current_user
 
 from safely_report import create_app
 from safely_report.models import Enumerator, Respondent, Role, User
+from safely_report.scheduler import scheduler
 
 app = create_app()
 
 
 @app.before_request
 def pre_populate_database():
-    if not app.config.get("PREPOPULATED"):
+    if not app.config.get("DATABASE_PREPOPULATED"):
         User.init_admin()
         Respondent.pre_populate()
         Enumerator.pre_populate()
-        app.config["PREPOPULATED"] = True
+        app.config["DATABASE_PREPOPULATED"] = True
 
 
 @app.before_request
-def clear_expired_sessions():
-    INTERVAL = app.config["PERMANENT_SESSION_LIFETIME"] // 3
-    prev_time = app.config.get("LAST_CLEARED_AT", 0)
-    curr_time = time()
-    elapsed = curr_time - prev_time
-    if elapsed > INTERVAL:
-        app.session_interface.cache._remove_expired(curr_time)
-        app.config["LAST_CLEARED_AT"] = curr_time
+def start_scheduler():
+    if not app.config.get("SCHEDULER_STARTED"):
+        scheduler.start()
+        app.config["SCHEDULER_STARTED"] = True
 
 
 @app.route("/")
