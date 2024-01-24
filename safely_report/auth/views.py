@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, redirect, render_template, session, url_for
 from flask_login import login_required, login_user, logout_user
 
 from safely_report.auth.utils import make_auth_form
@@ -62,4 +62,5 @@ def login_admin():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     return redirect(url_for("auth.index"))
