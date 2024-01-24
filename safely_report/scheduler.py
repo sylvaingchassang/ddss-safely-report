@@ -6,6 +6,7 @@ from flask_session import FileSystemSessionInterface
 scheduler = APScheduler()
 
 
+# Add a job to clear any expired sessions every hour
 @scheduler.task(trigger="interval", seconds=3600)
 def clear_expired_sessions():
     with scheduler.app.app_context():
