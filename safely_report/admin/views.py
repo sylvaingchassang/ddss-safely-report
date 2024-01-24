@@ -24,7 +24,7 @@ class SurveyAdminIndexView(AdminIndexView):
     # Use custom template
     @expose("/")
     def index(self):
-        return self.render("admin/index.html")
+        return self.render("admin/custom_index.html")
 
     # Route for exporting the (garbled) survey responses
     @expose("/export-responses")

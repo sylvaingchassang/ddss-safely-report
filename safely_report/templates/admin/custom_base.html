@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+
+{% block access_control %}
+  <div class="pull-right">
+    <a
+      href="{{ url_for('auth.logout') }}"
+      class="btn btn-link"
+      onclick="return confirm('Sure to log out?')"
+    >
+      Logout
+    </a>
+  </div>
+{% endblock %}

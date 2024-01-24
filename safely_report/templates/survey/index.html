@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "survey/layout.html" %}
 
 {% block content %}
 
@@ -12,11 +12,7 @@
   <li>Hint: {{ survey_processor.curr_hint }}</li>
 </ul> #}
 
-{% if curr_testing_mode %}
-  <div class="alert alert-info text-center" role="alert">
-    TESTING MODE: Response will not be stored
-  </div>
-{% endif %}
+{{ super() }}
 
 <div class="form-container">
   <form method="POST" class="bg-light p-4 rounded">

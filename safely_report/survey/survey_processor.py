@@ -296,11 +296,11 @@ class SurveyProcessor(SurveyProcessorBase):
 
         return survey_response
 
-    def clear_session(self):
+    def clear_data(self):
         """
         Clear all data in the current survey session.
         """
-        self._session.clear()
+        self._session.clear_data()
 
     @property
     def _curr_element(self) -> SurveyElement:

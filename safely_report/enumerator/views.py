@@ -6,7 +6,7 @@ from flask import (
     session,
     url_for,
 )
-from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 from safely_report.auth.utils import role_required
 from safely_report.models import Respondent, Role, SurveyStatus, User
@@ -30,6 +30,7 @@ def index():
         # Access the survey on behalf of the respondent
         user = User.query.filter_by(uuid=respondent_uuid).first()
         if user is not None and user.role == Role.Respondent:
+            logout_user()
             session.clear()
             session["enumerator_uuid"] = enumerator_uuid
             login_user(user)

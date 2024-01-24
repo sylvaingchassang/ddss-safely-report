@@ -1,5 +1,5 @@
 from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, logout_user
 
 from safely_report.models import Role, db
 from safely_report.settings import XLSFORM_PATH
@@ -62,12 +62,24 @@ def back():
     return redirect(url_for("survey.index"))
 
 
+@survey_blueprint.route("/exit")
+def exit():
+    survey_processor.clear_data()
+
+    # If real survey session, log out too
+    if current_user.role == Role.Respondent:
+        logout_user()
+
+    return redirect(url_for("index"))
+
+
 @survey_blueprint.route("/submit")
 def submit():
     if not survey_processor.curr_survey_end:
         return redirect(url_for("survey.index"))
 
     if current_user.role != Role.Respondent:
+        survey_processor.clear_data()
         return redirect(url_for("index"))  # TODO: Flash message
 
     # Garble survey response and store it into database
@@ -77,7 +89,8 @@ def submit():
         enumerator_uuid=session.get("enumerator_uuid"),
     )
 
-    # Clear session data if response has been successfully stored in database
+    # Log out and clear all session data
+    logout_user()
     session.clear()
 
     return "Survey response submitted"  # TODO: Flash message and redirect
