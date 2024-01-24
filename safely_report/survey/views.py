@@ -89,7 +89,8 @@ def submit():
         enumerator_uuid=session.get("enumerator_uuid"),
     )
 
-    # Clear session data if response has been successfully stored in database
+    # Log out and clear all session data
+    logout_user()
     session.clear()
 
     return "Survey response submitted"  # TODO: Flash message and redirect
