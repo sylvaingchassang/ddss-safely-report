@@ -13,7 +13,8 @@ ADMIN_PASSWORD = get_env_var("ADMIN_PASSWORD")
 SESSION_TYPE = "filesystem"
 SESSION_FILE_DIR = ".flask_sessions"
 SESSION_USE_SIGNER = True
-SESSION_PERMANENT = False
+SESSION_PERMANENT = True
+PERMANENT_SESSION_LIFETIME = 3 * 60 * 60  # 3 hours in seconds
 
 # Configure database
 SQLALCHEMY_DATABASE_URI = get_env_var("SQLALCHEMY_DATABASE_URI")

@@ -1,3 +1,5 @@
+from time import time
+
 from flask import redirect, url_for
 from flask_login import current_user
 
@@ -14,6 +16,17 @@ def pre_populate_database():
         Respondent.pre_populate()
         Enumerator.pre_populate()
         app.config["PREPOPULATED"] = True
+
+
+@app.before_request
+def clear_expired_sessions():
+    INTERVAL = app.config["PERMANENT_SESSION_LIFETIME"] // 3
+    prev_time = app.config.get("LAST_CLEARED_AT", 0)
+    curr_time = time()
+    elapsed = curr_time - prev_time
+    if elapsed > INTERVAL:
+        app.session_interface.cache._remove_expired(curr_time)
+        app.config["LAST_CLEARED_AT"] = curr_time
 
 
 @app.route("/")
