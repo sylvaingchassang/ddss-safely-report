@@ -35,7 +35,6 @@ Before running the application, define necessary environment variables:
 | `XLSFORM_PATH`             | Path to the XLSForm file specifying the survey                           |
 | `RESPONDENT_ROSTER_PATH`   | Path to the CSV file containing survey respondent roster                 |
 | `ENUMERATOR_ROSTER_PATH`   | Path to the CSV file containing survey enumerator roster                 |
-| `SESSION_LIFETIME`         | Session expiration time in seconds                                       |
 
 Check `.env.test` file for a concrete example.
 
