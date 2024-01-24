@@ -13,7 +13,11 @@ ADMIN_PASSWORD = get_env_var("ADMIN_PASSWORD")
 SESSION_TYPE = "filesystem"
 SESSION_FILE_DIR = ".flask_sessions"
 SESSION_USE_SIGNER = True
-SESSION_PERMANENT = False
+
+# Make each session expire after 12 hours of inactivity
+SESSION_PERMANENT = True
+SESSION_REFRESH_EACH_REQUEST = True
+PERMANENT_SESSION_LIFETIME = 12 * 60 * 60  # In seconds
 
 # Configure database
 SQLALCHEMY_DATABASE_URI = get_env_var("SQLALCHEMY_DATABASE_URI")
