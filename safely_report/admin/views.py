@@ -219,4 +219,15 @@ class RespondentModelView(SurveyModelView):
 
 
 class EnumeratorModelView(SurveyModelView):
-    pass
+    list_template = "admin/enumerators/list.html"
+
+    @expose("/download")
+    def download(self):
+        csv_string = Enumerator.to_csv_string()
+        response = make_response(csv_string)
+        response.headers["Content-Type"] = "text/csv"
+        response.headers["Content-Disposition"] = (
+            "attachment; " "filename=enumerators.csv"
+        )
+
+        return response
