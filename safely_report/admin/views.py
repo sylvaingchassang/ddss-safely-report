@@ -1,4 +1,4 @@
-from flask import current_app, flash, make_response, redirect, request, url_for
+from flask import current_app, flash, redirect, request, url_for
 from flask_admin import AdminIndexView, expose
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
@@ -10,6 +10,7 @@ from wtforms import SelectField, SubmitField
 
 from safely_report.admin.utils import gather_all_responses_to_csv
 from safely_report.models import Enumerator, Respondent, Role, SurveyStatus
+from safely_report.utils import make_download_response
 
 
 class SurveyAdminIndexView(AdminIndexView):
@@ -29,18 +30,11 @@ class SurveyAdminIndexView(AdminIndexView):
     # Route for exporting the (garbled) survey responses
     @expose("/export-responses")
     def export_responses(self):
-        csv_string = gather_all_responses_to_csv()
-        if csv_string == "":
-            flash("No response exists yet", "error")
-            return redirect(url_for("admin.index"))
-
-        response = make_response(csv_string)
-        response.headers["Content-Type"] = "text/csv"
-        response.headers["Content-Disposition"] = (
-            "attachment; " "filename=responses.csv"
+        return make_download_response(
+            content=gather_all_responses_to_csv(),
+            content_type="text/csv",
+            file_name="responses.csv",
         )
-
-        return response
 
 
 class SurveyModelView(ModelView):
@@ -208,14 +202,11 @@ class RespondentModelView(SurveyModelView):
 
     @expose("/download")
     def download(self):
-        csv_string = Respondent.to_csv_string()
-        response = make_response(csv_string)
-        response.headers["Content-Type"] = "text/csv"
-        response.headers["Content-Disposition"] = (
-            "attachment; " "filename=respondents.csv"
+        return make_download_response(
+            content=Respondent.to_csv_string(),
+            content_type="text/csv",
+            file_name="respondents.csv",
         )
-
-        return response
 
 
 class EnumeratorModelView(SurveyModelView):
@@ -223,11 +214,8 @@ class EnumeratorModelView(SurveyModelView):
 
     @expose("/download")
     def download(self):
-        csv_string = Enumerator.to_csv_string()
-        response = make_response(csv_string)
-        response.headers["Content-Type"] = "text/csv"
-        response.headers["Content-Disposition"] = (
-            "attachment; " "filename=enumerators.csv"
+        return make_download_response(
+            content=Enumerator.to_csv_string(),
+            content_type="text/csv",
+            file_name="enumerators.csv",
         )
-
-        return response
