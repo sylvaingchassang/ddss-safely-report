@@ -1,4 +1,4 @@
-from flask import current_app, flash, make_response, redirect, session, url_for
+from flask import current_app, flash, make_response, redirect, request, url_for
 from flask_admin import AdminIndexView, expose
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
@@ -108,9 +108,6 @@ class EnumeratorAssignmentForm(FlaskForm):
 
 
 class RespondentModelView(SurveyModelView):
-    # Define a constant for internal use
-    _RESPONDENT_IDS_SELECTED = "_respondent_ids_selected"
-
     # Exclude survey status from create/edit view at all
     form_excluded_columns = [
         *SurveyModelView.form_excluded_columns,
@@ -163,14 +160,19 @@ class RespondentModelView(SurveyModelView):
         Functioning more as an entry point, it delegates actual logic to
         a route for proper form handling.
         """
-        session[self._RESPONDENT_IDS_SELECTED] = ids
-        return redirect(url_for("respondents.assign_enumerator"))
+        # Pass along selected respondent IDs as a query parameter
+        ids_str = ",".join(map(str, ids))
+        return redirect(url_for("respondents.assign_enumerator", ids=ids_str))
 
     @expose("/assign-enumerator", methods=["GET", "POST"])
     def assign_enumerator(self):
         """
         Route implementing logic to bulk-assign respondents to an enumerator.
         """
+        # Get respondent IDs from the query parameters
+        ids_str = request.args.get("ids", "")
+        ids = [int(id) for id in ids_str.split(",") if id]
+
         # Construct form and choices for enumerator assignment
         form = EnumeratorAssignmentForm()
         form.field.choices = [(-99999, "")] + [
@@ -184,7 +186,6 @@ class RespondentModelView(SurveyModelView):
             enumerator = Enumerator.query.filter_by(id=enumerator_id).first()
 
             # Assign the enumerator to the selected respondents
-            ids = session.pop(self._RESPONDENT_IDS_SELECTED, [])
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
             count = 0
             for respondent in respondents:
