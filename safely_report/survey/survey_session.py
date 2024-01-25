@@ -22,6 +22,7 @@ class SurveySession:
 
     # Define field names for storing user state info
     LANGUAGE = "survey_language"
+    ENUMERATOR_UUID = "enumerator_uuid"
     ELEMENT_VISITS = "survey_elements_visited"
     ELEMENT_VALUES = "survey_response_values"
 
@@ -36,6 +37,10 @@ class SurveySession:
         return lang
 
     @property
+    def enumerator_uuid(self) -> Optional[str]:
+        return self._session.get(SurveySession.ENUMERATOR_UUID)
+
+    @property
     def latest_visit(self) -> Optional[str]:
         if len(self._visit_history) > 0:
             return self._visit_history[-1]
@@ -43,6 +48,9 @@ class SurveySession:
 
     def set_language(self, language_name: str):
         self._session[SurveySession.LANGUAGE] = language_name
+
+    def set_enumerator_uuid(self, enumerator_uuid: str):
+        self._session[SurveySession.ENUMERATOR_UUID] = enumerator_uuid
 
     def add_new_visit(self, survey_element_name: str):
         self._visit_history.append(survey_element_name)

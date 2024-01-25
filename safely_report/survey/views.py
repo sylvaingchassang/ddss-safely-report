@@ -87,7 +87,7 @@ def submit():
     garbler.garble_and_store(
         survey_response=survey_processor.gather_survey_response(),
         respondent_uuid=current_user.uuid,
-        enumerator_uuid=session.get("enumerator_uuid"),
+        enumerator_uuid=survey_processor.enumerator_uuid,
     )
 
     # Log out and clear all session data
@@ -112,8 +112,8 @@ def on_behalf_of(respondent_id: int):
             if user is not None:
                 logout_user()
                 session.clear()
-                session["enumerator_uuid"] = enumerator_uuid
                 login_user(user)
+                survey_processor.set_enumerator_uuid(enumerator_uuid)
                 return redirect(url_for("survey.index"))
 
     return "Respondent not found"  # TODO: Flash message and redirect

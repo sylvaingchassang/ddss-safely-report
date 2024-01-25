@@ -3,7 +3,9 @@ from typing import Any, Optional, Union
 
 from pyxform import Question, Section
 from pyxform.survey_element import SurveyElement
+from sqlalchemy.orm.exc import NoResultFound
 
+from safely_report.models import Enumerator
 from safely_report.survey.read_xlsform import read_xlsform
 from safely_report.survey.survey_processor_base import SurveyProcessorBase
 from safely_report.survey.survey_session import SurveySession
@@ -36,6 +38,13 @@ class SurveyProcessor(SurveyProcessorBase):
         self._elements = {}
         for item in self._survey.iter_descendants():
             self._elements[item.name] = item
+
+    @property
+    def enumerator_uuid(self) -> Optional[str]:
+        """
+        Identity of the enumerator assisting in the current survey session.
+        """
+        return self._session.enumerator_uuid
 
     @property
     def curr_survey_start(self) -> bool:
@@ -189,6 +198,15 @@ class SurveyProcessor(SurveyProcessorBase):
                 ]
 
         return None
+
+    def set_enumerator_uuid(self, enumerator_uuid: str):
+        """
+        Identify the enumerator assisting in the current survey session.
+        """
+        enumerator = Enumerator.query.filter_by(uuid=enumerator_uuid).first()
+        if enumerator is not None:
+            raise NoResultFound("Enumerator not found by the given UUID")
+        self._session.set_enumerator_uuid(enumerator_uuid)
 
     def set_curr_lang(self, lang: str):
         """
