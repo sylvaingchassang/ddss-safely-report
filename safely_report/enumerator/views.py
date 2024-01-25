@@ -1,15 +1,8 @@
-from flask import (
-    Blueprint,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import Blueprint, render_template
+from flask_login import current_user, login_required
 
 from safely_report.auth.utils import role_required
-from safely_report.models import Respondent, Role, SurveyStatus, User
+from safely_report.models import Respondent, Role, SurveyStatus
 
 enumerator_blueprint = Blueprint("enumerator", __name__)
 
@@ -23,20 +16,6 @@ def require_auth():
 
 @enumerator_blueprint.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == "POST":
-        respondent_uuid = request.form.get("respondent_uuid")
-        enumerator_uuid = current_user.uuid
-
-        # Access the survey on behalf of the respondent
-        user = User.query.filter_by(uuid=respondent_uuid).first()
-        if user is not None and user.role == Role.Respondent:
-            logout_user()
-            session.clear()
-            session["enumerator_uuid"] = enumerator_uuid
-            login_user(user)
-            return redirect(url_for("survey.index"))
-        return "Respondent not found"  # TODO: Flash message and redirect
-
     # List respondent attributes to display
     attributes = Respondent.__table__.columns.keys()
     attributes_to_hide = ["uuid", "enumerator_uuid", "id", "survey_status"]

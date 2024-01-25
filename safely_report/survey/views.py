@@ -1,7 +1,8 @@
 from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import current_user, login_required, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 
-from safely_report.models import Role, db
+from safely_report.auth.utils import role_required
+from safely_report.models import Respondent, Role, User, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
@@ -94,3 +95,25 @@ def submit():
     session.clear()
 
     return "Survey response submitted"  # TODO: Flash message and redirect
+
+
+@role_required(Role.Enumerator)
+@survey_blueprint.route("/on-behalf-of/<respondent_id>")
+def on_behalf_of(respondent_id: int):
+    """
+    Let enumerator access survey on behalf of their assigned respondent.
+    """
+    enumerator_uuid = current_user.uuid
+
+    respondent = Respondent.query.filter_by(id=respondent_id).first()
+    if respondent is not None:
+        if respondent.enumerator_uuid == enumerator_uuid:
+            user = User.query.filter_by(uuid=respondent.uuid).first()
+            if user is not None:
+                logout_user()
+                session.clear()
+                session["enumerator_uuid"] = enumerator_uuid
+                login_user(user)
+                return redirect(url_for("survey.index"))
+
+    return "Respondent not found"  # TODO: Flash message and redirect
