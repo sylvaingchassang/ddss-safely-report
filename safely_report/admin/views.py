@@ -38,15 +38,6 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     def index(self):
         return self.render("admin/custom_index.html")
 
-    # Route for exporting the (garbled) survey responses
-    @expose("/export-responses")
-    def export_responses(self):
-        return make_download_response(
-            content=SurveyResponse.to_csv_string(),
-            content_type="text/csv",
-            file_name="responses.csv",
-        )
-
 
 class SurveyModelView(AdminView, ModelView):
     """
@@ -221,4 +212,28 @@ class EnumeratorModelView(SurveyModelView):
             content=Enumerator.to_csv_string(),
             content_type="text/csv",
             file_name="enumerators.csv",
+        )
+
+
+class SubmissionView(AdminView):
+    """
+    A view for downloading submitted survey responses.
+    """
+
+    @expose("/")
+    def index(self):
+        count_total = Respondent.query.count()
+        count_submitted = SurveyResponse.query.count()
+        return self.render(
+            "admin/submissions/index.html",
+            count_total=count_total,
+            count_submitted=count_submitted,
+        )
+
+    @expose("/download")
+    def download(self):
+        return make_download_response(
+            content=SurveyResponse.to_csv_string(),
+            content_type="text/csv",
+            file_name="submissions.csv",
         )
