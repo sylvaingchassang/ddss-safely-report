@@ -4,6 +4,21 @@ import uuid
 from datetime import date
 from typing import Any, Optional, Type
 
+from flask import Response
+
+
+def make_download_response(
+    content: str, content_type: str, file_name: str
+) -> Response:
+    """
+    Make a Flask response for download.
+    """
+    return Response(
+        response=content,
+        content_type=content_type,
+        headers={"Content-Disposition": f"attachment; filename={file_name}"},
+    )
+
 
 def check_dict_required_fields(
     data: dict, required_fields: list[tuple[str, Type]]

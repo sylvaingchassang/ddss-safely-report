@@ -1,0 +1,12 @@
+{% extends 'admin/model/list.html' %}
+
+{% block body %}
+  <a
+    class="pull-right btn btn-primary"
+    href="{{ url_for('respondents.download') }}"
+  >
+    <i class="icon-download-alt icon-white"></i>
+    Download
+  </a>
+  {{ super() }}
+{% endblock %}

@@ -7,6 +7,7 @@ from flask_session import Session
 from safely_report.admin.views import (
     EnumeratorModelView,
     RespondentModelView,
+    SubmissionView,
     SurveyAdminIndexView,
 )
 from safely_report.auth.views import auth_blueprint
@@ -56,6 +57,7 @@ def create_app() -> Flask:
             Enumerator, db.session, name="Enumerators", endpoint="enumerators"
         )
     )
+    admin.add_view(SubmissionView(name="Submissions", endpoint="submissions"))
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")

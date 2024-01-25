@@ -1,10 +1,9 @@
 {% extends "admin/index.html" %}
 
 {% block body %}
-  <div style="margin-bottom: 10px;">
-    <a href="{{ url_for('survey.index') }}" class="btn btn-primary">Test the survey</a>
-  </div>
-  <div style="margin-bottom: 10px;">
-    <a href="{{ url_for('admin.export_responses') }}" class="btn btn-success">Export responses</a>
+  <div class="text-center" style="margin: 50px;">
+    <a href="{{ url_for('survey.index') }}" class="btn btn-large">
+      Test the survey
+    </a>
   </div>
 {% endblock %}

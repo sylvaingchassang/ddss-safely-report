@@ -1,0 +1,27 @@
+{% extends "admin/master.html" %}
+
+{% block body %}
+  <div class="text-center">
+    <div class="progress">
+      {% set percent = (count_submitted / count_total) * 100 %}
+      <div class="bar" style="width: {{ percent }}%;"></div>
+    </div>
+
+    <div style="margin: 100px;">
+      <h1 class="text-success">
+        {{ count_submitted }}
+      </h1>
+      <p class="lead">
+        responses submitted
+      </p>
+    </div>
+
+    <a
+      class="btn btn-primary btn-large"
+      href="{{ url_for('submissions.download') }}"
+    >
+      <i class="icon-download-alt icon-white"></i>
+      Download
+    </a>
+  </div>
+{% endblock %}

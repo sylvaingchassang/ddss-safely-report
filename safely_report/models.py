@@ -22,14 +22,37 @@ from safely_report.settings import (
     ENUMERATOR_ROSTER_PATH,
     RESPONDENT_ROSTER_PATH,
 )
-from safely_report.utils import generate_uuid4
+from safely_report.utils import deserialize, generate_uuid4
 
 db = SQLAlchemy()
 
 
-class DynamicTable(db.Model):  # type: ignore
+class BaseTable(db.Model):  # type: ignore
     """
-    Abstract base class for dynamically defined tables.
+    Abstract base class for all tables.
+    """
+
+    __abstract__ = True
+
+    @classmethod
+    def to_csv_string(cls) -> str:
+        """
+        Arrange all data into a CSV string.
+        """
+        table_records = cls.query.all()
+        column_names = [column.name for column in cls.__table__.columns]
+        csv_string = ",".join(column_names) + "\n"  # Header
+        for record in table_records:
+            row = [getattr(record, name) for name in column_names]
+            row = [str(val) if val else "" for val in row]
+            csv_string += ",".join(row) + "\n"
+
+        return csv_string
+
+
+class DynamicTable(BaseTable):
+    """
+    Abstract class for dynamically defined tables.
     """
 
     __abstract__ = True
@@ -123,7 +146,7 @@ class Role(enum.Enum):
     Admin = "Admin"
 
 
-class User(db.Model, UserMixin):  # type: ignore
+class User(BaseTable, UserMixin):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
@@ -189,7 +212,7 @@ def delete_user(
     connection.execute(delete(User).where(User.uuid == target.uuid))
 
 
-class SurveyResponse(db.Model):  # type: ignore
+class SurveyResponse(BaseTable):
     __tablename__ = "survey_responses"
 
     id = Column(Integer, primary_key=True)
@@ -212,6 +235,46 @@ class SurveyResponse(db.Model):  # type: ignore
         self.respondent_uuid = respondent_uuid
         self.enumerator_uuid = enumerator_uuid
 
+    @classmethod
+    def to_csv_string(cls) -> str:
+        """
+        Arrange all data into a CSV string.
+        """
+        RESPONDENT_UUID = cls.respondent_uuid.name
+        ENUMERATOR_UUID = cls.enumerator_uuid.name
+
+        # Retrieve all submitted survey responses
+        survey_responses = cls.query.all()
+
+        # Extract response data
+        variable_names: set[str] = set()
+        responses: list[dict] = []
+        for surv_resp in survey_responses:
+            assert isinstance(surv_resp, cls)
+            resp = deserialize(str(surv_resp.response))
+
+            assert isinstance(resp, dict)
+            resp[RESPONDENT_UUID] = surv_resp.respondent_uuid
+            resp[ENUMERATOR_UUID] = surv_resp.enumerator_uuid
+
+            responses.append(resp)
+
+            variable_names.update(resp.keys())
+
+        # Sort column names
+        column_names = sorted(variable_names)
+        column_names.remove(RESPONDENT_UUID)
+        column_names.remove(ENUMERATOR_UUID)
+        column_names[:0] = [RESPONDENT_UUID, ENUMERATOR_UUID]  # Prepend
+
+        # Construct a single CSV string
+        csv_string = ",".join(column_names) + "\n"  # Header
+        for resp in responses:
+            row = [str(resp.get(name, "")) for name in column_names]
+            csv_string += ",".join(row) + "\n"
+
+        return csv_string
+
 
 @event.listens_for(SurveyResponse, "after_insert")
 def update_respondent_info(
@@ -232,7 +295,7 @@ def update_respondent_info(
     )
 
 
-class GarblingBlock(db.Model):  # type: ignore
+class GarblingBlock(BaseTable):
     __tablename__ = "garbling_blocks"
 
     id = Column(Integer, primary_key=True)
