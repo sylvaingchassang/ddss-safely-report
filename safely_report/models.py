@@ -214,18 +214,21 @@ class SurveyResponse(db.Model):  # type: ignore
 
 
 @event.listens_for(SurveyResponse, "after_insert")
-def update_respondent_status(
+def update_respondent_info(
     mapper: Mapper,
     connection: Connection,
     target: SurveyResponse,
 ):
     """
-    Mark respondent status as complete when their response is submitted.
+    Update respondent information when their response is submitted.
     """
     connection.execute(
         update(Respondent)
         .where(Respondent.uuid == target.respondent_uuid)
-        .values(survey_status=SurveyStatus.Complete)
+        .values(
+            survey_status=SurveyStatus.Complete,
+            enumerator_uuid=target.enumerator_uuid,
+        )
     )
 
 
