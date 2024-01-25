@@ -48,9 +48,6 @@ class SurveyModelView(ModelView):
     Define common setup for respondent and enumerator views.
     """
 
-    # Use custom list view template to enable UUID click-to-copy
-    list_template = "admin/model/custom_list.html"
-
     # Enable CSRF protection
     form_base_class = SecureForm
 
