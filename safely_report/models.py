@@ -66,6 +66,20 @@ class DynamicTable(db.Model):  # type: ignore
             db.session.rollback()
             raise e
 
+    @classmethod
+    def to_csv_string(cls) -> str:
+        """
+        Arrange all data into a CSV string.
+        """
+        table_records = cls.query.all()
+        column_names = [column.name for column in cls.__table__.columns]
+        csv_string = ",".join(column_names) + "\n"  # Header
+        for record in table_records:
+            row_string = [str(getattr(record, name)) for name in column_names]
+            csv_string += ",".join(row_string) + "\n"
+
+        return csv_string
+
 
 class SurveyStatus(enum.Enum):
     Complete = "Complete"

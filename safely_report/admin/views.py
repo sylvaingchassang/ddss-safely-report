@@ -105,6 +105,8 @@ class EnumeratorAssignmentForm(FlaskForm):
 
 
 class RespondentModelView(SurveyModelView):
+    list_template = "admin/respondents/list.html"
+
     # Exclude survey status from create/edit view at all
     form_excluded_columns = [
         *SurveyModelView.form_excluded_columns,
@@ -203,6 +205,17 @@ class RespondentModelView(SurveyModelView):
                 return redirect(url_for("respondents.index_view"))
 
         return self.render("admin/respondents/assign.html", form=form)
+
+    @expose("/download")
+    def download(self):
+        csv_string = Respondent.to_csv_string()
+        response = make_response(csv_string)
+        response.headers["Content-Type"] = "text/csv"
+        response.headers["Content-Disposition"] = (
+            "attachment; " "filename=respondents.csv"
+        )
+
+        return response
 
 
 class EnumeratorModelView(SurveyModelView):
