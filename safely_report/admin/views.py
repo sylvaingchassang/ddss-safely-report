@@ -1,5 +1,5 @@
 from flask import current_app, flash, redirect, request, url_for
-from flask_admin import AdminIndexView, expose
+from flask_admin import AdminIndexView, BaseView, expose
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -18,7 +18,11 @@ from safely_report.models import (
 from safely_report.utils import make_download_response
 
 
-class SurveyAdminIndexView(AdminIndexView):
+class AdminView(BaseView):
+    """
+    Base class for all admin views.
+    """
+
     # Restrict access to admin only
     def is_accessible(self):
         return getattr(current_user, "role", None) == Role.Admin
@@ -27,6 +31,8 @@ class SurveyAdminIndexView(AdminIndexView):
     def inaccessible_callback(self, name, **kwargs):
         return current_app.login_manager.unauthorized()
 
+
+class SurveyAdminIndexView(AdminView, AdminIndexView):
     # Use custom template
     @expose("/")
     def index(self):
@@ -42,7 +48,7 @@ class SurveyAdminIndexView(AdminIndexView):
         )
 
 
-class SurveyModelView(ModelView):
+class SurveyModelView(AdminView, ModelView):
     """
     Define common setup for respondent and enumerator views.
     """
@@ -65,14 +71,6 @@ class SurveyModelView(ModelView):
             f'<button class="click-to-copy" title="Copy">{m.uuid}</button>'
         )
     }
-
-    # Restrict access to admin only
-    def is_accessible(self):
-        return getattr(current_user, "role", None) == Role.Admin
-
-    # Handle unauthorized access
-    def inaccessible_callback(self, name, **kwargs):
-        return current_app.login_manager.unauthorized()
 
     # Show UUID in the final column
     def scaffold_list_columns(self):
