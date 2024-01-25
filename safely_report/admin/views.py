@@ -8,8 +8,13 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import SelectField, SubmitField
 
-from safely_report.admin.utils import gather_all_responses_to_csv
-from safely_report.models import Enumerator, Respondent, Role, SurveyStatus
+from safely_report.models import (
+    Enumerator,
+    Respondent,
+    Role,
+    SurveyResponse,
+    SurveyStatus,
+)
 from safely_report.utils import make_download_response
 
 
@@ -31,7 +36,7 @@ class SurveyAdminIndexView(AdminIndexView):
     @expose("/export-responses")
     def export_responses(self):
         return make_download_response(
-            content=gather_all_responses_to_csv(),
+            content=SurveyResponse.to_csv_string(),
             content_type="text/csv",
             file_name="responses.csv",
         )
