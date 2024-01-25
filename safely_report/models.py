@@ -44,8 +44,8 @@ class BaseTable(db.Model):  # type: ignore
         csv_string = ",".join(column_names) + "\n"  # Header
         for record in table_records:
             row = [getattr(record, name) for name in column_names]
-            row_string = [str(val) if val else "" for val in row]
-            csv_string += ",".join(row_string) + "\n"
+            row = [str(val) if val else "" for val in row]
+            csv_string += ",".join(row) + "\n"
 
         return csv_string
 
@@ -270,8 +270,8 @@ class SurveyResponse(BaseTable):
         # Construct a single CSV string
         csv_string = ",".join(column_names) + "\n"  # Header
         for resp in responses:
-            row_string = [str(resp.get(name, "")) for name in column_names]
-            csv_string += ",".join(row_string) + "\n"
+            row = [str(resp.get(name, "")) for name in column_names]
+            csv_string += ",".join(row) + "\n"
 
         return csv_string
 
