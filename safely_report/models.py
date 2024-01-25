@@ -43,7 +43,8 @@ class BaseTable(db.Model):  # type: ignore
         column_names = [column.name for column in cls.__table__.columns]
         csv_string = ",".join(column_names) + "\n"  # Header
         for record in table_records:
-            row_string = [str(getattr(record, name)) for name in column_names]
+            row = [getattr(record, name) for name in column_names]
+            row_string = [str(val) if val else "" for val in row]
             csv_string += ",".join(row_string) + "\n"
 
         return csv_string
