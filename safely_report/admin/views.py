@@ -128,14 +128,22 @@ class RespondentModelView(SurveyModelView):
     # Prevent changes to respondent info once their response is submitted
     def update_model(self, form, model):
         if model.survey_status == SurveyStatus.Complete:
-            flash("Completed respondent cannot be edited.", "error")
+            message = (
+                f"{str(model)} cannot be updated because "
+                "they already completed survey."
+            )
+            flash(message, "error")
             return False
         return super().update_model(form, model)
 
-    # Prevent removal of respondent info once their response is submitted
+    # Prevent deletion of respondent record once their response is submitted
     def delete_model(self, model):
         if model.survey_status == SurveyStatus.Complete:
-            flash("Completed respondent cannot be deleted.", "error")
+            message = (
+                f"{str(model)} cannot be deleted because "
+                "they already completed survey."
+            )
+            flash(message, "error")
             return False
         return super().delete_model(model)
 
@@ -177,8 +185,12 @@ class RespondentModelView(SurveyModelView):
             count = 0
             for respondent in respondents:
                 if respondent.survey_status == SurveyStatus.Complete:
-                    flash("Completed respondent cannot be edited.", "error")
-                    continue
+                    message = (
+                        f"{str(respondent)} cannot be updated because "
+                        "they already completed survey."
+                    )
+                    flash(message, "error")
+                    continue  # Skip to next respondent
                 respondent.enumerator = enumerator
                 count += 1
 
@@ -205,6 +217,22 @@ class RespondentModelView(SurveyModelView):
 
 class EnumeratorModelView(SurveyModelView):
     list_template = "admin/enumerators/list.html"
+
+    # Prevent deletion of enumerator record once they submit response
+    # on behalf of their assigned respondent
+    def delete_model(self, model):
+        query = SurveyResponse.query.filter_by(enumerator_uuid=model.uuid)
+        n_assisted = query.count()
+
+        if n_assisted > 0:
+            message = (
+                f"{str(model)} cannot be deleted because "
+                "they already assisted respondents."
+            )
+            flash(message, "error")
+            return False
+
+        return super().delete_model(model)
 
     @expose("/download")
     def download(self):
