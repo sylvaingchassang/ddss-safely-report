@@ -44,11 +44,14 @@ def index():
         survey_processor.next()
         return redirect(url_for("survey.index"))
 
+    garbling_params = garbler.params.get(survey_processor.curr_name)
+
     return render_template(
         "survey/index.html",
         form=form,
         survey_processor=survey_processor,
         curr_testing_mode=curr_testing_mode,
+        garbling_params=garbling_params,
     )
 
 

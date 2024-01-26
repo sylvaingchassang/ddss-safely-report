@@ -15,8 +15,70 @@
 {{ super() }}
 
 <div class="form-container">
+  {# Display garbling info in a collapsible accordion box #}
+  {% if garbling_params %}
+    {# Extract and pre-process garbling parameters #}
+    {% set garbling_answer = garbling_params.answer %}
+    {% set garbling_percent = (garbling_params.rate * 100) | int %}
+    {% set garbling_covariate = garbling_params.covariate %}
+    <div class="alert alert-primary p-0 border-2">
+      <div class="accordion" id="singleAccordion">
+        <div class="accordion-item border-0">
+          <h2 class="accordion-header">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#singleAccordionCollapse"
+            >
+              <i class="bi bi-info-circle" style="font-size: x-large;"></i>
+              <span class="px-4">
+                This question uses "garbling"
+                to keep your response private.
+              </span>
+            </button>
+          </h2>
+          <div
+            id="singleAccordionCollapse"
+            class="accordion-collapse collapse"
+            data-bs-parent="#singleAccordion"
+          >
+            <div class="accordion-body">
+              {% if garbling_covariate %}
+                {# Show message for block garbling #}
+                This survey question is designed to guarantee that
+                at least {{ garbling_percent }}% of recorded responses
+                will be "{{ garbling_answer }}". We do so by having
+                the application automatically switch {{ garbling_percent }}%
+                of responses to "{{ garbling_answer }}".
+                <br>
+                <br>
+                Hence, if we record your response as "{{ garbling_answer }}",
+                no one can really know for sure whether you truly responded
+                "{{ garbling_answer }}" or whether the application switched
+                your response to "{{ garbling_answer }}". This keeps your
+                information very private.
+              {% else %}
+                {# Show message for IID garbling #}
+                This survey question randomly switches your response to
+                "{{ garbling_answer }}" with {{ garbling_percent }}% chance.
+                Hence, if we record your response as "{{ garbling_answer }}",
+                no one can really know for sure whether you truly responded
+                "{{ garbling_answer }}" or whether your response was randomly
+                switched to "{{ garbling_answer }}". This keeps your
+                information very private.
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {# Display form #}
   <form method="POST" class="bg-light p-4 rounded">
     {{ form.hidden_tag() }}
+    {# Display errors if any #}
     {% if form.field.errors %}
       {% for message in form.field.errors %}
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -25,6 +87,7 @@
         </div>
       {% endfor %}
     {% endif %}
+    {# Display form content #}
     <div class="mb-3">
       {{ form.field.label(class="form-label") }}
       {% if form.field.description %}
@@ -34,6 +97,7 @@
         {{ form.field(class="form-control") }}
       {% endif %}
     </div>
+    {# Display buttons #}
     <div class="d-flex justify-content-between">
       <a href="{{ url_for('survey.back') }}" class="btn btn-secondary">Back</a>
       {{ form.submit(class="btn btn-primary") }}
