@@ -206,6 +206,22 @@ class RespondentModelView(SurveyModelView):
 class EnumeratorModelView(SurveyModelView):
     list_template = "admin/enumerators/list.html"
 
+    # Prevent deletion of enumerator record once they submit response
+    # on behalf of their assigned respondent
+    def delete_model(self, model):
+        query = SurveyResponse.query.filter_by(enumerator_uuid=model.uuid)
+        n_assisted = query.count()
+
+        if n_assisted > 0:
+            message = (
+                f"{str(model)} cannot be deleted because "
+                "they already assisted respondents."
+            )
+            flash(message, "error")
+            return False
+
+        return super().delete_model(model)
+
     @expose("/download")
     def download(self):
         return make_download_response(
