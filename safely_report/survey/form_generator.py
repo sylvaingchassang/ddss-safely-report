@@ -123,4 +123,8 @@ class SurveyFormGenerator:
 
     @property
     def _curr_choices(self) -> Optional[list[tuple[str, str]]]:
-        return self._processor.curr_choices
+        curr_choices = self._processor.curr_choices
+        if curr_choices is None:
+            return None
+
+        return list(curr_choices.items())

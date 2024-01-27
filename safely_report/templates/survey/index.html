@@ -17,8 +17,8 @@
 <div class="form-container">
   {# Display garbling info in a collapsible accordion box #}
   {% if garbling_params %}
-    {# Extract and pre-process garbling parameters #}
-    {% set garbling_answer = garbling_params.answer %}
+    {# Extract and format garbling parameters #}
+    {% set garbling_answer = curr_choices[garbling_params.answer] %}
     {% set garbling_percent = (garbling_params.rate * 100) | int %}
     {% set garbling_covariate = garbling_params.covariate %}
     <div class="alert alert-primary p-0 border-2">
