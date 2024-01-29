@@ -44,11 +44,17 @@ def index():
         survey_processor.next()
         return redirect(url_for("survey.index"))
 
+    # Extract data necessary for displaying garbling information
+    garbling_params = garbler.params.get(survey_processor.curr_name)
+    curr_choices = survey_processor.curr_choices  # For garbling answer label
+
     return render_template(
         "survey/index.html",
         form=form,
         survey_processor=survey_processor,
         curr_testing_mode=curr_testing_mode,
+        garbling_params=garbling_params,
+        curr_choices=curr_choices,
     )
 
 
