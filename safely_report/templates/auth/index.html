@@ -2,12 +2,29 @@
 
 {% block content %}
 
+{{ super() }}
+
 <div class="container mt-5">
   <h1 class="text-center">I am ...</h1>
   <div class="d-grid gap-2 col-6 mx-auto mt-4">
-    <a href="{{ url_for('auth.login_respondent') }}" class="btn btn-lg btn-outline-success">Respondent</a>
-    <a href="{{ url_for('auth.login_enumerator') }}" class="btn btn-lg btn-outline-primary">Enumerator</a>
-    <a href="{{ url_for('auth.login_admin') }}" class="btn btn-lg btn-outline-danger">Admin</a>
+    <a
+      href="{{ url_for('auth.login_respondent') }}"
+      class="btn btn-lg btn-outline-success {% if not is_survey_active %}disabled{% endif %}"
+    >
+      Respondent
+    </a>
+    <a
+      href="{{ url_for('auth.login_enumerator') }}"
+      class="btn btn-lg btn-outline-primary"
+    >
+      Enumerator
+    </a>
+    <a
+      href="{{ url_for('auth.login_admin') }}"
+      class="btn btn-lg btn-outline-danger"
+    >
+      Admin
+    </a>
   </div>
 </div>
 

@@ -12,6 +12,14 @@
   </div>
 {% endblock %}
 
+{% block head %}
+  {% if not is_survey_active %}
+    <div class="alert alert-warning text-center" role="alert">
+      Survey is currently inactive
+    </div>
+  {% endif %}
+{% endblock %}
+
 {% block tail %}
   <script>
     /**
