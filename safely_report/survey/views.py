@@ -25,7 +25,7 @@ def handle_deactivation():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
             # TODO: Flash message and redirect
-            return "Survey is currently inactive"
+            return "Survey is currently disabled"
 
 
 @survey_blueprint.route("/", methods=["GET", "POST"])
