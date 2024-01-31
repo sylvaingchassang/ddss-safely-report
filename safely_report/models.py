@@ -334,7 +334,7 @@ class GlobalState(BaseTable):
         NOTE: We use a nested class to avoid confusion with column attributes.
         """
 
-        ACTIVE = "ACTIVE"
+        SURVEY_ACTIVE = "SURVEY_ACTIVE"
         YES = "YES"
         NO = "NO"
 
@@ -343,30 +343,30 @@ class GlobalState(BaseTable):
         """
         Initialize the application's global states.
         """
-        if cls._get_state(cls.Constant.ACTIVE) is None:
-            cls._set_state(cls.Constant.ACTIVE, cls.Constant.YES)
+        if cls._get_state(cls.Constant.SURVEY_ACTIVE) is None:
+            cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
 
     @classmethod
-    def is_active(cls) -> bool:
+    def is_survey_active(cls) -> bool:
         """
-        Determine whether the application is in active state.
+        Determine whether survey is in active state.
         """
-        state = cls._get_state(cls.Constant.ACTIVE)
+        state = cls._get_state(cls.Constant.SURVEY_ACTIVE)
         return False if state is None else str(state.value) == cls.Constant.YES
 
     @classmethod
-    def activate(cls):
+    def activate_survey(cls):
         """
-        Set the application to active state.
+        Set survey to active state.
         """
-        cls._set_state(cls.Constant.ACTIVE, cls.Constant.YES)
+        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
 
     @classmethod
-    def deactivate(cls):
+    def deactivate_survey(cls):
         """
-        Set the application to inactive state.
+        Set survey to inactive state.
         """
-        cls._set_state(cls.Constant.ACTIVE, cls.Constant.NO)
+        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.NO)
 
     @classmethod
     def _set_state(cls, key: str, value: str):
