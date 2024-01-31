@@ -339,28 +339,42 @@ class GlobalState(BaseTable):
         NO = "NO"
 
     @classmethod
-    def is_active(cls) -> bool:
-        state = cls.query.filter_by(key=cls.Constant.ACTIVE).first()
-        if state is None:
-            return False
+    def init(cls):
+        """
+        Initialize the application's global states.
+        """
+        if cls._get_state(cls.Constant.ACTIVE) is None:
+            cls._set_state(cls.Constant.ACTIVE, cls.Constant.YES)
 
-        return state.value == cls.Constant.YES
+    @classmethod
+    def is_active(cls) -> bool:
+        """
+        Determine whether the application is in active state.
+        """
+        state = cls._get_state(cls.Constant.ACTIVE)
+        return False if state is None else str(state.value) == cls.Constant.YES
 
     @classmethod
     def activate(cls):
+        """
+        Set the application to active state.
+        """
         cls._set_state(cls.Constant.ACTIVE, cls.Constant.YES)
 
     @classmethod
     def deactivate(cls):
+        """
+        Set the application to inactive state.
+        """
         cls._set_state(cls.Constant.ACTIVE, cls.Constant.NO)
 
     @classmethod
     def _set_state(cls, key: str, value: str):
-        state = cls.query.filter_by(key=key).first()
+        state = cls._get_state(key)
         if state is None:
             state = cls(key=key, value=value)
         else:
-            state.value = value
+            state.value = value  # type: ignore
 
         try:
             db.session.add(state)
@@ -368,3 +382,7 @@ class GlobalState(BaseTable):
         except Exception as e:
             db.session.rollback()
             raise e
+
+    @classmethod
+    def _get_state(cls, key: str) -> Optional["GlobalState"]:
+        return cls.query.filter_by(key=key).first()
