@@ -313,3 +313,58 @@ class GarblingBlock(BaseTable):
 
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
+
+
+class GlobalState(BaseTable):
+    """
+    A table to store the application's global states across
+    all deployment instances.
+    """
+
+    __tablename__ = "global_states"
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String, nullable=False, unique=True)
+    value = Column(String, nullable=False)
+
+    class Constant:
+        """
+        Define constants to use in class methods.
+
+        NOTE: We use a nested class to avoid confusion with column attributes.
+        """
+
+        ACTIVE = "ACTIVE"
+        YES = "YES"
+        NO = "NO"
+
+    @classmethod
+    def is_active(cls) -> bool:
+        state = cls.query.filter_by(key=cls.Constant.ACTIVE).first()
+        if state is None:
+            return False
+
+        return state.value == cls.Constant.YES
+
+    @classmethod
+    def activate(cls):
+        cls._set_state(cls.Constant.ACTIVE, cls.Constant.YES)
+
+    @classmethod
+    def deactivate(cls):
+        cls._set_state(cls.Constant.ACTIVE, cls.Constant.NO)
+
+    @classmethod
+    def _set_state(cls, key: str, value: str):
+        state = cls.query.filter_by(key=key).first()
+        if state is None:
+            state = cls(key=key, value=value)
+        else:
+            state.value = value
+
+        try:
+            db.session.add(state)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
