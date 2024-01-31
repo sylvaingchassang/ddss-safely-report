@@ -206,7 +206,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Identify the enumerator assisting in the current survey session.
         """
         enumerator = Enumerator.query.filter_by(uuid=enumerator_uuid).first()
-        if enumerator is not None:
+        if enumerator is None:
             raise NoResultFound("Enumerator not found by the given UUID")
         self._session.set_enumerator_uuid(enumerator_uuid)
 
