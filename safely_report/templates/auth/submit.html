@@ -2,6 +2,8 @@
 
 {% block content %}
 
+  {{ super() }}
+
   <div class="form-container">
     <form method="post">
       {{ form.hidden_tag() }}

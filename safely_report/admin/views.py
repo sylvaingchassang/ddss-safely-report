@@ -10,6 +10,7 @@ from wtforms import SelectField, SubmitField
 
 from safely_report.models import (
     Enumerator,
+    GlobalState,
     Respondent,
     Role,
     SurveyResponse,
@@ -37,6 +38,15 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     @expose("/")
     def index(self):
         return self.render("admin/custom_index.html")
+
+    @expose("/switch-survey-activation")
+    def switch_survey_activation(self):
+        if GlobalState.is_survey_active():
+            GlobalState.deactivate_survey()
+        else:
+            GlobalState.activate_survey()
+
+        return redirect(url_for("admin.index"))
 
 
 class SurveyModelView(AdminView, ModelView):

@@ -2,6 +2,8 @@
 
 {% block content %}
 
+{{ super() }}
+
 <div class="container mt-5">
   <div class="d-flex justify-content-between mb-4">
     <a href="{{ url_for('survey.index') }}" class="btn btn-outline-primary">Test the survey</a>
@@ -33,10 +35,11 @@
           {% endfor %}
           <td>
             {% if resp.survey_status == incomplete_status %}
+              {% set disabled = "" if is_survey_active else "disabled"%}
               {% set message = "Sure to start survey for the selected respondent?" %}
               <a
                 href="{{ url_for('survey.on_behalf_of', respondent_id=resp.id) }}"
-                class="btn btn-sm btn-outline-success"
+                class="btn btn-sm btn-outline-success {{ disabled }}"
                 onclick="return confirm('{{ message }}')"
               >
                 Start

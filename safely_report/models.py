@@ -313,3 +313,76 @@ class GarblingBlock(BaseTable):
 
     # For optimistic locking
     __mapper_args__ = {"version_id_col": version}
+
+
+class GlobalState(BaseTable):
+    """
+    A table to store the application's global states across
+    all deployment instances.
+    """
+
+    __tablename__ = "global_states"
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String, nullable=False, unique=True)
+    value = Column(String, nullable=False)
+
+    class Constant:
+        """
+        Define constants to use in class methods.
+
+        NOTE: We use a nested class to avoid confusion with column attributes.
+        """
+
+        SURVEY_ACTIVE = "SURVEY_ACTIVE"
+        YES = "YES"
+        NO = "NO"
+
+    @classmethod
+    def init(cls):
+        """
+        Initialize the application's global states.
+        """
+        if cls._get_state(cls.Constant.SURVEY_ACTIVE) is None:
+            cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
+
+    @classmethod
+    def is_survey_active(cls) -> bool:
+        """
+        Determine whether survey is in active state.
+        """
+        state = cls._get_state(cls.Constant.SURVEY_ACTIVE)
+        return False if state is None else str(state.value) == cls.Constant.YES
+
+    @classmethod
+    def activate_survey(cls):
+        """
+        Set survey to active state.
+        """
+        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
+
+    @classmethod
+    def deactivate_survey(cls):
+        """
+        Set survey to inactive state.
+        """
+        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.NO)
+
+    @classmethod
+    def _set_state(cls, key: str, value: str):
+        state = cls._get_state(key)
+        if state is None:
+            state = cls(key=key, value=value)
+        else:
+            state.value = value  # type: ignore
+
+        try:
+            db.session.add(state)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @classmethod
+    def _get_state(cls, key: str) -> Optional["GlobalState"]:
+        return cls.query.filter_by(key=key).first()

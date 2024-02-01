@@ -2,7 +2,7 @@ from flask import Blueprint, redirect, render_template, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from safely_report.auth.utils import role_required
-from safely_report.models import Respondent, Role, User, db
+from safely_report.models import GlobalState, Respondent, Role, User, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
@@ -21,8 +21,11 @@ survey_blueprint = Blueprint("survey", __name__)
 
 @survey_blueprint.before_request
 @login_required
-def require_auth():
-    pass  # Actual implementation handled by decorator
+def handle_deactivation():
+    if not GlobalState.is_survey_active():
+        if current_user.role == Role.Respondent:
+            # TODO: Flash message and redirect
+            return "Survey is currently disabled"
 
 
 @survey_blueprint.route("/", methods=["GET", "POST"])

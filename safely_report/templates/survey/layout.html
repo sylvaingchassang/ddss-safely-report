@@ -2,6 +2,8 @@
 
 {% block content %}
 
+  {{ super() }}
+
   {% if curr_testing_mode %}
     <div class="alert alert-info text-center" role="alert">
       TESTING MODE: Response will not be stored
