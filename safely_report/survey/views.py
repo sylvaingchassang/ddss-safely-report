@@ -7,11 +7,9 @@ from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
 from safely_report.survey.survey_processor import SurveyProcessor
-from safely_report.survey.survey_session import SurveySession
 
 # Instantiate classes for conducting the survey
-survey_session = SurveySession(session)
-survey_processor = SurveyProcessor(XLSFORM_PATH, survey_session)
+survey_processor = SurveyProcessor(XLSFORM_PATH, session)
 garbler = Garbler(XLSFORM_PATH, db)
 form_generator = SurveyFormGenerator(survey_processor)
 
