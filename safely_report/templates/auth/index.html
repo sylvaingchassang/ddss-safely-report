@@ -7,9 +7,10 @@
 <div class="container mt-5">
   <h1 class="text-center">I am ...</h1>
   <div class="d-grid gap-2 col-6 mx-auto mt-4">
+    {% set disabled = "" if is_survey_active else "disabled"%}
     <a
       href="{{ url_for('auth.login_respondent') }}"
-      class="btn btn-lg btn-outline-success {% if not is_survey_active %}disabled{% endif %}"
+      class="btn btn-lg btn-outline-success {{ disabled }}"
     >
       Respondent
     </a>

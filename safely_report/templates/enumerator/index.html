@@ -35,10 +35,11 @@
           {% endfor %}
           <td>
             {% if resp.survey_status == incomplete_status %}
+              {% set disabled = "" if is_survey_active else "disabled"%}
               {% set message = "Sure to start survey for the selected respondent?" %}
               <a
                 href="{{ url_for('survey.on_behalf_of', respondent_id=resp.id) }}"
-                class="btn btn-sm btn-outline-success {% if not is_survey_active %}disabled{% endif %}"
+                class="btn btn-sm btn-outline-success {{ disabled }}"
                 onclick="return confirm('{{ message }}')"
               >
                 Start
