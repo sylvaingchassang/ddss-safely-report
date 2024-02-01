@@ -26,6 +26,11 @@ def handle_deactivation():
             return "Survey is currently disabled"
 
 
+@survey_blueprint.context_processor
+def inject_template_variables():
+    return {"is_testing_mode": current_user.role != Role.Respondent}
+
+
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
     if survey_processor.curr_survey_end:
