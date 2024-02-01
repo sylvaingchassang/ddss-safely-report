@@ -30,13 +30,8 @@ def handle_deactivation():
 
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
-    curr_testing_mode = current_user.role != Role.Respondent
-
     if survey_processor.curr_survey_end:
-        return render_template(
-            "survey/submit.html",
-            curr_testing_mode=curr_testing_mode,
-        )
+        return render_template("survey/submit.html")
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element
@@ -55,7 +50,6 @@ def index():
         "survey/index.html",
         form=form,
         survey_processor=survey_processor,
-        curr_testing_mode=curr_testing_mode,
         garbling_params=garbling_params,
         curr_choices=curr_choices,
     )

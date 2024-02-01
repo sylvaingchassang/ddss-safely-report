@@ -33,7 +33,10 @@ def start_scheduler():
 
 @app.context_processor
 def inject_template_variables():
-    return dict(is_survey_active=GlobalState.is_survey_active())
+    return {
+        "is_survey_active": GlobalState.is_survey_active(),
+        "is_testing_mode": current_user.role != Role.Respondent,
+    }
 
 
 @app.route("/")
