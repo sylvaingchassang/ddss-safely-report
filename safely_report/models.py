@@ -246,6 +246,10 @@ class SurveyResponse(BaseTable):
         # Retrieve all submitted survey responses
         survey_responses = cls.query.all()
 
+        # Return an empty string if no response is available
+        if len(survey_responses) == 0:
+            return ""
+
         # Extract response data
         variable_names: set[str] = set()
         responses: list[dict] = []
