@@ -1,18 +1,20 @@
-from flask import Flask
-from flask_admin import Admin
-from flask_login import LoginManager
+from flask import Flask, current_app, redirect, url_for
+from flask_login import current_user
 from flask_migrate import Migrate
 from flask_session import Session
 
-from safely_report.admin.views import (
-    EnumeratorModelView,
-    RespondentModelView,
-    SubmissionView,
-    SurveyAdminIndexView,
-)
+from safely_report.admin import admin
+from safely_report.auth import login_manager
 from safely_report.auth.views import auth_blueprint
 from safely_report.enumerator.views import enumerator_blueprint
-from safely_report.models import Enumerator, Respondent, User, db
+from safely_report.models import (
+    Enumerator,
+    GlobalState,
+    Respondent,
+    Role,
+    User,
+    db,
+)
 from safely_report.scheduler import scheduler
 from safely_report.survey.views import survey_blueprint
 
@@ -33,35 +35,53 @@ def create_app() -> Flask:
     scheduler.init_app(app)
 
     # Set up authentication
-    login_manager = LoginManager(app)
-    login_manager.login_view = "auth.index"
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.filter_by(id=user_id).first()
+    login_manager.init_app(app)
 
     # Set up admin interface
-    admin = Admin(
-        app,
-        name="Safely Report",
-        index_view=SurveyAdminIndexView(),
-        base_template="admin/custom_base.html",
-    )
-    admin.add_view(
-        RespondentModelView(
-            Respondent, db.session, name="Respondents", endpoint="respondents"
-        )
-    )
-    admin.add_view(
-        EnumeratorModelView(
-            Enumerator, db.session, name="Enumerators", endpoint="enumerators"
-        )
-    )
-    admin.add_view(SubmissionView(name="Submissions", endpoint="submissions"))
+    admin.init_app(app)
 
-    # Register routes (i.e., "views")
+    # Set up routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
     app.register_blueprint(enumerator_blueprint, url_prefix="/enumerator")
     app.register_blueprint(survey_blueprint, url_prefix="/survey")
 
+    # Set up hooks
+    app.before_request(_pre_populate_database)
+    app.before_request(_start_scheduler)
+    app.context_processor(_inject_template_variables)
+
+    # Set up root index view
+    app.add_url_rule(rule="/", view_func=_index)
+
     return app
+
+
+def _pre_populate_database():
+    if not current_app.config.get("DATABASE_PREPOPULATED"):
+        GlobalState.init()
+        User.init_admin()
+        Respondent.pre_populate()
+        Enumerator.pre_populate()
+        current_app.config["DATABASE_PREPOPULATED"] = True
+
+
+def _start_scheduler():
+    if not current_app.config.get("SCHEDULER_STARTED"):
+        scheduler.start()
+        current_app.config["SCHEDULER_STARTED"] = True
+
+
+def _inject_template_variables():
+    return {"is_survey_active": GlobalState.is_survey_active()}
+
+
+def _index():
+    if current_user.is_authenticated:
+        if current_user.role == Role.Respondent:
+            return redirect(url_for("survey.index"))
+        elif current_user.role == Role.Enumerator:
+            return redirect(url_for("enumerator.index"))
+        elif current_user.role == Role.Admin:
+            return redirect(url_for("admin.index"))
+
+    return redirect(url_for("auth.index"))
