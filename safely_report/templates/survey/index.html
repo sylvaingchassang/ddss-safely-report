@@ -2,23 +2,15 @@
 
 {% block content %}
 
-{# <!-- FOR DEBUGGING -->
-<ul>
-  <li>Element Name: {{ survey_processor.curr_name }}</li>
-  <li>Element Type: {{ survey_processor.curr_type }}</li>
-  <li>Language Selected: {{ survey_processor.curr_lang }}</li>
-  <li>Language Options: {{ survey_processor.curr_lang_options }}</li>
-  <li>Label: {{ survey_processor.curr_label }}</li>
-  <li>Hint: {{ survey_processor.curr_hint }}</li>
-</ul> #}
-
 {{ super() }}
 
 <div class="form-container">
   {# Display garbling info in a collapsible accordion box #}
-  {% if garbling_params %}
+  {% if form.meta.garbling_params %}
     {# Extract and format garbling parameters #}
-    {% set garbling_answer = curr_choices[garbling_params.answer] %}
+    {% set garbling_params = form.meta.garbling_params %}
+    {% set choices = dict(form.field.choices) %}
+    {% set garbling_answer = choices[garbling_params.answer] %}
     {% set garbling_percent = (garbling_params.rate * 100) | int %}
     {% set garbling_covariate = garbling_params.covariate %}
     <div class="alert alert-primary p-0 border-2">

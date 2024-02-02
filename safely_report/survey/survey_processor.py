@@ -1,6 +1,7 @@
 import re
 from typing import Any, Optional, Union
 
+from flask.sessions import SessionMixin
 from pyxform import Question, Section
 from pyxform.survey_element import SurveyElement
 from sqlalchemy.orm.exc import NoResultFound
@@ -24,13 +25,13 @@ class SurveyProcessor(SurveyProcessorBase):
     ----------
     path_to_xlsform: str
         Path to the XLSForm file specifying the survey
-    survey_session: SurveySession
-        Session object for caching data specific to current survey respondent
+    session: SessionMixin
+        Flask session object for caching data
     """
 
-    def __init__(self, path_to_xlsform: str, survey_session: SurveySession):
+    def __init__(self, path_to_xlsform: str, session: SessionMixin):
         self._survey = read_xlsform(path_to_xlsform)
-        self._session = survey_session
+        self._session = SurveySession(session)
 
         # Build a lookup table that maps element name to object
         # NOTE: This will NOT create too much memory overhead as the lookup
@@ -184,20 +185,18 @@ class SurveyProcessor(SurveyProcessorBase):
         return self._extract_text(field_content)
 
     @property
-    def curr_choices(self) -> Optional[dict[str, str]]:
+    def curr_choices(self) -> Optional[list[tuple[str, str]]]:
         """
-        Return the current survey element's choices/options
-        as name-to-label mapping.
-
+        Return the current survey element's choices/options if applicable.
         If none or not applicable, return nothing.
         """
         curr_element = self._curr_element
         if isinstance(curr_element, Question):
             if len(curr_element.children) > 0:
-                return {
-                    c.name: self._extract_text(c.label)
+                return [
+                    (c.name, self._extract_text(c.label))
                     for c in curr_element.children
-                }
+                ]
 
         return None
 

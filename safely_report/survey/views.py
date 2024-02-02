@@ -7,13 +7,11 @@ from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
 from safely_report.survey.garbling import Garbler
 from safely_report.survey.survey_processor import SurveyProcessor
-from safely_report.survey.survey_session import SurveySession
 
 # Instantiate classes for conducting the survey
-survey_session = SurveySession(session)
-survey_processor = SurveyProcessor(XLSFORM_PATH, survey_session)
+survey_processor = SurveyProcessor(XLSFORM_PATH, session)
 garbler = Garbler(XLSFORM_PATH, db)
-form_generator = SurveyFormGenerator(survey_processor)
+form_generator = SurveyFormGenerator(survey_processor, garbler)
 
 
 survey_blueprint = Blueprint("survey", __name__)
@@ -21,6 +19,11 @@ survey_blueprint = Blueprint("survey", __name__)
 
 @survey_blueprint.before_request
 @login_required
+def require_auth():
+    pass  # Actual implementation handled by decorator
+
+
+@survey_blueprint.before_request
 def handle_deactivation():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
@@ -28,15 +31,15 @@ def handle_deactivation():
             return "Survey is currently disabled"
 
 
+@survey_blueprint.context_processor
+def inject_template_variables():
+    return {"is_testing_mode": current_user.role != Role.Respondent}
+
+
 @survey_blueprint.route("/", methods=["GET", "POST"])
 def index():
-    curr_testing_mode = current_user.role != Role.Respondent
-
     if survey_processor.curr_survey_end:
-        return render_template(
-            "survey/submit.html",
-            curr_testing_mode=curr_testing_mode,
-        )
+        return render_template("survey/submit.html")
 
     if survey_processor.curr_survey_start:
         survey_processor.next()  # Roll forward to first displayable element
@@ -47,18 +50,7 @@ def index():
         survey_processor.next()
         return redirect(url_for("survey.index"))
 
-    # Extract data necessary for displaying garbling information
-    garbling_params = garbler.params.get(survey_processor.curr_name)
-    curr_choices = survey_processor.curr_choices  # For garbling answer label
-
-    return render_template(
-        "survey/index.html",
-        form=form,
-        survey_processor=survey_processor,
-        curr_testing_mode=curr_testing_mode,
-        garbling_params=garbling_params,
-        curr_choices=curr_choices,
-    )
+    return render_template("survey/index.html", form=form)
 
 
 @survey_blueprint.route("/back")

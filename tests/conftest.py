@@ -2,7 +2,6 @@ import pytest
 
 from safely_report import create_app
 from safely_report.models import db
-from safely_report.survey.survey_session import SurveySession
 
 
 class MockFlaskSession(dict):
@@ -27,10 +26,8 @@ def test_db():
 
 
 @pytest.fixture
-def test_survey_session():
-    session = MockFlaskSession()
-    survey_session = SurveySession(session)  # type: ignore
-    return survey_session
+def test_session():
+    return MockFlaskSession()
 
 
 @pytest.fixture
