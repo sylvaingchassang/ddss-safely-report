@@ -19,6 +19,11 @@ survey_blueprint = Blueprint("survey", __name__)
 
 @survey_blueprint.before_request
 @login_required
+def require_auth():
+    pass  # Actual implementation handled by decorator
+
+
+@survey_blueprint.before_request
 def handle_deactivation():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
