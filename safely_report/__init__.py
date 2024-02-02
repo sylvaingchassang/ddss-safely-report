@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_admin import Admin
-from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_session import Session
 
@@ -10,9 +9,10 @@ from safely_report.admin.views import (
     SubmissionView,
     SurveyAdminIndexView,
 )
+from safely_report.auth import login_manager
 from safely_report.auth.views import auth_blueprint
 from safely_report.enumerator.views import enumerator_blueprint
-from safely_report.models import Enumerator, Respondent, User, db
+from safely_report.models import Enumerator, Respondent, db
 from safely_report.scheduler import scheduler
 from safely_report.survey.views import survey_blueprint
 
@@ -33,12 +33,7 @@ def create_app() -> Flask:
     scheduler.init_app(app)
 
     # Set up authentication
-    login_manager = LoginManager(app)
-    login_manager.login_view = "auth.index"
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.filter_by(id=user_id).first()
+    login_manager.init_app(app)
 
     # Set up admin interface
     admin = Admin(
