@@ -1,18 +1,12 @@
 from flask import Flask
-from flask_admin import Admin
 from flask_migrate import Migrate
 from flask_session import Session
 
-from safely_report.admin.views import (
-    EnumeratorModelView,
-    RespondentModelView,
-    SubmissionView,
-    SurveyAdminIndexView,
-)
+from safely_report.admin import admin
 from safely_report.auth import login_manager
 from safely_report.auth.views import auth_blueprint
 from safely_report.enumerator.views import enumerator_blueprint
-from safely_report.models import Enumerator, Respondent, db
+from safely_report.models import db
 from safely_report.scheduler import scheduler
 from safely_report.survey.views import survey_blueprint
 
@@ -36,23 +30,7 @@ def create_app() -> Flask:
     login_manager.init_app(app)
 
     # Set up admin interface
-    admin = Admin(
-        app,
-        name="Safely Report",
-        index_view=SurveyAdminIndexView(),
-        base_template="admin/custom_base.html",
-    )
-    admin.add_view(
-        RespondentModelView(
-            Respondent, db.session, name="Respondents", endpoint="respondents"
-        )
-    )
-    admin.add_view(
-        EnumeratorModelView(
-            Enumerator, db.session, name="Enumerators", endpoint="enumerators"
-        )
-    )
-    admin.add_view(SubmissionView(name="Submissions", endpoint="submissions"))
+    admin.init_app(app)
 
     # Register routes (i.e., "views")
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
