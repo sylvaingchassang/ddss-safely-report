@@ -45,15 +45,27 @@ def create_app() -> Flask:
     app.register_blueprint(enumerator_blueprint, url_prefix="/enumerator")
     app.register_blueprint(survey_blueprint, url_prefix="/survey")
 
+    # Set up root index view
+    app.add_url_rule(rule="/", view_func=index)
+
     # Set up hooks
     app.before_request(_pre_populate_database)
     app.before_request(_start_scheduler)
     app.context_processor(_inject_template_variables)
 
-    # Set up root index view
-    app.add_url_rule(rule="/", view_func=_index)
-
     return app
+
+
+def index():
+    if current_user.is_authenticated:
+        if current_user.role == Role.Respondent:
+            return redirect(url_for("survey.index"))
+        elif current_user.role == Role.Enumerator:
+            return redirect(url_for("enumerator.index"))
+        elif current_user.role == Role.Admin:
+            return redirect(url_for("admin.index"))
+
+    return redirect(url_for("auth.index"))
 
 
 def _pre_populate_database():
@@ -73,15 +85,3 @@ def _start_scheduler():
 
 def _inject_template_variables():
     return {"is_survey_active": GlobalState.is_survey_active()}
-
-
-def _index():
-    if current_user.is_authenticated:
-        if current_user.role == Role.Respondent:
-            return redirect(url_for("survey.index"))
-        elif current_user.role == Role.Enumerator:
-            return redirect(url_for("enumerator.index"))
-        elif current_user.role == Role.Admin:
-            return redirect(url_for("admin.index"))
-
-    return redirect(url_for("auth.index"))
