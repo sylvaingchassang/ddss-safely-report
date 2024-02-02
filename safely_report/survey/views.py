@@ -11,7 +11,7 @@ from safely_report.survey.survey_processor import SurveyProcessor
 # Instantiate classes for conducting the survey
 survey_processor = SurveyProcessor(XLSFORM_PATH, session)
 garbler = Garbler(XLSFORM_PATH, db)
-form_generator = SurveyFormGenerator(survey_processor)
+form_generator = SurveyFormGenerator(survey_processor, garbler)
 
 
 survey_blueprint = Blueprint("survey", __name__)
@@ -45,17 +45,7 @@ def index():
         survey_processor.next()
         return redirect(url_for("survey.index"))
 
-    # Extract data necessary for displaying garbling information
-    garbling_params = garbler.params.get(survey_processor.curr_name)
-    curr_choices = survey_processor.curr_choices  # For garbling answer label
-
-    return render_template(
-        "survey/index.html",
-        form=form,
-        survey_processor=survey_processor,
-        garbling_params=garbling_params,
-        curr_choices=curr_choices,
-    )
+    return render_template("survey/index.html", form=form)
 
 
 @survey_blueprint.route("/back")

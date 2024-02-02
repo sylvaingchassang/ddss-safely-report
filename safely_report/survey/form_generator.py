@@ -15,6 +15,7 @@ from wtforms import (
 )
 from wtforms.validators import StopValidation, ValidationError
 
+from safely_report.survey.garbling import Garbler, GarblingParams
 from safely_report.survey.survey_processor import SurveyProcessor
 
 
@@ -27,21 +28,28 @@ class SurveyFormGenerator:
     ----------
     survey_processor: SurveyProcessor
         An instance of the survey processing engine
+    garbler: Garbler
+        An instance of the garbling engine
     """
 
-    def __init__(self, survey_processor: SurveyProcessor):
+    def __init__(self, survey_processor: SurveyProcessor, garbler: Garbler):
         self._processor = survey_processor
+        self._garbler = garbler
 
     def make_curr_form(self) -> FlaskForm:
         class SurveyElementForm(FlaskForm):
             field = self._make_curr_field()
             submit = SubmitField("Next")
 
-        return SurveyElementForm()
+        # Instantiate the form and add metadata
+        form = SurveyElementForm()
+        form.meta.update_values({"garbling_params": self._garbling_params})
+
+        return form
 
     def _make_curr_field(self) -> Field:
         # Identify current survey element type
-        curr_type = self._processor.curr_type
+        curr_type = self._curr_type
 
         # Collect function arguments common to all field types
         common_args = {
@@ -74,6 +82,10 @@ class SurveyFormGenerator:
             )
         else:
             raise Exception(f"Unsupported input type: {curr_type}")
+
+    @property
+    def _curr_type(self) -> str:
+        return self._processor.curr_type
 
     @property
     def _curr_label(self) -> str:
@@ -123,8 +135,8 @@ class SurveyFormGenerator:
 
     @property
     def _curr_choices(self) -> Optional[list[tuple[str, str]]]:
-        curr_choices = self._processor.curr_choices
-        if curr_choices is None:
-            return None
+        return self._processor.curr_choices
 
-        return list(curr_choices.items())
+    @property
+    def _garbling_params(self) -> Optional[GarblingParams]:
+        return self._garbler.params.get(self._processor.curr_name)

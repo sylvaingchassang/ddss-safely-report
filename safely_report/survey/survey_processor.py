@@ -185,20 +185,18 @@ class SurveyProcessor(SurveyProcessorBase):
         return self._extract_text(field_content)
 
     @property
-    def curr_choices(self) -> Optional[dict[str, str]]:
+    def curr_choices(self) -> Optional[list[tuple[str, str]]]:
         """
-        Return the current survey element's choices/options
-        as name-to-label mapping.
-
+        Return the current survey element's choices/options if applicable.
         If none or not applicable, return nothing.
         """
         curr_element = self._curr_element
         if isinstance(curr_element, Question):
             if len(curr_element.children) > 0:
-                return {
-                    c.name: self._extract_text(c.label)
+                return [
+                    (c.name, self._extract_text(c.label))
                     for c in curr_element.children
-                }
+                ]
 
         return None
 
