@@ -1,9 +1,10 @@
 import logging
 
-from flask import Flask, current_app, redirect, url_for
+from flask import Flask, current_app, flash, redirect, request, url_for
 from flask_login import current_user
 from flask_migrate import Migrate
 from flask_session import Session
+from werkzeug.exceptions import HTTPException, InternalServerError
 
 from safely_report.admin import admin
 from safely_report.auth import login_manager
@@ -59,6 +60,9 @@ def create_app() -> Flask:
     app.before_request(_start_scheduler)
     app.context_processor(_inject_template_variables)
 
+    # Set up custom error handling
+    app.register_error_handler(Exception, _handle_exception)
+
     return app
 
 
@@ -94,4 +98,33 @@ def _inject_template_variables():
         "is_survey_active": GlobalState.is_survey_active(),
         "is_survey_paused": GlobalState.is_survey_paused(),
         "is_survey_ended": GlobalState.is_survey_ended(),
+        "alert_type": {
+            # Map each message category to alert type
+            "success": "success",
+            "info": "info",
+            "message": "info",
+            "warning": "warning",
+            "danger": "danger",
+            "error": "danger",
+        },
     }
+
+
+def _handle_exception(e):
+    """
+    If the application is in debug mode, use Flask's default error handler.
+    Otherwise, simply flash error message without crashing the application.
+    """
+    if current_app.debug:
+        return current_app.handle_exception(e)
+
+    if isinstance(e, HTTPException):
+        name = e.name
+        description = e.description
+    else:
+        name = InternalServerError.name
+        description = InternalServerError.description
+
+    flash(f"{name}: {description}", "error")
+
+    return redirect(request.referrer or url_for("index"))
