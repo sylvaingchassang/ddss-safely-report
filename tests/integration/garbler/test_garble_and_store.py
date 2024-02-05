@@ -210,11 +210,11 @@ def test_response_resubmission(garbler: Garbler, test_db: SQLAlchemy):
     respondent_uuid = str(respondent.uuid)
     garbler.garble_and_store(survey_response, respondent_uuid)
 
-    # Confirm the response has been stored
+    # Confirm submitted response has been stored
     assert SurveyResponse.query.count() == 1
     assert SurveyResponse.query.first().respondent_uuid == respondent_uuid
 
-    # Attempt response resubmission, which should fail
+    # Confirm response resubmission fails
     with pytest.raises(IntegrityError):
         new_survey_response = {"color": "red"}
         garbler.garble_and_store(new_survey_response, respondent_uuid)
