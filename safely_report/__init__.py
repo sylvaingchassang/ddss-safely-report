@@ -118,13 +118,9 @@ def _handle_exception(e):
     if current_app.debug:
         return current_app.handle_exception(e)
 
-    if isinstance(e, HTTPException):
-        name = e.name
-        description = e.description
-    else:
-        name = InternalServerError.name
-        description = InternalServerError.description
+    if not isinstance(e, HTTPException):
+        e = InternalServerError()
 
-    flash(f"{name}: {description}", "error")
+    flash(f"{e.name}: {e.description}", "error")
 
     return redirect(request.referrer or url_for("index"))
