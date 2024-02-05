@@ -124,7 +124,7 @@ class Garbler:
         """
         respondent = Respondent.query.filter_by(uuid=respondent_uuid).first()
         if respondent is None:
-            raise NoResultFound()
+            raise NoResultFound("Respondent not found by the given UUID")
 
         for varname, response_value in survey_response.items():
             garbling_params = self._params.get(varname)
