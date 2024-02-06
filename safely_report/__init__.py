@@ -27,7 +27,8 @@ def create_app() -> Flask:
     app.config.from_pyfile("settings.py")
 
     # Configure logging
-    app.logger.setLevel(logging.INFO)
+    if not app.debug:
+        app.logger.setLevel(logging.INFO)
 
     # Set up use of server-side sessions
     Session(app)
