@@ -1,3 +1,5 @@
+import logging
+
 from flask import Flask, current_app, redirect, url_for
 from flask_login import current_user
 from flask_migrate import Migrate
@@ -23,6 +25,9 @@ def create_app() -> Flask:
     # Create and configure app
     app = Flask(__name__)
     app.config.from_pyfile("settings.py")
+
+    # Configure logging
+    app.logger.setLevel(logging.INFO)
 
     # Set up use of server-side sessions
     Session(app)
