@@ -29,6 +29,8 @@ black = "^23.11.0"
 mypy = "^1.7.0"
 pytest-mock = "^3.12.0"
 pytest-dotenv = "^0.5.2"
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.7"
 
 [tool.black]
 line-length = 79
