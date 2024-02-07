@@ -1,7 +1,7 @@
 from functools import wraps
 
-from flask import current_app
-from flask_login import current_user
+from flask import current_app, session
+from flask_login import current_user, logout_user
 from flask_wtf import FlaskForm
 from wtforms import PasswordField, SubmitField
 from wtforms.validators import DataRequired
@@ -15,6 +15,14 @@ def make_auth_form(label: str) -> FlaskForm:
         submit = SubmitField("Submit")
 
     return AuthForm()
+
+
+def logout_and_clear():
+    """
+    Log out and clear all session data.
+    """
+    logout_user()
+    session.clear()
 
 
 def role_required(role: Role):

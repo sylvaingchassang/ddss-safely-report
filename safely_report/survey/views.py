@@ -6,9 +6,9 @@ from flask import (
     session,
     url_for,
 )
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import current_user, login_required, login_user
 
-from safely_report.auth.utils import role_required
+from safely_report.auth.utils import logout_and_clear, role_required
 from safely_report.models import GlobalState, Respondent, Role, User, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
@@ -79,8 +79,7 @@ def back():
 def exit():
     if current_user.role == Role.Respondent:
         id = current_user.id
-        logout_user()
-        session.clear()
+        logout_and_clear()
         current_app.logger.info(f"Survey exit - user {id}")
     else:
         survey_processor.clear_data()
@@ -97,17 +96,15 @@ def submit():
         survey_processor.clear_data()
         return redirect(url_for("index"))  # TODO: Flash message
 
-    # Garble survey response and store it into database
     garbler.garble_and_store(
         survey_response=survey_processor.gather_survey_response(),
         respondent_uuid=current_user.uuid,
         enumerator_uuid=survey_processor.enumerator_uuid,
     )
+
     current_app.logger.info(f"Response submitted - user {current_user.id}")
 
-    # Log out and clear all session data
-    logout_user()
-    session.clear()
+    logout_and_clear()
 
     return "Survey response submitted"  # TODO: Flash message and redirect
 
@@ -125,8 +122,7 @@ def on_behalf_of(respondent_id: int):
         if respondent.enumerator_uuid == enumerator_uuid:
             user = User.query.filter_by(uuid=respondent.uuid).first()
             if user is not None:
-                logout_user()
-                session.clear()
+                logout_and_clear()
                 login_user(user)
                 survey_processor.set_enumerator_uuid(enumerator_uuid)
                 current_app.logger.info(f"Delegated login for user {user.id}")
