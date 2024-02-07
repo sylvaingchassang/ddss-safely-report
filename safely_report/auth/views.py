@@ -1,7 +1,7 @@
-from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import login_required, login_user, logout_user
+from flask import Blueprint, current_app, redirect, render_template, url_for
+from flask_login import current_user, login_required, login_user
 
-from safely_report.auth.utils import make_auth_form
+from safely_report.auth.utils import logout_and_clear, make_auth_form
 from safely_report.models import Role, User
 from safely_report.settings import ADMIN_PASSWORD
 
@@ -22,7 +22,9 @@ def login_respondent():
         user = User.query.filter_by(uuid=uuid).first()
         if user is not None and user.role == Role.Respondent:
             login_user(user)
+            current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("survey.index"))
+        current_app.logger.warning(f"Failed login - user {user.id}")
         return "Respondent not found"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
@@ -37,7 +39,9 @@ def login_enumerator():
         user = User.query.filter_by(uuid=uuid).first()
         if user is not None and user.role == Role.Enumerator:
             login_user(user)
+            current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("enumerator.index"))
+        current_app.logger.warning(f"Failed login - user {user.id}")
         return "Enumerator not found"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
@@ -52,7 +56,9 @@ def login_admin():
         if password == ADMIN_PASSWORD:
             user = User.get_admin()
             login_user(user)
+            current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("admin.index"))
+        current_app.logger.warning(f"Failed login - user {user.id}")
         return "Invalid password"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
@@ -61,6 +67,7 @@ def login_admin():
 @auth_blueprint.route("/logout")
 @login_required
 def logout():
-    logout_user()
-    session.clear()
+    id = current_user.id
+    logout_and_clear()
+    current_app.logger.info(f"Logout - user {id}")
     return redirect(url_for("auth.index"))

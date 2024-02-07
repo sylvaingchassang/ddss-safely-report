@@ -1,7 +1,14 @@
-from flask import Blueprint, redirect, render_template, session, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import (
+    Blueprint,
+    current_app,
+    redirect,
+    render_template,
+    session,
+    url_for,
+)
+from flask_login import current_user, login_required, login_user
 
-from safely_report.auth.utils import role_required
+from safely_report.auth.utils import logout_and_clear, role_required
 from safely_report.models import GlobalState, Respondent, Role, User, db
 from safely_report.settings import XLSFORM_PATH
 from safely_report.survey.form_generator import SurveyFormGenerator
@@ -27,6 +34,10 @@ def require_auth():
 def handle_deactivation():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
+            current_app.logger.warning(
+                "Survey access attempted during deactivation "
+                f"- user {current_user.id}"
+            )
             # TODO: Flash message and redirect
             return "Survey is currently disabled"
 
@@ -66,11 +77,12 @@ def back():
 
 @survey_blueprint.route("/exit")
 def exit():
-    survey_processor.clear_data()
-
-    # If real survey session, log out too
     if current_user.role == Role.Respondent:
-        logout_user()
+        id = current_user.id
+        logout_and_clear()
+        current_app.logger.info(f"Survey exit - user {id}")
+    else:
+        survey_processor.clear_data()
 
     return redirect(url_for("index"))
 
@@ -84,16 +96,15 @@ def submit():
         survey_processor.clear_data()
         return redirect(url_for("index"))  # TODO: Flash message
 
-    # Garble survey response and store it into database
     garbler.garble_and_store(
         survey_response=survey_processor.gather_survey_response(),
         respondent_uuid=current_user.uuid,
         enumerator_uuid=survey_processor.enumerator_uuid,
     )
 
-    # Log out and clear all session data
-    logout_user()
-    session.clear()
+    current_app.logger.info(f"Response submitted - user {current_user.id}")
+
+    logout_and_clear()
 
     return "Survey response submitted"  # TODO: Flash message and redirect
 
@@ -111,10 +122,11 @@ def on_behalf_of(respondent_id: int):
         if respondent.enumerator_uuid == enumerator_uuid:
             user = User.query.filter_by(uuid=respondent.uuid).first()
             if user is not None:
-                logout_user()
-                session.clear()
+                logout_and_clear()
                 login_user(user)
                 survey_processor.set_enumerator_uuid(enumerator_uuid)
+                current_app.logger.info(f"Delegated login for user {user.id}")
                 return redirect(url_for("survey.index"))
 
+    current_app.logger.warning(f"Failed delegated login for user {user.id}")
     return "Respondent not found"  # TODO: Flash message and redirect
