@@ -1,4 +1,11 @@
-from flask import Blueprint, redirect, render_template, session, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    redirect,
+    render_template,
+    session,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
 
 from safely_report.auth.utils import role_required
@@ -27,6 +34,10 @@ def require_auth():
 def handle_deactivation():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
+            current_app.logger.warning(
+                "Survey access attempted during deactivation "
+                f"- user {current_user.id}"
+            )
             # TODO: Flash message and redirect
             return "Survey is currently disabled"
 
@@ -66,11 +77,13 @@ def back():
 
 @survey_blueprint.route("/exit")
 def exit():
-    survey_processor.clear_data()
-
-    # If real survey session, log out too
     if current_user.role == Role.Respondent:
+        id = current_user.id
         logout_user()
+        session.clear()
+        current_app.logger.info(f"Survey exit - user {id}")
+    else:
+        survey_processor.clear_data()
 
     return redirect(url_for("index"))
 
@@ -90,6 +103,7 @@ def submit():
         respondent_uuid=current_user.uuid,
         enumerator_uuid=survey_processor.enumerator_uuid,
     )
+    current_app.logger.info(f"Response submitted - user {current_user.id}")
 
     # Log out and clear all session data
     logout_user()
@@ -115,6 +129,8 @@ def on_behalf_of(respondent_id: int):
                 session.clear()
                 login_user(user)
                 survey_processor.set_enumerator_uuid(enumerator_uuid)
+                current_app.logger.info(f"Delegated login for user {user.id}")
                 return redirect(url_for("survey.index"))
 
+    current_app.logger.warning(f"Failed delegated login for user {user.id}")
     return "Respondent not found"  # TODO: Flash message and redirect
