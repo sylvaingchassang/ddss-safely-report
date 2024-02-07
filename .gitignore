@@ -16,7 +16,7 @@ venv/
 .mypy_cache/
 
 # MkDocs
-/site
+docs/site
 
 # VS Code
 .vscode/settings.json
