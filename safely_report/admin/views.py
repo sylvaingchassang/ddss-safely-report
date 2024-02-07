@@ -43,8 +43,10 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     def switch_survey_activation(self):
         if GlobalState.is_survey_active():
             GlobalState.deactivate_survey()
+            current_app.logger.info("Survey deactivated")
         else:
             GlobalState.activate_survey()
+            current_app.logger.info("Survey reactivated")
 
         return redirect(url_for("admin.index"))
 
@@ -218,6 +220,7 @@ class RespondentModelView(SurveyModelView):
 
     @expose("/download")
     def download(self):
+        current_app.logger.info("Downloading respondent roster")
         return make_download_response(
             content=Respondent.to_csv_string(),
             content_type="text/csv",
@@ -246,6 +249,7 @@ class EnumeratorModelView(SurveyModelView):
 
     @expose("/download")
     def download(self):
+        current_app.logger.info("Downloading enumerator roster")
         return make_download_response(
             content=Enumerator.to_csv_string(),
             content_type="text/csv",
@@ -270,6 +274,7 @@ class SubmissionView(AdminView):
 
     @expose("/download")
     def download(self):
+        current_app.logger.info("Downloading submitted responses")
         return make_download_response(
             content=SurveyResponse.to_csv_string(),
             content_type="text/csv",
