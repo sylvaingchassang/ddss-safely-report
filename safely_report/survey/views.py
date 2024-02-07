@@ -53,12 +53,17 @@ def inject_template_variables():
 
 @survey_blueprint.errorhandler(IntegrityError)
 def handle_response_resubmission(e):
+    current_app.logger.warning(f"Resubmission tried - user {current_user.id}")
     flash("Response had already been submitted.", "error")
     return redirect(request.referrer or url_for("survey.index"))
 
 
 @survey_blueprint.errorhandler(StaleDataError)
 def handle_concurrency_conflict(e):
+    current_app.logger.warning(
+        "Failed submission due to concurrency conflict "
+        "- user {current_user.id}"
+    )
     flash("Sorry, we missed your submission. Please try again.", "warning")
     return redirect(request.referrer or url_for("survey.index"))
 
