@@ -1,4 +1,4 @@
-from pyxform import Survey
+from pyxform import Question, Survey
 from pyxform.builder import create_survey_element_from_dict
 from pyxform.survey_element import SurveyElement
 from pyxform.xls2json import parse_file_to_json
@@ -27,6 +27,7 @@ class XLSFormReader:
         for element in survey.iter_descendants():
             cls._check_infinite_repeat(element)
             cls._check_nested_repeat(element)
+            cls._check_supported_question(element)
 
         return survey
 
@@ -62,3 +63,22 @@ class XLSFormReader:
                     raise Exception(
                         f"Nested repeat not allowed: {element.name}"
                     )
+
+    @classmethod
+    def _check_supported_question(cls, element: SurveyElement):
+        """
+        Error out if the given survey element is an unsupported question type.
+
+        We leverage `pyxform` package's classification to identify survey
+        elements that are of types to show to the respondent (e.g., note,
+        multiple-select question). Specifically, `pyxform` assigns more
+        concrete subclasses (e.g., `InputQuestion`, `MultipleChoiceQuestion`)
+        to survey elements that are "real" questions to display to the
+        respondent; and it uses generic `Question` class for elements related
+        to internal actions such as calculation.
+        """
+        from safely_report.survey.form_generator import SurveyFormGenerator
+
+        if isinstance(element, Question) and type(element) is not Question:
+            if element.type not in SurveyFormGenerator.FIELD_CLASS:
+                raise Exception(f"Unsupported question type: {element.type}")

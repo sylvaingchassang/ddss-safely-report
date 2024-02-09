@@ -33,7 +33,7 @@ class SurveyFormGenerator:
         An instance of the garbling engine
     """
 
-    # Map each XLSForm input type onto WTForms field class
+    # Map each XLSForm question type onto WTForms field class
     FIELD_CLASS = MappingProxyType(
         {
             "note": Field,
@@ -70,7 +70,7 @@ class SurveyFormGenerator:
 
         field_class = self.FIELD_CLASS.get(curr_type)
         if field_class is None:
-            raise Exception(f"Unsupported input type: {curr_type}")
+            raise Exception(f"Unsupported question type: {curr_type}")
 
         field_args = {
             "label": self._curr_label,
