@@ -1,3 +1,4 @@
+from types import MappingProxyType
 from typing import Any, Callable, Optional
 
 from flask_wtf import FlaskForm
@@ -32,6 +33,20 @@ class SurveyFormGenerator:
         An instance of the garbling engine
     """
 
+    # Map each XLSForm input type onto WTForms field class
+    FIELD_CLASS = MappingProxyType(
+        {
+            "note": Field,
+            "text": StringField,
+            "integer": IntegerField,
+            "decimal": DecimalField,
+            "date": DateField,
+            "datetime": DateTimeField,
+            "select one": RadioField,
+            "select all that apply": SelectMultipleField,
+        }
+    )
+
     def __init__(self, survey_processor: SurveyProcessor, garbler: Garbler):
         self._processor = survey_processor
         self._garbler = garbler
@@ -48,40 +63,29 @@ class SurveyFormGenerator:
         return form
 
     def _make_curr_field(self) -> Field:
-        # Identify current survey element type
+        """
+        Create input field for current survey element.
+        """
         curr_type = self._curr_type
 
-        # Collect function arguments common to all field types
-        common_args = {
+        field_class = self.FIELD_CLASS.get(curr_type)
+        if field_class is None:
+            raise Exception(f"Unsupported input type: {curr_type}")
+
+        field_args = {
             "label": self._curr_label,
             "description": self._curr_hint,
             "validators": self._curr_validators,
             "default": self._curr_default,
         }
-
-        if curr_type == "note":
-            return Field(**common_args)
-        elif curr_type == "text":
-            return StringField(**common_args)
-        elif curr_type == "integer":
-            return IntegerField(**common_args)
-        elif curr_type == "decimal":
-            return DecimalField(**common_args)
-        elif curr_type == "date":
-            return DateField(**common_args)
-        elif curr_type == "datetime":
-            return DateTimeField(**common_args)
-        elif curr_type == "select one":
-            return RadioField(**common_args, choices=self._curr_choices)
+        if curr_type == "select one":
+            field_args["choices"] = self._curr_choices
         elif curr_type == "select all that apply":
-            return SelectMultipleField(
-                **common_args,
-                choices=self._curr_choices,
-                widget=widgets.ListWidget(prefix_label=False),
-                option_widget=widgets.CheckboxInput(),
-            )
-        else:
-            raise Exception(f"Unsupported input type: {curr_type}")
+            field_args["choices"] = self._curr_choices
+            field_args["widget"] = widgets.ListWidget(prefix_label=False)
+            field_args["option_widget"] = widgets.CheckboxInput()
+
+        return field_class(**field_args)
 
     @property
     def _curr_type(self) -> str:
