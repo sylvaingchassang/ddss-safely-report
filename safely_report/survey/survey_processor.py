@@ -7,9 +7,9 @@ from pyxform.survey_element import SurveyElement
 from sqlalchemy.orm.exc import NoResultFound
 
 from safely_report.models import Enumerator
-from safely_report.survey.read_xlsform import read_xlsform
 from safely_report.survey.survey_processor_base import SurveyProcessorBase
 from safely_report.survey.survey_session import SurveySession
+from safely_report.survey.xlsform_reader import XLSFormReader
 
 
 class SurveyProcessor(SurveyProcessorBase):
@@ -30,7 +30,7 @@ class SurveyProcessor(SurveyProcessorBase):
     """
 
     def __init__(self, path_to_xlsform: str, session: SessionMixin):
-        self._survey = read_xlsform(path_to_xlsform)
+        self._survey = XLSFormReader.read_xlsform(path_to_xlsform)
         self._session = SurveySession(session)
 
         # Build a lookup table that maps element name to object
