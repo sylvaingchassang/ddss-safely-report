@@ -1,3 +1,5 @@
+import re
+
 from pyxform import Question, Survey
 from pyxform.builder import create_survey_element_from_dict
 from pyxform.survey_element import SurveyElement
@@ -22,12 +24,13 @@ class XLSFormReader:
         )
         survey = create_survey_element_from_dict(survey_dict)
 
-        # Ensure the form meets requirements specific to our application
+        # Validate the form meets requirements specific to our application
         assert isinstance(survey, Survey)
         for element in survey.iter_descendants():
             cls._check_infinite_repeat(element)
             cls._check_nested_repeat(element)
             cls._check_supported_question(element)
+            cls._check_functions(element)
 
         return survey
 
@@ -82,3 +85,28 @@ class XLSFormReader:
         if isinstance(element, Question) and type(element) is not Question:
             if element.type not in SurveyFormGenerator.FIELD_CLASS:
                 raise Exception(f"Unsupported question type: {element.type}")
+
+    @classmethod
+    def _check_functions(cls, element: SurveyElement):
+        """
+        Error out if the given survey element uses unsupported functions.
+        """
+        from safely_report.survey.survey_processor import SurveyProcessor
+
+        # Extract all logic in current survey element
+        logic_string = ""
+        logic_string += element.bind.get("relevant", "")
+        logic_string += element.bind.get("constraint", "")
+        logic_string += element.bind.get("calculate", "")
+        logic_string += element.control.get("jr:count", "")
+
+        # Identify all XLSForm functions in current survey element
+        function_name_pattern = r"([a-z][a-z\d\:\-]*\()"
+        function_name_matches = re.findall(function_name_pattern, logic_string)
+
+        # Validate all XLSForm functions have Python counterparts implemented
+        for match in function_name_matches:
+            name = match[:-1]  # XLSForm function name
+            name_py = "_" + re.sub("[:-]", "_", name)  # Python function name
+            if name_py not in dir(SurveyProcessor):
+                raise Exception(f"Unsupported XLSForm function: {name}")
