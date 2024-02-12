@@ -1,20 +1,18 @@
 from typing import Any
 
 
-class SurveyProcessorBase:
+class XLSFormFunctions:
     """
-    Base class defining survey processor's custom methods
-    (e.g., `_selected_at()`) to replace XLSForm functions
-    (e.g., `selected-at()`).
+    Implement Python counterparts (e.g., `_selected_at()`)
+    of XLSForm functions (e.g., `selected-at()`).
 
-    Functions to replace are listed in the ODK documentation:
+    XLSForm functions are listed in the ODK documentation:
     https://docs.getodk.org/form-operators-functions/
 
-    NOTE: This base class only defines static methods that do not
-    reference or alter internal states of the survey processor.
-    Methods that need access to the survey processor's states
-    should be defined in the child class (i.e., `SurveyProcessor`)
-    where state variables and their behaviors are defined.
+    NOTE: These methods are to be inherited and used by
+    `SurveyProcessor` to process XLSForm logic, so they need
+    to follow consistent naming format (e.g., single leading
+    underscore).
     """
 
     @classmethod

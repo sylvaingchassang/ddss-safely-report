@@ -7,12 +7,12 @@ from pyxform.survey_element import SurveyElement
 from sqlalchemy.orm.exc import NoResultFound
 
 from safely_report.models import Enumerator
-from safely_report.survey.survey_processor_base import SurveyProcessorBase
 from safely_report.survey.survey_session import SurveySession
+from safely_report.survey.xlsform_functions import XLSFormFunctions
 from safely_report.survey.xlsform_reader import XLSFormReader
 
 
-class SurveyProcessor(SurveyProcessorBase):
+class SurveyProcessor(XLSFormFunctions):
     """
     A survey processing engine that moves between different survey elements
     and controls their properties to run the survey.
