@@ -10,7 +10,7 @@ def survey_processor_instance(mocker: MockerFixture):
     """
     An instance of `SurveyProcessor` with mock initiation.
     """
-    mocker.patch("safely_report.survey.survey_processor.read_xlsform")
+    mocker.patch("safely_report.survey.survey_processor.XLSFormReader")
     mocker.patch("safely_report.survey.survey_processor.SurveySession")
     path_to_xlsform = ""
     session = mocker.Mock(spec=SessionMixin)

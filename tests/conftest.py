@@ -33,3 +33,8 @@ def test_session():
 @pytest.fixture
 def path_to_xlsform_holidays():
     return "tests/data/stats4sd_example_xlsform_adapted.xlsx"
+
+
+@pytest.fixture
+def path_to_xlsform_test_cases():
+    return "tests/data/test_cases.xlsx"
