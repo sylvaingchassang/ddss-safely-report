@@ -115,7 +115,7 @@ class SurveyProcessor(SurveyProcessorBase):
         Whether the current survey element is of a type to show to the
         respondent (e.g., note, multiple-select question).
         """
-        return SurveyProcessor._find_whether_to_show(self._curr_element)
+        return self._find_whether_to_show(self._curr_element)
 
     @property
     def curr_relevant(self) -> bool:
@@ -131,7 +131,7 @@ class SurveyProcessor(SurveyProcessorBase):
         formula = self._curr_element.bind.get("relevant")
         if formula is None:
             return True
-        formula_py = SurveyProcessor._translate_xlsform_formula(formula)
+        formula_py = self._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
         return eval(formula_py)
@@ -309,7 +309,7 @@ class SurveyProcessor(SurveyProcessorBase):
             if varname in visits:
                 survey_response[varname] = responses[varname]
         for varname in visits:
-            repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+            repeat_varname = self._term_repeat_varname(varname)
             if repeat_varname in responses:
                 survey_response[repeat_varname] = responses[repeat_varname]
 
@@ -337,7 +337,7 @@ class SurveyProcessor(SurveyProcessorBase):
         formula = self._curr_element.bind.get("constraint")
         if formula is None:
             return True
-        formula_py = SurveyProcessor._translate_xlsform_formula(formula)
+        formula_py = self._translate_xlsform_formula(formula)
 
         # TODO: Perform proper error handling
         return eval(formula_py)
@@ -410,7 +410,7 @@ class SurveyProcessor(SurveyProcessorBase):
 
         formula = curr_element.bind.get("calculate")
         if formula is not None:
-            formula_py = SurveyProcessor._translate_xlsform_formula(formula)
+            formula_py = self._translate_xlsform_formula(formula)
             self.set_curr_value(eval(formula_py))
 
     def _execute_repeat(self):
@@ -423,14 +423,14 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if SurveyProcessor._find_whether_to_show(child_element):
+            if self._find_whether_to_show(child_element):
                 # Get name and value of the element
                 varname = child_element.name
                 value = self._session.retrieve_response(varname)
 
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
-                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+                repeat_varname = self._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
                 assert isinstance(value_lst, list)  # For type check to work
 
@@ -465,14 +465,14 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if SurveyProcessor._find_whether_to_show(child_element):
+            if self._find_whether_to_show(child_element):
                 # Get name and value of the element
                 varname = child_element.name
                 value = self._session.retrieve_response(varname)
 
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
-                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+                repeat_varname = self._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
                 assert isinstance(value_lst, list)  # For type check to work
 
@@ -494,7 +494,7 @@ class SurveyProcessor(SurveyProcessorBase):
             if curr_element.type == "repeat":
                 n_repeat = self._session.count_visits(curr_element.name)
                 limit = curr_element.control.get("jr:count", "0")
-                limit = eval(SurveyProcessor._translate_xlsform_formula(limit))
+                limit = eval(self._translate_xlsform_formula(limit))
                 if n_repeat <= limit:
                     next_element = curr_element.children[0]
                 else:
@@ -543,11 +543,11 @@ class SurveyProcessor(SurveyProcessorBase):
 
         n_repeat = self._session.count_visits(curr_element.name)
         for child_element in curr_element.iter_descendants():
-            if SurveyProcessor._find_whether_to_show(child_element):
+            if self._find_whether_to_show(child_element):
                 # Get name and value of the element's "auxiliary" store
                 # that contains all repeated responses to the element
                 varname = child_element.name
-                repeat_varname = SurveyProcessor._term_repeat_varname(varname)
+                repeat_varname = self._term_repeat_varname(varname)
                 value_lst = self._session.retrieve_response(repeat_varname, [])
                 assert isinstance(value_lst, list)  # For type check to work
 
@@ -564,8 +564,8 @@ class SurveyProcessor(SurveyProcessorBase):
         """
         self._session.drop_latest_visit()
 
-    @staticmethod
-    def _find_whether_to_show(element: SurveyElement) -> bool:
+    @classmethod
+    def _find_whether_to_show(cls, element: SurveyElement) -> bool:
         """
         Determine whether the given survey element is of a type to show to
         the respondent (e.g., note, multiple-select question).
@@ -581,8 +581,8 @@ class SurveyProcessor(SurveyProcessorBase):
             return True
         return False
 
-    @staticmethod
-    def _translate_xlsform_formula(formula: str) -> str:
+    @classmethod
+    def _translate_xlsform_formula(cls, formula: str) -> str:
         """
         Translate XLSForm formula into the one that Python
         can evaluate.
@@ -624,8 +624,8 @@ class SurveyProcessor(SurveyProcessorBase):
 
         return formula
 
-    @staticmethod
-    def _term_repeat_varname(element_name: str):
+    @classmethod
+    def _term_repeat_varname(cls, element_name: str):
         """
         Create name to use to store repeat responses to the given question.
         """

@@ -17,16 +17,16 @@ class SurveyProcessorBase:
     where state variables and their behaviors are defined.
     """
 
-    @staticmethod
-    def _if(condition: bool, then: Any, otherwise: Any) -> Any:
+    @classmethod
+    def _if(cls, condition: bool, then: Any, otherwise: Any) -> Any:
         return then if condition is True else otherwise
 
-    @staticmethod
-    def _selected(choice_array: list[str], choice: str) -> bool:
+    @classmethod
+    def _selected(cls, choice_array: list[str], choice: str) -> bool:
         return choice in choice_array
 
-    @staticmethod
-    def _selected_at(choice_array: list[str], index: int) -> str:
+    @classmethod
+    def _selected_at(cls, choice_array: list[str], index: int) -> str:
         try:
             return choice_array[index]
         except IndexError:

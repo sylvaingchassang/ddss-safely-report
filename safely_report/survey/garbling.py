@@ -78,7 +78,7 @@ class Garbler:
     }
 
     def __init__(self, path_to_xlsform: str, db: SQLAlchemy):
-        self._params = Garbler._parse_xlsform(path_to_xlsform)
+        self._params = self._parse_xlsform(path_to_xlsform)
         self._db = db
 
     @property
@@ -146,7 +146,7 @@ class Garbler:
                 garbling_params=garbling_params,
                 respondent=respondent,
             )
-            survey_response[varname] = Garbler._garble_response(
+            survey_response[varname] = self._garble_response(
                 response_value=response_value,
                 garbling_shock=garbling_shock,
                 garbling_answer=garbling_params.answer,
@@ -230,9 +230,9 @@ class Garbler:
 
         return garbling_shock
 
-    @staticmethod
+    @classmethod
     def _garble_response(
-        response_value: str, garbling_shock: bool, garbling_answer: str
+        cls, response_value: str, garbling_shock: bool, garbling_answer: str
     ) -> str:
         """
         Apply garbling formula to the given response.
@@ -276,8 +276,8 @@ class Garbler:
             else:
                 return response_value
 
-    @staticmethod
-    def _parse_xlsform(path_to_xlsform: str) -> dict[str, GarblingParams]:
+    @classmethod
+    def _parse_xlsform(cls, path_to_xlsform: str) -> dict[str, GarblingParams]:
         """
         Parse XLSForm to identify questions subject to garbling
         and their respective parameters.
@@ -297,8 +297,8 @@ class Garbler:
 
         # Recursively identify survey elements subject to garbling
         # NOTE: Ensure no garbling happens inside any repeat section
-        a = Garbler._find_elements_with_garbling(survey_dict)
-        b = Garbler._find_elements_with_garbling(survey_dict, skip_repeat=True)
+        a = cls._find_elements_with_garbling(survey_dict)
+        b = cls._find_elements_with_garbling(survey_dict, skip_repeat=True)
         if len(a) > len(b):
             raise Exception("Garbling should not be applied inside repeats")
         elements_with_garbling = b
@@ -307,12 +307,13 @@ class Garbler:
         garbling_params = {}
         for element in elements_with_garbling:
             name = element.get("name", "")
-            garbling_params[name] = Garbler._extract_garbling_params(element)
+            garbling_params[name] = cls._extract_garbling_params(element)
 
         return garbling_params
 
-    @staticmethod
+    @classmethod
     def _find_elements_with_garbling(
+        cls,
         element: dict[str, Any],
         skip_repeat: bool = False,
         elements_with_garbling: Optional[list[dict[str, Any]]] = None,
@@ -347,7 +348,7 @@ class Garbler:
                 elements_with_garbling.append(element)
             if element.get("children"):
                 for child in element["children"]:
-                    Garbler._find_elements_with_garbling(
+                    cls._find_elements_with_garbling(
                         element=child,
                         skip_repeat=skip_repeat,
                         elements_with_garbling=elements_with_garbling,
@@ -355,8 +356,10 @@ class Garbler:
 
         return elements_with_garbling
 
-    @staticmethod
-    def _extract_garbling_params(element: dict[str, Any]) -> GarblingParams:
+    @classmethod
+    def _extract_garbling_params(
+        cls, element: dict[str, Any]
+    ) -> GarblingParams:
         """
         Extract, validate, and repackage garbling parameters
         for the given survey element record.
