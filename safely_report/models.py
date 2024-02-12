@@ -244,7 +244,7 @@ class SurveyResponse(BaseTable):
         ENUMERATOR_UUID = cls.enumerator_uuid.name
 
         # Retrieve all submitted survey responses
-        survey_responses = cls.query.all()
+        survey_responses = cls.query.order_by(cls.id).all()
 
         # Return an empty string if no response is available
         if len(survey_responses) == 0:
