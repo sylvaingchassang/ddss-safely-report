@@ -295,7 +295,7 @@ class GlobalState(BaseTable):
         Initialize the application's global states.
         """
         if cls._get_state(cls.Constant.SURVEY_ACTIVE) is None:
-            cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
+            cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.NO)
 
     @classmethod
     def is_survey_active(cls) -> bool:
