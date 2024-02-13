@@ -42,11 +42,11 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     @expose("/switch-survey-activation")
     def switch_survey_activation(self):
         if GlobalState.is_survey_active():
-            GlobalState.deactivate_survey()
-            current_app.logger.info("Survey deactivated")
+            GlobalState.pause_survey()
+            current_app.logger.info("Survey paused")
         else:
             GlobalState.activate_survey()
-            current_app.logger.info("Survey reactivated")
+            current_app.logger.info("Survey activated")
 
         return redirect(url_for("admin.index"))
 

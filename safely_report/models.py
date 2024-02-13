@@ -313,7 +313,7 @@ class GlobalState(BaseTable):
         cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
 
     @classmethod
-    def deactivate_survey(cls):
+    def pause_survey(cls):
         """
         Set survey to inactive state.
         """

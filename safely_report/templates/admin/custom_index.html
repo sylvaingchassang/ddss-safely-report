@@ -11,7 +11,7 @@
       </a>
     </div>
     <div>
-      {% set verb = "deactivate" if is_survey_active else "reactivate" %}
+      {% set verb = "pause" if is_survey_active else "activate" %}
       {% set label = (verb | title) + " the survey" %}
       {% set message = "Sure to " + verb + " the survey?" %}
       {% set style = "btn-danger" if is_survey_active else "btn-success"%}
