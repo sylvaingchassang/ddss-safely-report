@@ -47,6 +47,7 @@ exclude = ["migrations"]
 
 [tool.pytest.ini_options]
 env_files = [".env.test"]
+env_override_existing_values = true
 
 [build-system]
 requires = ["poetry-core"]

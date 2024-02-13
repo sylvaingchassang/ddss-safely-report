@@ -36,7 +36,7 @@ Before running the application, define necessary environment variables:
 | `RESPONDENT_ROSTER_PATH`   | Path to the CSV file containing survey respondent roster                 |
 | `ENUMERATOR_ROSTER_PATH`   | Path to the CSV file containing survey enumerator roster                 |
 
-Check `.env.test` file for a concrete example.
+Check `.env.dev` file for a concrete example.
 
 To synchronize the database schema, run:
 

@@ -24,7 +24,7 @@ def login_respondent():
             login_user(user)
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("survey.index"))
-        current_app.logger.warning(f"Failed login - user {user.id}")
+        current_app.logger.warning("Failed respondent login")
         return "Respondent not found"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
@@ -41,7 +41,7 @@ def login_enumerator():
             login_user(user)
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("enumerator.index"))
-        current_app.logger.warning(f"Failed login - user {user.id}")
+        current_app.logger.warning("Failed enumerator login")
         return "Enumerator not found"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
@@ -58,7 +58,7 @@ def login_admin():
             login_user(user)
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("admin.index"))
-        current_app.logger.warning(f"Failed login - user {user.id}")
+        current_app.logger.warning("Failed admin login")
         return "Invalid password"  # TODO: Flash message and redirect
 
     return render_template("auth/submit.html", form=form)
