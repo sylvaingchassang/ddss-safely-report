@@ -27,6 +27,17 @@ from safely_report.utils import deserialize, generate_uuid4
 db = SQLAlchemy()
 
 
+class SurveyStatus(enum.Enum):
+    Complete = "Complete"
+    Incomplete = "Incomplete"
+
+
+class Role(enum.Enum):
+    Respondent = "Respondent"
+    Enumerator = "Enumerator"
+    Admin = "Admin"
+
+
 class BaseTable(db.Model):  # type: ignore
     """
     Abstract base class for all tables.
@@ -90,11 +101,6 @@ class DynamicTable(BaseTable):
             raise e
 
 
-class SurveyStatus(enum.Enum):
-    Complete = "Complete"
-    Incomplete = "Incomplete"
-
-
 @DynamicTable.add_columns_from_csv(RESPONDENT_ROSTER_PATH)
 class Respondent(DynamicTable):
     __tablename__ = "respondents"
@@ -140,12 +146,6 @@ class Enumerator(DynamicTable):
             cls.add_data_from_csv(ENUMERATOR_ROSTER_PATH)
 
 
-class Role(enum.Enum):
-    Respondent = "Respondent"
-    Enumerator = "Enumerator"
-    Admin = "Admin"
-
-
 class User(BaseTable, UserMixin):
     __tablename__ = "users"
 
@@ -182,36 +182,6 @@ class User(BaseTable, UserMixin):
         return cls.query.filter_by(role=Role.Admin).first()
 
 
-@event.listens_for(Respondent, "after_insert")
-@event.listens_for(Enumerator, "after_insert")
-def create_user(
-    mapper: Mapper,
-    connection: Connection,
-    target: Union[Respondent, Enumerator],
-):
-    """
-    Create a user record for every new respondent or enumerator.
-    """
-    if isinstance(target, Respondent):
-        role = Role.Respondent
-    elif isinstance(target, Enumerator):
-        role = Role.Enumerator
-    connection.execute(insert(User).values(uuid=target.uuid, role=role))
-
-
-@event.listens_for(Respondent, "after_delete")
-@event.listens_for(Enumerator, "after_delete")
-def delete_user(
-    mapper: Mapper,
-    connection: Connection,
-    target: Union[Respondent, Enumerator],
-):
-    """
-    Delete the user record of any removed respondent or enumerator.
-    """
-    connection.execute(delete(User).where(User.uuid == target.uuid))
-
-
 class SurveyResponse(BaseTable):
     __tablename__ = "survey_responses"
 
@@ -244,7 +214,7 @@ class SurveyResponse(BaseTable):
         ENUMERATOR_UUID = cls.enumerator_uuid.name
 
         # Retrieve all submitted survey responses
-        survey_responses = cls.query.all()
+        survey_responses = cls.query.order_by(cls.id).all()
 
         # Return an empty string if no response is available
         if len(survey_responses) == 0:
@@ -278,25 +248,6 @@ class SurveyResponse(BaseTable):
             csv_string += ",".join(row) + "\n"
 
         return csv_string
-
-
-@event.listens_for(SurveyResponse, "after_insert")
-def update_respondent_info(
-    mapper: Mapper,
-    connection: Connection,
-    target: SurveyResponse,
-):
-    """
-    Update respondent information when their response is submitted.
-    """
-    connection.execute(
-        update(Respondent)
-        .where(Respondent.uuid == target.respondent_uuid)
-        .values(
-            survey_status=SurveyStatus.Complete,
-            enumerator_uuid=target.enumerator_uuid,
-        )
-    )
 
 
 class GarblingBlock(BaseTable):
@@ -386,3 +337,52 @@ class GlobalState(BaseTable):
     @classmethod
     def _get_state(cls, key: str) -> Optional["GlobalState"]:
         return cls.query.filter_by(key=key).first()
+
+
+@event.listens_for(Respondent, "after_insert")
+@event.listens_for(Enumerator, "after_insert")
+def create_user(
+    mapper: Mapper,
+    connection: Connection,
+    target: Union[Respondent, Enumerator],
+):
+    """
+    Create a user record for every new respondent or enumerator.
+    """
+    if isinstance(target, Respondent):
+        role = Role.Respondent
+    elif isinstance(target, Enumerator):
+        role = Role.Enumerator
+    connection.execute(insert(User).values(uuid=target.uuid, role=role))
+
+
+@event.listens_for(Respondent, "after_delete")
+@event.listens_for(Enumerator, "after_delete")
+def delete_user(
+    mapper: Mapper,
+    connection: Connection,
+    target: Union[Respondent, Enumerator],
+):
+    """
+    Delete the user record of any removed respondent or enumerator.
+    """
+    connection.execute(delete(User).where(User.uuid == target.uuid))
+
+
+@event.listens_for(SurveyResponse, "after_insert")
+def update_respondent_info(
+    mapper: Mapper,
+    connection: Connection,
+    target: SurveyResponse,
+):
+    """
+    Update respondent information when their response is submitted.
+    """
+    connection.execute(
+        update(Respondent)
+        .where(Respondent.uuid == target.respondent_uuid)
+        .values(
+            survey_status=SurveyStatus.Complete,
+            enumerator_uuid=target.enumerator_uuid,
+        )
+    )

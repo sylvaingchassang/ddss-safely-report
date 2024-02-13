@@ -14,7 +14,7 @@ def require_auth():
     pass  # Actual implementation handled by decorator
 
 
-@enumerator_blueprint.route("/", methods=["GET", "POST"])
+@enumerator_blueprint.route("/")
 def index():
     # List respondent attributes to display
     attributes = Respondent.__table__.columns.keys()
