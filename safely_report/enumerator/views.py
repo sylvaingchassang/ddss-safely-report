@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
 from safely_report.auth.utils import role_required
-from safely_report.models import Respondent, Role, SurveyStatus
+from safely_report.models import Respondent, Role
 
 enumerator_blueprint = Blueprint("enumerator", __name__)
 
@@ -18,13 +18,13 @@ def require_auth():
 def index():
     # List respondent attributes to display
     attributes = Respondent.__table__.columns.keys()
-    attributes_to_hide = ["uuid", "enumerator_uuid", "id", "survey_status"]
+    attributes_to_hide = ["uuid", "enumerator_uuid", "id", "response_status"]
     attributes_to_show = [a for a in attributes if a not in attributes_to_hide]
 
     # Retrieve assigned respondent records
     respondents = (
         Respondent.query.filter_by(enumerator=current_user)
-        .order_by(Respondent.survey_status.desc())  # Incomplete first
+        .order_by(Respondent.response_status.desc())  # Incomplete first
         .all()
     )
 
@@ -32,5 +32,4 @@ def index():
         "enumerator/index.html",
         attributes=attributes_to_show,
         respondents=respondents,
-        incomplete_status=SurveyStatus.Incomplete,
     )

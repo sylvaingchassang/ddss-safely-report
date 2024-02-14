@@ -31,15 +31,15 @@ def require_auth():
 
 
 @survey_blueprint.before_request
-def handle_deactivation():
+def handle_nonactive_survey():
     if not GlobalState.is_survey_active():
         if current_user.role == Role.Respondent:
             current_app.logger.warning(
-                "Survey access attempted during deactivation "
+                "Access attempted at non-active survey "
                 f"- user {current_user.id}"
             )
             # TODO: Flash message and redirect
-            return "Survey is currently disabled"
+            return "Survey is currently unavailable"
 
 
 @survey_blueprint.context_processor

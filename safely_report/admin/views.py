@@ -8,13 +8,13 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import SelectField, SubmitField
 
+from safely_report.auth.utils import make_auth_form
 from safely_report.models import (
     Enumerator,
     GlobalState,
     Respondent,
     Role,
     SurveyResponse,
-    SurveyStatus,
 )
 from safely_report.utils import make_download_response
 
@@ -34,7 +34,6 @@ class AdminView(BaseView):
 
 
 class SurveyAdminIndexView(AdminView, AdminIndexView):
-    # Use custom template
     @expose("/")
     def index(self):
         return self.render("admin/custom_index.html")
@@ -42,13 +41,28 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     @expose("/switch-survey-activation")
     def switch_survey_activation(self):
         if GlobalState.is_survey_active():
-            GlobalState.deactivate_survey()
-            current_app.logger.info("Survey deactivated")
+            GlobalState.pause_survey()
+            current_app.logger.info("Survey paused")
         else:
             GlobalState.activate_survey()
-            current_app.logger.info("Survey reactivated")
+            current_app.logger.info("Survey activated")
 
         return redirect(url_for("admin.index"))
+
+    @expose("/end-survey", methods=["GET", "POST"])
+    def end_survey(self):
+        form = make_auth_form("Please enter admin password to end survey:")
+
+        if form.validate_on_submit():
+            password = form.field.data
+            if password == current_app.config["ADMIN_PASSWORD"]:
+                GlobalState.end_survey()
+                current_app.logger.info("Survey ended")
+                return redirect(url_for("admin.index"))
+            current_app.logger.warning("Failed to end survey")
+            return "Invalid password"  # TODO: Flash message and redirect
+
+        return self.render("auth/submit.html", form=form)
 
 
 class SurveyModelView(AdminView, ModelView):
@@ -107,10 +121,10 @@ class EnumeratorAssignmentForm(FlaskForm):
 class RespondentModelView(SurveyModelView):
     list_template = "admin/respondents/list.html"
 
-    # Exclude survey status from create/edit view at all
+    # Exclude response status from create/edit view at all
     form_excluded_columns = [
         *SurveyModelView.form_excluded_columns,
-        *["survey_status"],
+        *["response_status"],
     ]
 
     # Make assigned enumerator editable in list view
@@ -122,12 +136,12 @@ class RespondentModelView(SurveyModelView):
         **{"enumerator": "Assigned Enumerator"},
     }
 
-    # Show assigned enumerator and survey status in the final columns
+    # Show assigned enumerator and response status in the final columns
     def scaffold_list_columns(self):
         columns = super().scaffold_list_columns()
-        columns.remove("survey_status")
+        columns.remove("response_status")
         columns.append("enumerator")
-        columns.append("survey_status")
+        columns.append("response_status")
         return columns
 
     # Enable sorting for assigned enumerator
@@ -139,7 +153,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent changes to respondent info once their response is submitted
     def update_model(self, form, model):
-        if model.survey_status == SurveyStatus.Complete:
+        if model.has_completed_response():
             message = (
                 f"{str(model)} cannot be updated because "
                 "they already completed survey."
@@ -150,7 +164,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent deletion of respondent record once their response is submitted
     def delete_model(self, model):
-        if model.survey_status == SurveyStatus.Complete:
+        if model.has_completed_response():
             message = (
                 f"{str(model)} cannot be deleted because "
                 "they already completed survey."
@@ -196,7 +210,7 @@ class RespondentModelView(SurveyModelView):
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
             count = 0
             for respondent in respondents:
-                if respondent.survey_status == SurveyStatus.Complete:
+                if respondent.has_completed_response():
                     message = (
                         f"{str(respondent)} cannot be updated because "
                         "they already completed survey."
