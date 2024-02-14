@@ -34,7 +34,7 @@
             <td>{{ resp[attr] }}</td>
           {% endfor %}
           <td>
-            {% if resp.survey_status == incomplete_status %}
+            {% if resp.response_status == incomplete_status %}
               {% set disabled = "" if is_survey_active else "disabled"%}
               {% set message = "Sure to start survey for the selected respondent?" %}
               <a

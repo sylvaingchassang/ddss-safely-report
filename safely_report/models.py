@@ -27,7 +27,7 @@ from safely_report.utils import deserialize, generate_uuid4
 db = SQLAlchemy()
 
 
-class SurveyStatus(enum.Enum):
+class ResponseStatus(enum.Enum):
     Complete = "Complete"
     Incomplete = "Incomplete"
 
@@ -118,10 +118,10 @@ class Respondent(DynamicTable):
         unique=True,
         default=generate_uuid4,
     )
-    survey_status = Column(
-        Enum(SurveyStatus),  # type: ignore
+    response_status = Column(
+        Enum(ResponseStatus),  # type: ignore
         nullable=False,
-        default=SurveyStatus.Incomplete,
+        default=ResponseStatus.Incomplete,
     )
 
     # Respondent may complete the survey with an enumerator
@@ -399,7 +399,7 @@ def update_respondent_info(
         update(Respondent)
         .where(Respondent.uuid == target.respondent_uuid)
         .values(
-            survey_status=SurveyStatus.Complete,
+            response_status=ResponseStatus.Complete,
             enumerator_uuid=target.enumerator_uuid,
         )
     )

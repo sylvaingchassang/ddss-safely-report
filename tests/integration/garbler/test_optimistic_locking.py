@@ -5,8 +5,8 @@ from sqlalchemy.orm.exc import StaleDataError
 from safely_report.models import (
     GarblingBlock,
     Respondent,
+    ResponseStatus,
     SurveyResponse,
-    SurveyStatus,
 )
 
 
@@ -55,7 +55,7 @@ def test_optimistic_locking(test_db):
     test_db.session.refresh(respondent1)
     test_db.session.refresh(respondent2)
     assert block.version == 2
-    assert respondent1.survey_status == SurveyStatus.Complete
-    assert respondent2.survey_status == SurveyStatus.Incomplete
+    assert respondent1.response_status == ResponseStatus.Complete
+    assert respondent2.response_status == ResponseStatus.Incomplete
     assert SurveyResponse.query.count() == 1
     assert SurveyResponse.query.first().respondent_uuid == respondent1.uuid

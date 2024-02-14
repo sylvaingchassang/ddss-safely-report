@@ -13,9 +13,9 @@ from safely_report.models import (
     Enumerator,
     GlobalState,
     Respondent,
+    ResponseStatus,
     Role,
     SurveyResponse,
-    SurveyStatus,
 )
 from safely_report.utils import make_download_response
 
@@ -122,10 +122,10 @@ class EnumeratorAssignmentForm(FlaskForm):
 class RespondentModelView(SurveyModelView):
     list_template = "admin/respondents/list.html"
 
-    # Exclude survey status from create/edit view at all
+    # Exclude response status from create/edit view at all
     form_excluded_columns = [
         *SurveyModelView.form_excluded_columns,
-        *["survey_status"],
+        *["response_status"],
     ]
 
     # Make assigned enumerator editable in list view
@@ -137,12 +137,12 @@ class RespondentModelView(SurveyModelView):
         **{"enumerator": "Assigned Enumerator"},
     }
 
-    # Show assigned enumerator and survey status in the final columns
+    # Show assigned enumerator and response status in the final columns
     def scaffold_list_columns(self):
         columns = super().scaffold_list_columns()
-        columns.remove("survey_status")
+        columns.remove("response_status")
         columns.append("enumerator")
-        columns.append("survey_status")
+        columns.append("response_status")
         return columns
 
     # Enable sorting for assigned enumerator
@@ -154,7 +154,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent changes to respondent info once their response is submitted
     def update_model(self, form, model):
-        if model.survey_status == SurveyStatus.Complete:
+        if model.response_status == ResponseStatus.Complete:
             message = (
                 f"{str(model)} cannot be updated because "
                 "they already completed survey."
@@ -165,7 +165,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent deletion of respondent record once their response is submitted
     def delete_model(self, model):
-        if model.survey_status == SurveyStatus.Complete:
+        if model.response_status == ResponseStatus.Complete:
             message = (
                 f"{str(model)} cannot be deleted because "
                 "they already completed survey."
@@ -211,7 +211,7 @@ class RespondentModelView(SurveyModelView):
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
             count = 0
             for respondent in respondents:
-                if respondent.survey_status == SurveyStatus.Complete:
+                if respondent.response_status == ResponseStatus.Complete:
                     message = (
                         f"{str(respondent)} cannot be updated because "
                         "they already completed survey."
