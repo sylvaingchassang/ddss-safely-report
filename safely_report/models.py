@@ -133,6 +133,9 @@ class Respondent(DynamicTable):
         if cls.query.first() is None:
             cls.add_data_from_csv(RESPONDENT_ROSTER_PATH)
 
+    def has_completed_response(self) -> bool:
+        return bool(self.response_status == ResponseStatus.Complete)
+
 
 @DynamicTable.add_columns_from_csv(ENUMERATOR_ROSTER_PATH)
 class Enumerator(DynamicTable):

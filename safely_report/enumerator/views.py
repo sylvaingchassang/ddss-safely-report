@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
 from safely_report.auth.utils import role_required
-from safely_report.models import Respondent, ResponseStatus, Role
+from safely_report.models import Respondent, Role
 
 enumerator_blueprint = Blueprint("enumerator", __name__)
 
@@ -32,5 +32,4 @@ def index():
         "enumerator/index.html",
         attributes=attributes_to_show,
         respondents=respondents,
-        incomplete_status=ResponseStatus.Incomplete,
     )
