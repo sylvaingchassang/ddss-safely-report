@@ -13,7 +13,6 @@ from safely_report.models import (
     Enumerator,
     GlobalState,
     Respondent,
-    ResponseStatus,
     Role,
     SurveyResponse,
 )
@@ -154,7 +153,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent changes to respondent info once their response is submitted
     def update_model(self, form, model):
-        if model.response_status == ResponseStatus.Complete:
+        if model.has_completed_response():
             message = (
                 f"{str(model)} cannot be updated because "
                 "they already completed survey."
@@ -165,7 +164,7 @@ class RespondentModelView(SurveyModelView):
 
     # Prevent deletion of respondent record once their response is submitted
     def delete_model(self, model):
-        if model.response_status == ResponseStatus.Complete:
+        if model.has_completed_response():
             message = (
                 f"{str(model)} cannot be deleted because "
                 "they already completed survey."
@@ -211,7 +210,7 @@ class RespondentModelView(SurveyModelView):
             respondents = Respondent.query.filter(Respondent.id.in_(ids)).all()
             count = 0
             for respondent in respondents:
-                if respondent.response_status == ResponseStatus.Complete:
+                if respondent.has_completed_response():
                     message = (
                         f"{str(respondent)} cannot be updated because "
                         "they already completed survey."
