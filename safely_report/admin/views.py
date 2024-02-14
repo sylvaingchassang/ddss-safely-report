@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from markupsafe import Markup
 from wtforms import SelectField, SubmitField
 
+from safely_report.auth.utils import make_auth_form
 from safely_report.models import (
     Enumerator,
     GlobalState,
@@ -49,12 +50,20 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
 
         return redirect(url_for("admin.index"))
 
-    @expose("/end-survey")
+    @expose("/end-survey", methods=["GET", "POST"])
     def end_survey(self):
-        GlobalState.end_survey()
-        current_app.logger.info("Survey ended")
+        form = make_auth_form("Please enter admin password to end survey:")
 
-        return redirect(url_for("admin.index"))
+        if form.validate_on_submit():
+            password = form.field.data
+            if password == current_app.config["ADMIN_PASSWORD"]:
+                GlobalState.end_survey()
+                current_app.logger.info("Survey ended")
+                return redirect(url_for("admin.index"))
+            current_app.logger.warning("Failed to end survey")
+            return "Invalid password"  # TODO: Flash message and redirect
+
+        return self.render("auth/submit.html", form=form)
 
 
 class SurveyModelView(AdminView, ModelView):
