@@ -23,10 +23,14 @@
 <body>
 
   {% block content %}
-    {% if not is_survey_active %}
-      <div class="alert alert-warning text-center" role="alert">
-        Survey is currently paused
-      </div>
+    {% if is_survey_paused %}
+        <div class="alert alert-warning text-center" role="alert">
+          Survey is currently paused
+        </div>
+    {% elif is_survey_ended %}
+        <div class="alert alert-danger text-center" role="alert">
+          Survey has been ended
+        </div>
     {% endif %}
   {% endblock %}
 

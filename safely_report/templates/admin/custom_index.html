@@ -2,6 +2,8 @@
 
 {% block body %}
   <div class="text-center" style="margin: 50px;">
+
+    {# Button for testing the survey #}
     <div style="margin-bottom: 10px;">
       <a
         href="{{ url_for('survey.index') }}"
@@ -10,18 +12,36 @@
         Test the survey
       </a>
     </div>
-    <div>
-      {% set verb = "pause" if is_survey_active else "activate" %}
-      {% set label = (verb | title) + " the survey" %}
-      {% set message = "Sure to " + verb + " the survey?" %}
-      {% set style = "btn-danger" if is_survey_active else "btn-success"%}
-      <a
-        href="{{ url_for('admin.switch_survey_activation') }}"
-        class="btn {{ style }}"
-        onclick="return confirm('{{ message }}')"
-      >
-        {{ label }}
-      </a>
-    </div>
+
+    {% if not is_survey_ended %}
+
+      {# Button for activating/pausing the survey #}
+      <div style="margin-bottom: 10px;">
+        {% set verb = "pause" if is_survey_active else "activate" %}
+        {% set label = (verb | title) + " the survey" %}
+        {% set message = "Sure to " + verb + " the survey?" %}
+        {% set style = "btn-warning" if is_survey_active else "btn-success"%}
+        <a
+          href="{{ url_for('admin.switch_survey_activation') }}"
+          class="btn {{ style }}"
+          onclick="return confirm('{{ message }}')"
+        >
+          {{ label }}
+        </a>
+      </div>
+
+      {# Button for ending the survey #}
+      <div style="margin-bottom: 10px;">
+        <a
+          href="{{ url_for('admin.end_survey') }}"
+          class="btn btn-small btn-danger"
+          onclick="return confirm('Sure to end the survey?')"
+        >
+          End the survey
+        </a>
+      </div>
+
+    {% endif %}
+
   </div>
 {% endblock %}

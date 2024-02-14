@@ -38,6 +38,12 @@ class Role(enum.Enum):
     Admin = "Admin"
 
 
+class SurveyState(enum.Enum):
+    Active = "Active"
+    Paused = "Paused"
+    Ended = "Ended"
+
+
 class BaseTable(db.Model):  # type: ignore
     """
     Abstract base class for all tables.
@@ -278,50 +284,60 @@ class GlobalState(BaseTable):
     key = Column(String, nullable=False, unique=True)
     value = Column(String, nullable=False)
 
-    class Constant:
-        """
-        Define constants to use in class methods.
-
-        NOTE: We use a nested class to avoid confusion with column attributes.
-        """
-
-        SURVEY_ACTIVE = "SURVEY_ACTIVE"
-        YES = "YES"
-        NO = "NO"
-
     @classmethod
     def init(cls):
         """
         Initialize the application's global states.
         """
-        if cls._get_state(cls.Constant.SURVEY_ACTIVE) is None:
-            cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.NO)
+        if cls._get_survey_state() is None:
+            cls._set_survey_state(SurveyState.Paused.value)
 
     @classmethod
     def is_survey_active(cls) -> bool:
-        """
-        Determine whether survey is in active state.
-        """
-        state = cls._get_state(cls.Constant.SURVEY_ACTIVE)
-        return False if state is None else str(state.value) == cls.Constant.YES
+        return cls._get_survey_state() == SurveyState.Active.value
+
+    @classmethod
+    def is_survey_paused(cls) -> bool:
+        return cls._get_survey_state() == SurveyState.Paused.value
+
+    @classmethod
+    def is_survey_ended(cls) -> bool:
+        return cls._get_survey_state() == SurveyState.Ended.value
 
     @classmethod
     def activate_survey(cls):
-        """
-        Set survey to active state.
-        """
-        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.YES)
+        cls._set_survey_state(SurveyState.Active.value)
 
     @classmethod
     def pause_survey(cls):
+        cls._set_survey_state(SurveyState.Paused.value)
+
+    @classmethod
+    def end_survey(cls):
         """
-        Set survey to inactive state.
+        Mark survey as ended and drop any garbling metadata.
+
+        NOTE: Any remaining garbling shocks should be fully cleared because
+        they may reveal truthfulness of responses in "incomplete" batches.
         """
-        cls._set_state(cls.Constant.SURVEY_ACTIVE, cls.Constant.NO)
+        cls._set_survey_state(SurveyState.Ended.value)
+        GarblingBlock.__table__.drop(db.engine)
+
+    @classmethod
+    def _set_survey_state(cls, value: str):
+        if cls._get_survey_state() == SurveyState.Ended.value:
+            raise Exception("Survey has already been ended")
+        if value not in [state.value for state in SurveyState]:
+            raise Exception(f"Invalid value for survey state: {value}")
+        cls._set_state(SurveyState.__name__, value)
+
+    @classmethod
+    def _get_survey_state(cls) -> Optional[str]:
+        return cls._get_state(SurveyState.__name__)
 
     @classmethod
     def _set_state(cls, key: str, value: str):
-        state = cls._get_state(key)
+        state = cls.query.filter_by(key=key).first()
         if state is None:
             state = cls(key=key, value=value)
         else:
@@ -335,8 +351,9 @@ class GlobalState(BaseTable):
             raise e
 
     @classmethod
-    def _get_state(cls, key: str) -> Optional["GlobalState"]:
-        return cls.query.filter_by(key=key).first()
+    def _get_state(cls, key: str) -> Optional[str]:
+        state = cls.query.filter_by(key=key).first()
+        return str(state.value) if state else None
 
 
 @event.listens_for(Respondent, "after_insert")

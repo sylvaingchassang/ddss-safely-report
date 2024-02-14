@@ -34,7 +34,6 @@ class AdminView(BaseView):
 
 
 class SurveyAdminIndexView(AdminView, AdminIndexView):
-    # Use custom template
     @expose("/")
     def index(self):
         return self.render("admin/custom_index.html")
@@ -47,6 +46,13 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
         else:
             GlobalState.activate_survey()
             current_app.logger.info("Survey activated")
+
+        return redirect(url_for("admin.index"))
+
+    @expose("/end-survey")
+    def end_survey(self):
+        GlobalState.end_survey()
+        current_app.logger.info("Survey ended")
 
         return redirect(url_for("admin.index"))
 

@@ -90,4 +90,8 @@ def _start_scheduler():
 
 
 def _inject_template_variables():
-    return {"is_survey_active": GlobalState.is_survey_active()}
+    return {
+        "is_survey_active": GlobalState.is_survey_active(),
+        "is_survey_paused": GlobalState.is_survey_paused(),
+        "is_survey_ended": GlobalState.is_survey_ended(),
+    }
