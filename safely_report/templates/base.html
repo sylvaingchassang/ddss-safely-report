@@ -23,6 +23,7 @@
 <body>
 
   {% block content %}
+    {# Inform survey non-activation if applicable #}
     {% if is_survey_paused %}
         <div class="alert alert-warning text-center" role="alert">
           Survey is currently paused
@@ -32,6 +33,20 @@
           Survey has been ended
         </div>
     {% endif %}
+
+    {# Display messages if any #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% set style = alert_type.get(category, "info")  %}
+          <div class="alert alert-{{ style }} alert-dismissible fade show" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
   {% endblock %}
 
   {% block scripts %}

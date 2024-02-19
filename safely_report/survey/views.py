@@ -1,12 +1,16 @@
 from flask import (
     Blueprint,
     current_app,
+    flash,
     redirect,
     render_template,
+    request,
     session,
     url_for,
 )
 from flask_login import current_user, login_required, login_user
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import StaleDataError
 
 from safely_report.auth.utils import logout_and_clear, role_required
 from safely_report.models import GlobalState, Respondent, Role, User, db
@@ -45,6 +49,23 @@ def handle_nonactive_survey():
 @survey_blueprint.context_processor
 def inject_template_variables():
     return {"is_testing_mode": current_user.role != Role.Respondent}
+
+
+@survey_blueprint.errorhandler(IntegrityError)
+def handle_response_resubmission(e):
+    current_app.logger.warning(f"Resubmission tried - user {current_user.id}")
+    flash("Response had already been submitted.", "error")
+    return redirect(request.referrer or url_for("survey.index"))
+
+
+@survey_blueprint.errorhandler(StaleDataError)
+def handle_concurrency_conflict(e):
+    current_app.logger.warning(
+        "Failed submission due to concurrency conflict "
+        "- user {current_user.id}"
+    )
+    flash("Sorry, we missed your submission. Please try again.", "warning")
+    return redirect(request.referrer or url_for("survey.index"))
 
 
 @survey_blueprint.route("/", methods=["GET", "POST"])

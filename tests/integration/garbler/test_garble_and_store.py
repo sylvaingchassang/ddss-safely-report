@@ -3,6 +3,7 @@ from random import choices
 import pytest
 from flask_sqlalchemy import SQLAlchemy
 from pytest_mock import MockerFixture
+from sqlalchemy.exc import IntegrityError
 
 from safely_report.models import Respondent, SurveyResponse
 from safely_report.survey.garbling import Garbler, GarblingParams
@@ -196,3 +197,24 @@ def test_covariate_blocked_garbling_with_missing_covariate_value(
     assert response_record.respondent_uuid == respondent_uuid
     stored_response = deserialize(response_record.response)
     assert stored_response.get(garbling_params.question, None) is None
+
+
+def test_response_resubmission(garbler: Garbler, test_db: SQLAlchemy):
+    # Create a respondent record in database
+    respondent = Respondent()
+    test_db.session.add(respondent)
+    test_db.session.commit()
+
+    # Submit survey response
+    survey_response = {"color": "green"}
+    respondent_uuid = str(respondent.uuid)
+    garbler.garble_and_store(survey_response, respondent_uuid)
+
+    # Confirm submitted response has been stored
+    assert SurveyResponse.query.count() == 1
+    assert SurveyResponse.query.first().respondent_uuid == respondent_uuid
+
+    # Confirm response resubmission fails
+    with pytest.raises(IntegrityError):
+        new_survey_response = {"color": "red"}
+        garbler.garble_and_store(new_survey_response, respondent_uuid)
