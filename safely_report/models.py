@@ -219,6 +219,7 @@ class SurveyResponse(BaseTable):
         """
         Arrange all data into a CSV string.
         """
+        ID = cls.id.name
         RESPONDENT_UUID = cls.respondent_uuid.name
         ENUMERATOR_UUID = cls.enumerator_uuid.name
 
@@ -237,6 +238,7 @@ class SurveyResponse(BaseTable):
             resp = deserialize(str(surv_resp.response))
 
             assert isinstance(resp, dict)
+            resp[ID] = surv_resp.id
             resp[RESPONDENT_UUID] = surv_resp.respondent_uuid
             resp[ENUMERATOR_UUID] = surv_resp.enumerator_uuid
 
@@ -248,7 +250,7 @@ class SurveyResponse(BaseTable):
         column_names = sorted(variable_names)
         column_names.remove(RESPONDENT_UUID)
         column_names.remove(ENUMERATOR_UUID)
-        column_names[:0] = [RESPONDENT_UUID, ENUMERATOR_UUID]  # Prepend
+        column_names[:0] = [ID, RESPONDENT_UUID, ENUMERATOR_UUID]  # Prepend
 
         # Construct a single CSV string
         csv_string = ",".join(column_names) + "\n"  # Header

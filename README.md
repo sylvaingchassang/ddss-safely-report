@@ -27,14 +27,14 @@ pip install -r requirements.txt
 
 Before running the application, define necessary environment variables:
 
-| Name                       | Description                                                              |
-| -------------------------- | ------------------------------------------------------------------------ |
-| `SECRET_KEY`               | A key to be used for enhancing the security of the Flask application     |
-| `ADMIN_PASSWORD`           | Password for the admin user                                              |
-| `SQLALCHEMY_DATABASE_URI`  | URI for connecting to a relational database                              |
-| `XLSFORM_PATH`             | Path to the XLSForm file specifying the survey                           |
-| `RESPONDENT_ROSTER_PATH`   | Path to the CSV file containing survey respondent roster                 |
-| `ENUMERATOR_ROSTER_PATH`   | Path to the CSV file containing survey enumerator roster                 |
+| Name                           | Description                                                            |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `SAFELY_REPORT_SECRET_KEY`     | A key to be used for enhancing the security of the Flask application   |
+| `SAFELY_REPORT_ADMIN_PASSWORD` | Password for the admin user                                            |
+| `SAFELY_REPORT_DATABASE_URI`   | URI for connecting to a relational database                            |
+| `XLSFORM_PATH`                 | Path to the XLSForm file specifying the survey                         |
+| `RESPONDENT_ROSTER_PATH`       | Path to the CSV file containing survey respondent roster               |
+| `ENUMERATOR_ROSTER_PATH`       | Path to the CSV file containing survey enumerator roster               |
 
 Check `.env.dev` file for a concrete example.
 

@@ -6,8 +6,8 @@ from safely_report.utils import get_env_var
 load_dotenv()
 
 # Configure security
-SECRET_KEY = get_env_var("SECRET_KEY")
-ADMIN_PASSWORD = get_env_var("ADMIN_PASSWORD")
+SECRET_KEY = get_env_var("SAFELY_REPORT_SECRET_KEY")
+ADMIN_PASSWORD = get_env_var("SAFELY_REPORT_ADMIN_PASSWORD")
 
 # Configure server-side session
 SESSION_TYPE = "filesystem"
@@ -20,7 +20,7 @@ SESSION_REFRESH_EACH_REQUEST = True
 PERMANENT_SESSION_LIFETIME = 12 * 60 * 60  # In seconds
 
 # Configure database
-SQLALCHEMY_DATABASE_URI = get_env_var("SQLALCHEMY_DATABASE_URI")
+SQLALCHEMY_DATABASE_URI = get_env_var("SAFELY_REPORT_DATABASE_URI")
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Configure survey
