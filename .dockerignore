@@ -16,7 +16,7 @@ venv/
 .mypy_cache/
 
 # MkDocs
-/site
+docs/site
 
 # VS Code
 .vscode/settings.json
@@ -24,3 +24,6 @@ venv/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .DS_Store
+
+# Temporary files
+~$*
