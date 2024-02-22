@@ -31,16 +31,16 @@ theme:
 
 markdown_extensions:
   - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
   - tables
   - toc:
       permalink: true
 
 plugins:
   - search
-
-markdown_extensions:
-  - pymdownx.arithmatex:
-      generic: true
 
 extra_javascript:
   - javascripts/mathjax.js
@@ -49,3 +49,4 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
