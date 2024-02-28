@@ -62,3 +62,6 @@ where
 - `[HOST-PORT]` refers to the port on the host machine to use for the container
 - `[PATH-TO-SURVEY-FILES]` refers to the folder on the host machine where XLSForm and roster files are stored
 - `[PATH-TO-ENV-FILE]` refers to the `.env` file's path on the host machine
+
+Note that the command above is provided as an example &mdash; please feel free to update it
+with any other options (e.g., restart policy).
