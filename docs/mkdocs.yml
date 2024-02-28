@@ -53,6 +53,8 @@ extra_javascript:
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
+  - Concepts:
+    - Garbling: concepts/garbling.md
   - Guides:
     - Creating Survey Files: guides/create-survey-files.md
     - Deploying App: guides/deploy-app.md

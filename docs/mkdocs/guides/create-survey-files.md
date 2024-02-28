@@ -51,7 +51,7 @@ Please note that Safely Report validates XLSForm for additional requirements inc
 
 !!! info
 
-    If you are not familiar with garbling, please review relevant concepts [here](#).
+    If you are not familiar with garbling, please review relevant concepts [here](../concepts/garbling.md).
 
 Garbling parameters can be specified in the `survey` sheet of XLSForm, specifically in the following columns:
 
