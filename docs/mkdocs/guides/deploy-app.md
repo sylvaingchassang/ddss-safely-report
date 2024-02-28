@@ -19,7 +19,8 @@ First, make sure you have the following files required for a survey:
 
 !!! info
 
-    If you are not familiar with these files, please check the guide on survey creation.
+    If you are not familiar with these files, please review the [guide](create-survey-files.md)
+    on survey creation.
 
 Then, place these files in a designated location on the host machine (e.g., `/survey/files/`),
 which will later be mounted to the Docker container.

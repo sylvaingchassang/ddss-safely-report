@@ -31,6 +31,9 @@ theme:
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
+  - footnotes
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.arithmatex:
@@ -51,4 +54,5 @@ nav:
   - Home: index.md
   - Quickstart: quickstart.md
   - Guides:
+    - Creating Survey Files: guides/create-survey-files.md
     - Deploying App: guides/deploy-app.md
