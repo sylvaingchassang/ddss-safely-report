@@ -56,7 +56,7 @@ nav:
   - Concepts:
     - Garbling: concepts/garbling.md
   - Guides:
-    - Creating Survey Files: guides/create-survey-files.md
+    - Creating Survey: guides/create-survey.md
     - Deploying App: guides/deploy-app.md
     - Analyzing Results: guides/analyze-results.md
     - Getting Help: guides/get-help.md
