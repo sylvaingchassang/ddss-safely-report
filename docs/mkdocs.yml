@@ -58,3 +58,4 @@ nav:
   - Guides:
     - Creating Survey Files: guides/create-survey-files.md
     - Deploying App: guides/deploy-app.md
+    - Analyzing Results: guides/analyze-results.md

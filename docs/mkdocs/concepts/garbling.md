@@ -61,4 +61,5 @@ details, please consult page 17 of this [paper](https://www.nber.org/papers/w310
 
 !!! info
 
-    To learn about how to analyze garbling results, check the relevant [guide](#).
+    To learn about how to analyze garbling results, check the relevant
+    [guide](../guides/analyze-results.md).
