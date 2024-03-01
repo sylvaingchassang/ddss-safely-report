@@ -45,7 +45,7 @@ Please note that Safely Report validates XLSForm for additional requirements inc
 
     Safely Report may not support all XLSForm functions and question types.
     If you need to use a specific function or question type that is currently unavailable,
-    please submit a request following the process [here](#).
+    please submit a request following the process [here](get-help.md).
 
 ### Specifying Garbling
 
