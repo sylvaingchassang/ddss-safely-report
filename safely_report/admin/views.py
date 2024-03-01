@@ -60,7 +60,8 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
                 current_app.logger.info("Survey ended")
                 return redirect(url_for("admin.index"))
             current_app.logger.warning("Failed to end survey")
-            return "Invalid password"  # TODO: Flash message and redirect
+            flash("Invalid password", "error")
+            return redirect(url_for("admin.end_survey"))
 
         return self.render("auth/submit.html", form=form)
 

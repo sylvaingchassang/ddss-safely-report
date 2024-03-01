@@ -1,4 +1,11 @@
-from flask import Blueprint, current_app, redirect, render_template, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user
 
 from safely_report.auth.utils import logout_and_clear, make_auth_form
@@ -25,7 +32,8 @@ def login_respondent():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("survey.index"))
         current_app.logger.warning("Failed respondent login")
-        return "Respondent not found"  # TODO: Flash message and redirect
+        flash("Respondent not found", "error")
+        return redirect(url_for("auth.login_respondent"))
 
     return render_template("auth/submit.html", form=form)
 
@@ -42,7 +50,8 @@ def login_enumerator():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("enumerator.index"))
         current_app.logger.warning("Failed enumerator login")
-        return "Enumerator not found"  # TODO: Flash message and redirect
+        flash("Enumerator not found", "error")
+        return redirect(url_for("auth.login_enumerator"))
 
     return render_template("auth/submit.html", form=form)
 
@@ -59,7 +68,8 @@ def login_admin():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("admin.index"))
         current_app.logger.warning("Failed admin login")
-        return "Invalid password"  # TODO: Flash message and redirect
+        flash("Invalid password", "error")
+        return redirect(url_for("auth.login_admin"))
 
     return render_template("auth/submit.html", form=form)
 
