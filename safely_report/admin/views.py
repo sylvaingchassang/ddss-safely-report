@@ -52,6 +52,7 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     @expose("/end-survey", methods=["GET", "POST"])
     def end_survey(self):
         form = make_auth_form("Please enter admin password to end survey:")
+        form.meta.update_values({"back_url": url_for("admin.index")})
 
         if form.validate_on_submit():
             password = form.field.data

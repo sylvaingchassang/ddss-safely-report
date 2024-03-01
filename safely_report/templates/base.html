@@ -23,6 +23,7 @@
 <body>
 
   {% block content %}
+
     {# Inform survey non-activation if applicable #}
     {% if is_survey_paused %}
         <div class="alert alert-warning text-center" role="alert">
@@ -47,14 +48,6 @@
       {% endif %}
     {% endwith %}
 
-  {% endblock %}
-
-  {% block scripts %}
-    <script>
-        function goBack() {
-            window.history.back();
-        }
-    </script>
   {% endblock %}
 
 </body>

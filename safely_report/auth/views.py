@@ -23,6 +23,7 @@ def index():
 @auth_blueprint.route("/login/respondent", methods=["GET", "POST"])
 def login_respondent():
     form = make_auth_form("Please enter your UUID:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         uuid = form.field.data
@@ -41,6 +42,7 @@ def login_respondent():
 @auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
 def login_enumerator():
     form = make_auth_form("Please enter your UUID:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         uuid = form.field.data
@@ -59,6 +61,7 @@ def login_enumerator():
 @auth_blueprint.route("/login/admin", methods=["GET", "POST"])
 def login_admin():
     form = make_auth_form("Please enter admin password:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         password = form.field.data
