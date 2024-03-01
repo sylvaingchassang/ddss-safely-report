@@ -42,8 +42,8 @@ def handle_nonactive_survey():
                 "Access attempted at non-active survey "
                 f"- user {current_user.id}"
             )
-            # TODO: Flash message and redirect
-            return "Survey is currently unavailable"
+            flash("Survey is currently unavailable", "error")
+            return redirect(url_for("index"))
 
 
 @survey_blueprint.context_processor
@@ -118,7 +118,7 @@ def submit():
 
     if current_user.role != Role.Respondent:
         survey_processor.clear_data()
-        return redirect(url_for("index"))  # TODO: Flash message
+        return redirect(url_for("index"))
 
     garbler.garble_and_store(
         survey_response=survey_processor.gather_survey_response(),
@@ -130,7 +130,8 @@ def submit():
 
     logout_and_clear()
 
-    return "Survey response submitted"  # TODO: Flash message and redirect
+    flash("Response submitted successfully", "success")
+    return redirect(url_for("index"))
 
 
 @role_required(Role.Enumerator)
@@ -153,4 +154,5 @@ def on_behalf_of(respondent_id: int):
                 return redirect(url_for("survey.index"))
 
     current_app.logger.warning(f"Failed delegated login for user {user.id}")
-    return "Respondent not found"  # TODO: Flash message and redirect
+    flash("Respondent not found", "error")
+    return redirect(url_for("enumerator.index"))

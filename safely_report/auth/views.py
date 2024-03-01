@@ -1,4 +1,11 @@
-from flask import Blueprint, current_app, redirect, render_template, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user
 
 from safely_report.auth.utils import logout_and_clear, make_auth_form
@@ -16,6 +23,7 @@ def index():
 @auth_blueprint.route("/login/respondent", methods=["GET", "POST"])
 def login_respondent():
     form = make_auth_form("Please enter your UUID:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         uuid = form.field.data
@@ -25,7 +33,8 @@ def login_respondent():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("survey.index"))
         current_app.logger.warning("Failed respondent login")
-        return "Respondent not found"  # TODO: Flash message and redirect
+        flash("Respondent not found", "error")
+        return redirect(url_for("auth.login_respondent"))
 
     return render_template("auth/submit.html", form=form)
 
@@ -33,6 +42,7 @@ def login_respondent():
 @auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
 def login_enumerator():
     form = make_auth_form("Please enter your UUID:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         uuid = form.field.data
@@ -42,7 +52,8 @@ def login_enumerator():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("enumerator.index"))
         current_app.logger.warning("Failed enumerator login")
-        return "Enumerator not found"  # TODO: Flash message and redirect
+        flash("Enumerator not found", "error")
+        return redirect(url_for("auth.login_enumerator"))
 
     return render_template("auth/submit.html", form=form)
 
@@ -50,6 +61,7 @@ def login_enumerator():
 @auth_blueprint.route("/login/admin", methods=["GET", "POST"])
 def login_admin():
     form = make_auth_form("Please enter admin password:")
+    form.meta.update_values({"back_url": url_for("auth.index")})
 
     if form.validate_on_submit():
         password = form.field.data
@@ -59,7 +71,8 @@ def login_admin():
             current_app.logger.info(f"Login - user {user.id}")
             return redirect(url_for("admin.index"))
         current_app.logger.warning("Failed admin login")
-        return "Invalid password"  # TODO: Flash message and redirect
+        flash("Invalid password", "error")
+        return redirect(url_for("auth.login_admin"))
 
     return render_template("auth/submit.html", form=form)
 

@@ -52,6 +52,7 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
     @expose("/end-survey", methods=["GET", "POST"])
     def end_survey(self):
         form = make_auth_form("Please enter admin password to end survey:")
+        form.meta.update_values({"back_url": url_for("admin.index")})
 
         if form.validate_on_submit():
             password = form.field.data
@@ -60,7 +61,8 @@ class SurveyAdminIndexView(AdminView, AdminIndexView):
                 current_app.logger.info("Survey ended")
                 return redirect(url_for("admin.index"))
             current_app.logger.warning("Failed to end survey")
-            return "Invalid password"  # TODO: Flash message and redirect
+            flash("Invalid password", "error")
+            return redirect(url_for("admin.end_survey"))
 
         return self.render("auth/submit.html", form=form)
 
