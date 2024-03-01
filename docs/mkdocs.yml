@@ -60,4 +60,7 @@ nav:
     - Deploying App: guides/deploy-app.md
     - Analyzing Results: guides/analyze-results.md
     - Getting Help: guides/get-help.md
-    - Contributing: guides/contribute.md
+    - Contributing:
+      - Contribution Process: guides/contribute/process.md
+      - Setup and Basics: guides/contribute/setup.md
+      - Recommended Practices: guides/contribute/tips.md
