@@ -66,6 +66,7 @@ rm -rf instance
 cp .env.dev .env
 
 # Create DB
+flask db migrate -m "Sync"
 flask db upgrade
 
 # Run application (in debug mode)
