@@ -1,0 +1,55 @@
+name: Python application
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: venv
+          key: ${{ steps.setup-python.outputs.python-version }}-venv-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-mock pytest-dotenv
+          pip install ruff mypy
+
+      - name: Activate virtual environment
+        run: |
+          source venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+
+      - name: Run testing
+        run: |
+          pytest tests
+
+      - name: Run linting and formatting
+        run: |
+          ruff check .
+          ruff format .
+
+      - name: Run type checking
+        run: |
+          mypy --ignore-missing-imports safely_report/
