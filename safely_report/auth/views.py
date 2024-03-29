@@ -19,6 +19,17 @@ def index():
     return render_template("auth/index.html")
 
 
+def _login_from_uuid(uuid):
+    user = User.query.filter_by(uuid=uuid).first()
+    if user is not None and user.role == Role.Respondent:
+        login_user(user)
+        current_app.logger.info(f"Login - user {user.id}")
+        return redirect(url_for("survey.index"))
+    current_app.logger.warning("Failed respondent login")
+    flash("Respondent not found", "error")
+    return redirect(url_for("auth.login_respondent"))
+
+
 @auth_blueprint.route("/login/respondent", methods=["GET", "POST"])
 def login_respondent():
     form = make_auth_form("Please enter your UUID:")
@@ -26,16 +37,14 @@ def login_respondent():
 
     if form.validate_on_submit():
         uuid = form.field.data
-        user = User.query.filter_by(uuid=uuid).first()
-        if user is not None and user.role == Role.Respondent:
-            login_user(user)
-            current_app.logger.info(f"Login - user {user.id}")
-            return redirect(url_for("survey.index"))
-        current_app.logger.warning("Failed respondent login")
-        flash("Respondent not found", "error")
-        return redirect(url_for("auth.login_respondent"))
+        return _login_from_uuid(uuid)
 
     return render_template("auth/submit.html", form=form)
+
+
+@auth_blueprint.route("/login/respondent/<uuid>", methods=["GET", "POST"])
+def login_respondent_with_uuid(uuid):
+    return _login_from_uuid(uuid)
 
 
 @auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
