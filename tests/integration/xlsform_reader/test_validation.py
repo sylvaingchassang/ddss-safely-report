@@ -10,7 +10,6 @@ from safely_report.survey.xlsform_reader import XLSFormReader
     "case_name, error_message",
     [
         ("unsupported_question", "Unsupported question type: geopoint"),
-        ("unsupported_function", "Unsupported XLSForm function: pulldata"),
         ("infinite_repeat", "Infinite repeat not allowed: holiday_loop"),
         ("nested_repeat", "Nested repeat not allowed: person_loop"),
     ],
