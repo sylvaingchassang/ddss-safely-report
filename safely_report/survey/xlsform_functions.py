@@ -1,6 +1,8 @@
-from flask_login import current_user
-from safely_report.models import Respondent, Role
 from typing import Any
+
+from flask_login import current_user
+
+from safely_report.models import Respondent, Role
 
 
 class XLSFormFunctions:
