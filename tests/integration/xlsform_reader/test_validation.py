@@ -12,6 +12,8 @@ from safely_report.survey.xlsform_reader import XLSFormReader
         ("unsupported_question", "Unsupported question type: geopoint"),
         ("infinite_repeat", "Infinite repeat not allowed: holiday_loop"),
         ("nested_repeat", "Nested repeat not allowed: person_loop"),
+        ("unsupported_function", "Unsupported XLSForm function: "
+                                 "notyetimplemented"),
     ],
 )
 def test_xlsform_validation(

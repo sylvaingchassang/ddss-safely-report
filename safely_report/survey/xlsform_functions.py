@@ -35,23 +35,26 @@ class XLSFormFunctions:
             return ""
 
     @classmethod
-    def _str_to_int(cls, value: str):
+    def _str2int(cls, value: str) -> int:
         return int(value)
 
     @classmethod
-    def _pulldata(cls, column, default):
+    def _pulldata(cls, column: str, default: str) -> str:
         """
-        Assumes that all data is pulled from the respondent roster table
+        Pull data from 'column' in the respondent roster table.
 
         Parameters
         ----------
-        column: the field you want to retrieve
-        default: a default value in case the field is not available, or the
-            user is an Enumerator
+        column: str
+            Name of the field you want to retrieve
+        default: str
+            Default value in case the field is not available,
+            or the user is an Enumerator
 
         Returns
         -------
-        field value if available, default otherwise
+        str
+            Field value if available, default otherwise
         """
         if current_user.role != Role.Respondent:
             return default

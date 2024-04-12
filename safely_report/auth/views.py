@@ -39,7 +39,7 @@ def login_respondent():
     if form.validate_on_submit():
         uuid = form.field.data
         return redirect(
-            url_for("auth.login_respondent_with_uuid", uid=uuid))
+            url_for("auth.login_respondent_with_uuid", uuid=uuid))
 
     return render_template("auth/submit.html", form=form)
 
