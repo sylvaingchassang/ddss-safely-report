@@ -19,7 +19,8 @@ def index():
     return render_template("auth/index.html")
 
 
-def _login_from_uuid(uuid):
+@auth_blueprint.route("/login/respondent/<uuid>", methods=["GET"])
+def login_respondent_with_uuid(uuid):
     user = User.query.filter_by(uuid=uuid).first()
     if user is not None and user.role == Role.Respondent:
         login_user(user)
@@ -37,14 +38,10 @@ def login_respondent():
 
     if form.validate_on_submit():
         uuid = form.field.data
-        return _login_from_uuid(uuid)
+        return redirect(
+            url_for("auth.login_respondent_with_uuid", uid=uuid))
 
     return render_template("auth/submit.html", form=form)
-
-
-@auth_blueprint.route("/login/respondent/<uuid>", methods=["GET", "POST"])
-def login_respondent_with_uuid(uuid):
-    return _login_from_uuid(uuid)
 
 
 @auth_blueprint.route("/login/enumerator", methods=["GET", "POST"])
