@@ -8,9 +8,19 @@ body {
 }
 
 .form-container {
-  max-width: 400px;
-  margin: auto;
-  margin-top: 50px;
+  flex: 1;              /* Each child will take equal space */
+  padding: 0px;    /* Padding for some internal spacing */
+}
+
+/* CSS file */
+.form-content {
+    flex: 1;  /* Takes the remaining space when media is present */
+    padding: 10px;
+}
+
+.form-content.full-width {
+    flex: 0 0 50%;  /* Takes half of the container's width when media is absent */
+    max-width: 50%; /* Ensures it does not grow beyond 50% */
 }
 
 .form-control ul {
@@ -29,4 +39,23 @@ body {
 
 .form-control label {
   margin-left: 10px;
+}
+
+.img-responsive {
+    max-height: 50vh;
+    width: auto;
+    height: auto;
+    max-width: 100%,
+    display: block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);  /* Adds shadow for depth */
+    border-radius: 10px;  /* Rounded corners */
+}
+
+.container {
+    display: flex;        /* Enables Flexbox */
+    flex-direction: row;  /* Align children horizontally */
+    justify-content: center; /* Centers children horizontally */
+    align-items: flex-start;
+    gap: 0px;            /* Optional: adds space between the two elements */
+    width: 100%;          /* Optional: ensures the container takes full width */
 }

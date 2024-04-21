@@ -51,8 +51,20 @@
     </div>
   {% endif %}
 
-  {# Display form #}
-  <form method="POST" class="bg-light p-4 rounded">
+
+  <div class="container" style="display: flex;">
+  <!-- Media container -->
+
+
+    {% if form.meta.media %}
+      <div class="form-container">
+      {{ form.meta.media.html|safe }}
+      </div>
+    <form method="POST" class="form-content bg-light p-4 rounded">
+      {% else %}
+    <!-- Apply 'full-width' class when media is absent -->
+    <form method="POST" class="form-content bg-light p-4 rounded full-width">
+   {% endif %}
     {{ form.hidden_tag() }}
     {# Display errors if any #}
     {% if form.field.errors %}
@@ -80,5 +92,5 @@
     </div>
   </form>
 </div>
-
+</div>
 {% endblock %}

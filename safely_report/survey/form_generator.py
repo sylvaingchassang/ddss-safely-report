@@ -1,6 +1,7 @@
 from types import MappingProxyType
 from typing import Any, Callable, Optional
 
+from flask import url_for
 from flask_wtf import FlaskForm
 from wtforms import (
     DateField,
@@ -59,7 +60,8 @@ class SurveyFormGenerator:
         # Instantiate the form and add metadata
         form = SurveyElementForm()
         form.meta.update_values({"garbling_params": self._garbling_params})
-
+        form.meta.update_values({"media": self._curr_media})
+        form.meta.media = self._format_media(form.meta.media)
         return form
 
     def _make_curr_field(self) -> Field:
@@ -98,6 +100,10 @@ class SurveyFormGenerator:
     @property
     def _curr_hint(self) -> str:
         return self._processor.curr_hint
+
+    @property
+    def _curr_media(self) -> str:
+        return self._processor.curr_media
 
     @property
     def _curr_validators(self) -> list[Callable]:
@@ -144,3 +150,17 @@ class SurveyFormGenerator:
     @property
     def _garbling_params(self) -> Optional[GarblingParams]:
         return self._garbler.params.get(self._processor.curr_name)
+
+    @staticmethod
+    def _format_media(dic_media) -> dict:
+        if len(dic_media) == 0:
+            return dic_media
+        image_path = url_for("static", filename=dic_media['image'])
+        dic_media['html'] = '<img src="{}" class="img-responsive">'.format(
+            image_path)
+        print('IMG PATH', image_path)
+        return dic_media
+
+
+
+

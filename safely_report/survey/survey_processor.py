@@ -199,6 +199,10 @@ class SurveyProcessor(XLSFormFunctions):
 
         return None
 
+    @property
+    def curr_media(self) -> str:
+        return self._curr_element.media
+
     def set_enumerator_uuid(self, enumerator_uuid: str):
         """
         Identify the enumerator assisting in the current survey session.
