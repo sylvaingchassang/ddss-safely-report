@@ -151,16 +151,25 @@ class SurveyFormGenerator:
     def _garbling_params(self) -> Optional[GarblingParams]:
         return self._garbler.params.get(self._processor.curr_name)
 
-    def _format_media(self, dic_media) -> dict:
+    def _format_media(self, dic_media: dict) -> dict:
         if len(dic_media) == 0:
             return dic_media
-        if 'html' in dic_media.keys():
-            print('HTML0', dic_media['html'])
-            return dic_media
-        image_path = url_for("static", filename=dic_media['image'])
-        dic_media['html'] = '<img src="{}" class="img-responsive">'.format(
-            image_path)
+        if 'html' not in dic_media.keys():
+            dic_media['html'] = '<img src="{}" class="img-responsive">'
+        image_dic = self._media_image_dic(dic_media)
+        dic_media['html'] = dic_media['html'].format(**image_dic)
         return dic_media
+    
+    @staticmethod
+    def _media_image_dic(dic_media: dict) -> dict:
+        image_dic = {}
+        for key, value in dic_media.items():
+            if 'image' in key:
+                image_path = url_for("static", filename=dic_media[key])
+                image_dic[key] = image_path
+        return image_dic
+    
+    
 
 
 
