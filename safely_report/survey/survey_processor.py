@@ -201,7 +201,12 @@ class SurveyProcessor(XLSFormFunctions):
 
     @property
     def curr_media(self) -> str:
-        return self._curr_element.media
+        if self._curr_element.media is not None:
+            return dict([
+                (key, self._extract_text(value)) 
+                for key, value in self._curr_element.media.items()
+            ])
+        return None
 
     def set_enumerator_uuid(self, enumerator_uuid: str):
         """
@@ -386,7 +391,6 @@ class SurveyProcessor(XLSFormFunctions):
         replace = r"{self.get_value('\2')}"
         text = re.sub(match, replace, text)
         text = eval(f'f"{text}"')
-
         return text
 
     def _execute(self):

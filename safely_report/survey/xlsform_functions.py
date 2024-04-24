@@ -1,9 +1,10 @@
 from typing import Any
+import os
 
 from flask_login import current_user
 
 from safely_report.models import Respondent, Role
-
+from safely_report.settings import MEDIA_PATH
 
 class XLSFormFunctions:
     """
@@ -37,6 +38,28 @@ class XLSFormFunctions:
     @classmethod
     def _str2int(cls, value: str) -> int:
         return int(value)
+
+    @classmethod
+    def _loadtxt(cls, filename: str) -> str:
+        """
+        Load the content of a text file located in MEDIA_FOLDER.
+        
+        Parameters
+        ----------
+        filename: str
+            Name of the text file to load
+        
+        Returns
+        -------
+        str
+            Content of the text file
+        """
+        filepath = os.path.join(MEDIA_PATH, filename + ".txt")
+        print('FILE PATH', filepath)
+        with open(filepath, "r") as file:
+            return '\n'.join(file.readlines())
+        # TODO:  should raise error if file not found
+        
 
     @classmethod
     def _pulldata(cls, column: str, default: str) -> str:
