@@ -2,6 +2,7 @@ from typing import Any
 import os
 
 from flask_login import current_user
+from markupsafe import escape
 
 from safely_report.models import Respondent, Role
 from safely_report.settings import MEDIA_PATH
@@ -34,6 +35,10 @@ class XLSFormFunctions:
             return choice_array[index]
         except IndexError:
             return ""
+
+    @classmethod
+    def _escape(cls, value: str) -> str:
+        return escape(value)
 
     @classmethod
     def _str2int(cls, value: str) -> int:

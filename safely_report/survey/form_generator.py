@@ -1,5 +1,6 @@
 from types import MappingProxyType
 from typing import Any, Callable, Optional
+from markupsafe import escape
 
 from flask import url_for
 from flask_wtf import FlaskForm
@@ -95,7 +96,7 @@ class SurveyFormGenerator:
 
     @property
     def _curr_label(self) -> str:
-        return self._processor.curr_label
+        return escape(self._processor.curr_label)
 
     @property
     def _curr_hint(self) -> str:

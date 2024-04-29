@@ -77,7 +77,7 @@
     {% endif %}
     {# Display form content #}
     <div class="mb-3">
-      {{ form.field.label(class="form-label") }}
+      {{ form.field.label(class="form-label")|safe }}
       {% if form.field.description %}
         <small class="text-muted">{{ form.field.description }}</small>
       {% endif %}
