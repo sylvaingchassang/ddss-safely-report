@@ -1,5 +1,6 @@
 from typing import Any
 import os
+import importlib.util
 
 from flask_login import current_user
 from markupsafe import escape
@@ -94,3 +95,40 @@ class XLSFormFunctions:
             return getattr(respondent, column)
         else:
             return default
+        
+        
+    @classmethod
+    def _pycallmain(cls, modulename: str, *args: Any) -> Any:
+        """
+        Call a Python function by name.
+
+        Parameters
+        ----------
+        function: str
+            Name of the function to call
+        args: Any
+            Arguments to pass to the function
+
+        Returns
+        -------
+        Any
+            Return value of the function
+        """
+        
+        # get function file from MEDIA_PATH
+        module_file = os.path.join(MEDIA_PATH, modulename + '.py')
+        print('MODULE FILE', module_file)
+        
+        # Create a module specification and load the module
+        spec = importlib.util.spec_from_file_location(
+            modulename.split('.')[0], module_file)
+        print('SPEC', spec)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        # Get the function from the module
+        func = getattr(module, 'main')
+
+        # Call the function with the provided arguments
+        return func(*args)
+        

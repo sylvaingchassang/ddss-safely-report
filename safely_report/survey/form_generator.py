@@ -167,6 +167,7 @@ class SurveyFormGenerator:
         for key, value in dic_media.items():
             if 'image' in key:
                 image_path = url_for("static", filename=dic_media[key])
+                print('IMAGE PATH', image_path)
                 image_dic[key] = image_path
         return image_dic
     
