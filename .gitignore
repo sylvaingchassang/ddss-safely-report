@@ -4,9 +4,6 @@
 # PyCharm
 .idea
 
-# Static files
-*static/photos/*
-
 # Flask
 instance/
 .flask_sessions/
@@ -39,3 +36,5 @@ __pycache__/
 
 # Temporary files
 ~$*
+
+safely_report/static/photos/
