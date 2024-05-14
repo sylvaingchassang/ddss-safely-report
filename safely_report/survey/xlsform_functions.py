@@ -1,12 +1,14 @@
 from typing import Any
 import os
 import importlib.util
+import random
 
 from flask_login import current_user
 from markupsafe import escape
 
 from safely_report.models import Respondent, Role
 from safely_report.settings import MEDIA_PATH
+
 
 class XLSFormFunctions:
     """
@@ -98,13 +100,15 @@ class XLSFormFunctions:
         
         
     @classmethod
-    def _pycallmain(cls, modulename: str, *args: Any) -> Any:
+    def _pycall(cls, modulename: str, funcname: str, *args: Any) -> Any:
         """
         Call a Python function by name.
 
         Parameters
         ----------
-        function: str
+        modulename: str
+            Name of the module containing the function
+        funcname: str
             Name of the function to call
         args: Any
             Arguments to pass to the function
@@ -117,7 +121,6 @@ class XLSFormFunctions:
         
         # get function file from MEDIA_PATH
         module_file = os.path.join(MEDIA_PATH, modulename + '.py')
-        print('MODULE FILE', module_file)
         
         # Create a module specification and load the module
         spec = importlib.util.spec_from_file_location(
@@ -127,8 +130,27 @@ class XLSFormFunctions:
         spec.loader.exec_module(module)
 
         # Get the function from the module
-        func = getattr(module, 'main')
+        func = getattr(module, funcname)
 
         # Call the function with the provided arguments
         return func(*args)
+    
         
+    @classmethod
+    def _randint(cls, low: int, high: int) -> int:
+        """
+        Generate a random integer between low and high (inclusive).
+
+        Parameters
+        ----------
+        low: int
+            Lower bound of the random integer
+        high: int
+            Upper bound of the random integer
+
+        Returns
+        -------
+        int
+            Random integer between low and high
+        """
+        return random.randint(low, high)
