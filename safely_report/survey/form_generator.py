@@ -1,6 +1,6 @@
 from types import MappingProxyType
 from typing import Any, Callable, Optional
-from markupsafe import escape
+from markupsafe import Markup, escape
 
 from flask import url_for
 from flask_wtf import FlaskForm
@@ -96,7 +96,7 @@ class SurveyFormGenerator:
 
     @property
     def _curr_label(self) -> str:
-        return escape(self._processor.curr_label)
+        return Markup(self._processor.curr_label)
 
     @property
     def _curr_hint(self) -> str:
@@ -167,7 +167,6 @@ class SurveyFormGenerator:
         for key, value in dic_media.items():
             if 'image' in key:
                 image_path = url_for("static", filename=dic_media[key])
-                print('IMAGE PATH', image_path)
                 image_dic[key] = image_path
         return image_dic
     
